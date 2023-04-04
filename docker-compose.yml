@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  webserver:
+    build: ./app
+    restart: on-failure
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+  backend:
+    build: ./backend
+    restart: on-failure
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend-data:/backend
+
+  db:
+    image: postgres:15.2-alpine3.17
+    restart: on-failure
+    env_file:
+      - ./database/config.env
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+
+volumes:
+  backend-data:
+  db:
+    driver: local
