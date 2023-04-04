@@ -16,8 +16,6 @@ services:
       - db
     ports:
       - "8080:8080"
-    volumes:
-      - backend-data:/backend
 
   db:
     image: postgres:15.2-alpine3.17
@@ -26,10 +24,3 @@ services:
       - ./database/config.env
     ports:
       - '5432:5432'
-    volumes:
-      - db:/var/lib/postgresql/data
-
-volumes:
-  backend-data:
-  db:
-    driver: local
