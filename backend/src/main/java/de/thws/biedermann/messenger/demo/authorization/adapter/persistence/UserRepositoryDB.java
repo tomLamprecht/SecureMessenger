@@ -1,6 +1,6 @@
-package de.thws.biedermann.messenger.demo.authorization.adapter;
+package de.thws.biedermann.messenger.demo.authorization.adapter.persistence;
 
-import de.thws.biedermann.messenger.demo.authorization.logic.UserRepository;
+import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 import org.springframework.stereotype.Component;
 

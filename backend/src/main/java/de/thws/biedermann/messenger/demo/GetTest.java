@@ -1,6 +1,6 @@
 package de.thws.biedermann.messenger.demo;
 
-import de.thws.biedermann.messenger.demo.authorization.adapter.CurrentUser;
+import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

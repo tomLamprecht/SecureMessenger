@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.authorization.adapter;
+package de.thws.biedermann.messenger.demo.authorization.adapter.rest;
 
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 import org.springframework.context.annotation.Scope;

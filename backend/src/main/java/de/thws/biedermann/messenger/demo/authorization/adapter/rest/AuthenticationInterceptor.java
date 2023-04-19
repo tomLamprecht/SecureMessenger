@@ -1,8 +1,7 @@
-package de.thws.biedermann.messenger.demo.authorization.adapter;
+package de.thws.biedermann.messenger.demo.authorization.adapter.rest;
 
-import de.thws.biedermann.messenger.demo.authorization.application.AuthorizeUserByPublicKey;
-import de.thws.biedermann.messenger.demo.authorization.logic.UserRepository;
-import de.thws.biedermann.messenger.demo.authorization.model.NotAuthorizedException;
+import de.thws.biedermann.messenger.demo.authorization.logic.UserAuthenticationByPublicKey;
+import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,15 +14,15 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.Optional;
 
 @Component
-public class AuthorizationInterceptor implements HandlerInterceptor {
+public class AuthenticationInterceptor implements HandlerInterceptor {
 
-    private final Logger logger = LoggerFactory.getLogger( AuthorizationInterceptor.class );
+    private final Logger logger = LoggerFactory.getLogger( AuthenticationInterceptor.class );
 
     private final UserRepository userRepository;
     private final CurrentUser currentUser;
 
     @Autowired
-    public AuthorizationInterceptor( UserRepository userRepository, CurrentUser currentUser ) {
+    public AuthenticationInterceptor( UserRepository userRepository, CurrentUser currentUser ) {
         this.userRepository = userRepository;
         this.currentUser = currentUser;
     }
@@ -45,7 +44,7 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
         logger.info( "Authorization: " + authorizationHeaderString );
         logger.info( "public-key: " + publicKey );
 
-        Optional<User> optionalUser = new AuthorizeUserByPublicKey( userRepository ).getAuthorizedUser( authorizationHeaderString, request.getContextPath( ), publicKey );
+        Optional<User> optionalUser = new UserAuthenticationByPublicKey( userRepository ).getAuthorizedUser( authorizationHeaderString, request.getContextPath( ), publicKey );
 
         if ( optionalUser.isEmpty( ) ) {
             logger.info( "Request unauthorized" );

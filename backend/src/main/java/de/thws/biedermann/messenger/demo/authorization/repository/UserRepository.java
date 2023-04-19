@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.authorization.logic;
+package de.thws.biedermann.messenger.demo.authorization.repository;
 
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 

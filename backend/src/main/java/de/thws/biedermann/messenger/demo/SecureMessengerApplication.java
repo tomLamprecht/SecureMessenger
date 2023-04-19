@@ -1,9 +1,9 @@
 package de.thws.biedermann.messenger.demo;
 
-import de.thws.biedermann.messenger.demo.authorization.adapter.AuthorizationInterceptor;
-import de.thws.biedermann.messenger.demo.authorization.adapter.CurrentUser;
-import de.thws.biedermann.messenger.demo.authorization.adapter.UserRepositoryDB;
-import de.thws.biedermann.messenger.demo.authorization.logic.UserRepository;
+import de.thws.biedermann.messenger.demo.authorization.adapter.rest.AuthenticationInterceptor;
+import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
+import de.thws.biedermann.messenger.demo.authorization.adapter.persistence.UserRepositoryDB;
+import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -24,8 +24,8 @@ public class SecureMessengerApplication implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public AuthorizationInterceptor authorizationInterceptor() {
-		return new AuthorizationInterceptor( userRepository(), currentUser() );
+	public AuthenticationInterceptor authorizationInterceptor() {
+		return new AuthenticationInterceptor( userRepository(), currentUser() );
 	}
 
 	@Override
