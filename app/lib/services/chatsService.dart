@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 import '../models/Chat.dart';
-import 'api_config.dart';
+import 'api/api_config.dart';
 
 class ChatsService {
   Future<int?> createChat(String targetUserName) async {

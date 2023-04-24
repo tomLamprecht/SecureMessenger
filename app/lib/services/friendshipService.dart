@@ -3,7 +3,7 @@ import 'dart:developer';
 
 import 'package:my_flutter_test/models/friendship.dart';
 import 'package:http/http.dart' as http;
-import 'api_config.dart';
+import 'api/api_config.dart';
 
 class FriendshipServcie {
   Future<List<Friendship>?> getFriendshipRequests() async {

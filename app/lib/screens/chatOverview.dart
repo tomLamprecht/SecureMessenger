@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/screens/Chat.dart';
+import 'package:my_flutter_test/models/Chat.dart';
+import 'package:my_flutter_test/screens/chat_screen.dart';
 import 'package:my_flutter_test/services/chatsService.dart';
 import 'package:my_flutter_test/widgets/createChat.dart';
-
-import '../models/Chat.dart';
-
 
 
 class ChatOverviewPage extends StatefulWidget {
@@ -36,7 +34,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             onPressed: () async {
               String? result = await showSearch<String>(
                 context: context,
-                delegate: ChatSearch(chats: getChatNames()),
+                delegate: ChatSearch(chats: chats!),
               );
 
               if (result != null) {
@@ -87,7 +85,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ChatWidget(), // ToDo: wie weis die Klasse, welchen Chat wir brauchen?
+                      builder: (context) => ChatScreen(chatTitle: chat.name, chatId: chat.id),
                     ),
                   );
                 },
@@ -118,7 +116,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
 
 
 class ChatSearch extends SearchDelegate<String> {
-  final List<String> chats;
+  final List<Chat> chats;
 
   ChatSearch({required this.chats});
 
@@ -158,17 +156,16 @@ class ChatSearch extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final List<String> suggestions = query.isEmpty
+    final List<Chat> suggestions = query.isEmpty
         ? chats
-        : chats
-        .where((chat) => chat.toLowerCase().contains(query.toLowerCase()))
+        : chats.where((chat) => chat.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
 
     return ListView.builder(
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
-        String chat = suggestions[index];
-        int startIndex = chat.toLowerCase().indexOf(query.toLowerCase());
+        Chat chat = suggestions[index];
+        int startIndex = chat.name.toLowerCase().indexOf(query.toLowerCase());
 
         return ListTile(
           leading: Icon(Icons.chat),
@@ -176,29 +173,29 @@ class ChatSearch extends SearchDelegate<String> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: chat.substring(0, startIndex),
+                  text: chat.name.substring(0, startIndex),
                   style: TextStyle(color: Colors.grey),
                 ),
                 TextSpan(
-                  text: chat.substring(startIndex, startIndex + query.length),
+                  text: chat.name.substring(startIndex, startIndex + query.length),
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 TextSpan(
-                  text: chat.substring(startIndex + query.length),
+                  text: chat.name.substring(startIndex + query.length),
                   style: TextStyle(color: Colors.grey),
                 ),
               ],
             ),
           ),
           onTap: () {
-            close(context, chat);
+            close(context, chat.name);
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ChatWidget(),
+                builder: (context) => ChatScreen(chatTitle: chat.name, chatId: chat.id),
               ),
             );
 

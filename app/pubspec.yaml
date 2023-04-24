@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   http: ^0.13.3
   provider: ^6.0.1
+  pointycastle: ^3.3.2
   encrypt: ^5.0.1
   universal_html: ^2.0.8
 
