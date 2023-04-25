@@ -10,4 +10,5 @@ class SecureMessengerApplicationTests {
 	void contextLoads() {
 	}
 
+
 }

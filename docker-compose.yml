@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   webserver:
+    container_name: webapp-server
     build: ./app
     restart: on-failure
     depends_on:
@@ -10,12 +11,17 @@ services:
       - "80:80"
 
   backend:
-    build: ./backend
+    container_name: spring-server
+    build: backend
     restart: on-failure
     depends_on:
       - db
     ports:
       - "8080:8080"
+    volumes:
+      - ./backend:/backend
+    networks:
+      - spring-cloud-network
 
   db:
     image: postgres:15.2-alpine3.17
@@ -24,3 +30,7 @@ services:
       - ./database/config.env
     ports:
       - '5432:5432'
+
+networks:
+  spring-cloud-network:
+    driver: bridge
