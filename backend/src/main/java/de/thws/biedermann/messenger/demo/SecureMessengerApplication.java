@@ -20,13 +20,8 @@ public class SecureMessengerApplication implements WebMvcConfigurer {
     }
 
     @Bean
-    public CurrentUser currentUser() {
-        return new CurrentUser();
-    }
-
-    @Bean
     public AuthenticationInterceptor authorizationInterceptor() {
-        return new AuthenticationInterceptor( userRepository(), currentUser() );
+        return new AuthenticationInterceptor( userRepository(), new CurrentUser() );
     }
 
     @Bean
