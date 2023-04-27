@@ -1,5 +1,6 @@
-package de.thws.biedermann.messenger.demo.captcha.database;
+package de.thws.biedermann.messenger.demo.captcha.application.persistence;
 
+import de.thws.biedermann.messenger.demo.captcha.repository.ICaptchaDatabaseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,14 +10,14 @@ import java.io.*;
 import java.sql.*;
 import java.util.concurrent.CompletableFuture;
 
-public class CaptchaDatabaseHandler {
+public class CaptchaDatabaseHandler implements ICaptchaDatabaseHandler {
     private static final String url = "jdbc:postgresql://localhost:5432/mydatabase";
     private static final String user = "postgres";
     private static final String password = "mysecretpassword";
 
     private static final Logger logger = LoggerFactory.getLogger(CaptchaDatabaseHandler.class);
 
-    public static CompletableFuture<Void> storeCaptcha(String id, BufferedImage image, String text ){
+    public CompletableFuture<Void> storeCaptcha(String id, BufferedImage image, String text ) {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
@@ -42,7 +43,7 @@ public class CaptchaDatabaseHandler {
         });
     }
 
-    public static CompletableFuture<BufferedImage> loadCaptchaImageById(String id) {
+    public CompletableFuture<BufferedImage> loadCaptchaImageById(String id) {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
@@ -75,7 +76,7 @@ public class CaptchaDatabaseHandler {
         });
     }
 
-    public static CompletableFuture<String> loadCaptchaTextById( String id ) {
+    public CompletableFuture<String> loadCaptchaTextById( String id ) {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
@@ -99,7 +100,7 @@ public class CaptchaDatabaseHandler {
         });
     }
 
-    public static CompletableFuture<Void> deleteCaptchaById( String id ) {
+    public CompletableFuture<Void> deleteCaptchaById( String id ) {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {

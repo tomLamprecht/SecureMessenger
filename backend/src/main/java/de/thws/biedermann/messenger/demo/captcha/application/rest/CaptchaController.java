@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.captcha.controller;
+package de.thws.biedermann.messenger.demo.captcha.application.rest;
 
 import de.thws.biedermann.messenger.demo.captcha.logic.CaptchaGenerator;
 import de.thws.biedermann.messenger.demo.captcha.logic.CaptchaSelector;

@@ -1,6 +1,7 @@
 package de.thws.biedermann.messenger.demo.captcha.logic;
 
-import de.thws.biedermann.messenger.demo.captcha.database.CaptchaDatabaseHandler;
+import de.thws.biedermann.messenger.demo.captcha.application.persistence.CaptchaDatabaseHandler;
+import de.thws.biedermann.messenger.demo.captcha.repository.ICaptchaDatabaseHandler;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.imageio.ImageIO;
@@ -11,7 +12,9 @@ import java.util.concurrent.ExecutionException;
 public class CaptchaSelector {
 
     public static StreamingResponseBody loadCaptchaImageById(String id) throws ExecutionException, InterruptedException {
-        BufferedImage image = CaptchaDatabaseHandler.loadCaptchaImageById(id).get();
+        ICaptchaDatabaseHandler captchaDatabaseHandler = new CaptchaDatabaseHandler();
+
+        BufferedImage image = captchaDatabaseHandler.loadCaptchaImageById(id).get();
         return outputStream -> {
             try {
                 ImageIO.write(image, "png", outputStream);

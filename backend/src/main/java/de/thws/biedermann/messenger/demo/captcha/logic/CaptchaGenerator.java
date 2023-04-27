@@ -1,7 +1,8 @@
 package de.thws.biedermann.messenger.demo.captcha.logic;
 
-import de.thws.biedermann.messenger.demo.captcha.database.CaptchaDatabaseHandler;
+import de.thws.biedermann.messenger.demo.captcha.application.persistence.CaptchaDatabaseHandler;
 import de.thws.biedermann.messenger.demo.captcha.models.Line;
+import de.thws.biedermann.messenger.demo.captcha.repository.ICaptchaDatabaseHandler;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -19,10 +20,12 @@ public class CaptchaGenerator {
 
 
     public static String createNewCaptchaImage() throws ExecutionException, InterruptedException {
+        ICaptchaDatabaseHandler captchaDatabaseHandler = new CaptchaDatabaseHandler();
+
         String captchaText = getNewCaptchaText();
         BufferedImage captchaImage = createCaptchaImageByText(captchaText);
         String id = UUID.randomUUID().toString();
-        CaptchaDatabaseHandler.storeCaptcha(id, captchaImage, captchaText).get();
+        captchaDatabaseHandler.storeCaptcha(id, captchaImage, captchaText).get();
 
         return id;
     }
