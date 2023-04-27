@@ -17,7 +17,7 @@ public class CaptchaDatabaseHandler implements ICaptchaDatabaseHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(CaptchaDatabaseHandler.class);
 
-    public CompletableFuture<Void> storeCaptcha(String id, BufferedImage image, String text ) {
+    public CompletableFuture<Void> storeCaptcha( final String id, final BufferedImage image, final String text ) {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
@@ -27,8 +27,8 @@ public class CaptchaDatabaseHandler implements ICaptchaDatabaseHandler {
             try (Connection conn = DriverManager.getConnection(url, user, password);
                  ByteArrayOutputStream os = new ByteArrayOutputStream()) {
                 ImageIO.write(image, "png", os);
-                InputStream is = new ByteArrayInputStream(os.toByteArray());
-                PreparedStatement statement = conn.prepareStatement("INSERT INTO captcha (id, content, text) VALUES (?, ?, ?)");
+                final InputStream is = new ByteArrayInputStream(os.toByteArray());
+                final PreparedStatement statement = conn.prepareStatement("INSERT INTO captcha (id, content, text) VALUES (?, ?, ?)");
                 statement.setString(1, id);
                 statement.setBinaryStream(2, is);
                 statement.setString(3, text);

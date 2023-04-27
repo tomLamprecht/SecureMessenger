@@ -20,17 +20,17 @@ public class CaptchaGenerator {
 
 
     public static String createNewCaptchaImage() throws ExecutionException, InterruptedException {
-        ICaptchaDatabaseHandler captchaDatabaseHandler = new CaptchaDatabaseHandler();
+        final ICaptchaDatabaseHandler captchaDatabaseHandler = new CaptchaDatabaseHandler();
 
-        String captchaText = getNewCaptchaText();
-        BufferedImage captchaImage = createCaptchaImageByText(captchaText);
-        String id = UUID.randomUUID().toString();
+        final String captchaText = getNewCaptchaText();
+        final BufferedImage captchaImage = createCaptchaImageByText(captchaText);
+        final String id = UUID.randomUUID().toString();
         captchaDatabaseHandler.storeCaptcha(id, captchaImage, captchaText).get();
 
         return id;
     }
 
-    public static BufferedImage createCaptchaImageByText(String text) {
+    public static BufferedImage createCaptchaImageByText(final String text) {
         final BufferedImage captchaImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         final Graphics2D graphics2D = captchaImage.createGraphics();
 
@@ -43,21 +43,21 @@ public class CaptchaGenerator {
 
         // write text
         for (int i = 0; i < text.length(); i++) {
-            int x = 15 + i * 25 + SECURE_RANDOM.nextInt(16) - 8;
-            int y = 35 + SECURE_RANDOM.nextInt(16) - 8;
+            final int x = 15 + i * 25 + SECURE_RANDOM.nextInt(16) - 8;
+            final int y = 35 + SECURE_RANDOM.nextInt(16) - 8;
             graphics2D.drawString(String.valueOf(text.charAt(i)), x, y);
         }
 
-        ArrayList<Line> lines = new ArrayList<>(2);
+        final ArrayList<Line> lines = new ArrayList<>(2);
 
         // draw lines
         while( lines.size() < 2 ) {
-            int x1 = SECURE_RANDOM.nextInt(60) + 15;
-            int y1 = SECURE_RANDOM.nextInt(HEIGHT - 25) + 10;
-            int x2 = SECURE_RANDOM.nextInt(40) + 150;
-            int y2 = SECURE_RANDOM.nextInt(HEIGHT - 20) + 10;
+            final int x1 = SECURE_RANDOM.nextInt(60) + 15;
+            final int y1 = SECURE_RANDOM.nextInt(HEIGHT - 25) + 10;
+            final int x2 = SECURE_RANDOM.nextInt(40) + 150;
+            final int y2 = SECURE_RANDOM.nextInt(HEIGHT - 20) + 10;
 
-            Line newLine = new Line(x1, y1, x2, y2);
+            final Line newLine = new Line(x1, y1, x2, y2);
 
             if (lines.stream().anyMatch(l -> Math.abs(l.y1() - y1) < 10 || Math.abs(l.y2() - y2) < 10)) {
                 continue;
@@ -70,8 +70,8 @@ public class CaptchaGenerator {
         return captchaImage;
     }
 
-    public static String getNewCaptchaText(){
-        StringBuilder stringBuilder = new StringBuilder(CAPTCHA_LENGTH);
+    public static String getNewCaptchaText() {
+        final StringBuilder stringBuilder = new StringBuilder(CAPTCHA_LENGTH);
         for (int i = 0; i < CAPTCHA_LENGTH; i++) {
             stringBuilder.append(CHARACTERS.charAt(SECURE_RANDOM.nextInt(CHARACTERS.length())));
         }
