@@ -1,9 +1,8 @@
 package de.thws.biedermann.messenger.demo.authorization.model;
 
-import de.thws.biedermann.time.TimeSegment;
+import de.thws.biedermann.messenger.demo.shared.model.TimeSegment;
 
 import java.time.Duration;
-import java.time.Instant;
 
 /**
  * This class can be used to determine if two timestamps habe a longer

@@ -4,7 +4,7 @@ import de.thws.biedermann.messenger.demo.authorization.model.MaxTimeDifference;
 import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
 import de.thws.biedermann.messenger.demo.authorization.model.AuthorizationData;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
-import de.thws.biedermann.time.TimeSegment;
+import de.thws.biedermann.messenger.demo.shared.model.TimeSegment;
 
 import java.time.Instant;
 import java.time.format.DateTimeParseException;

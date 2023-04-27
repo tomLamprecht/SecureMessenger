@@ -2,7 +2,7 @@ package de.thws.biedermann.messenger.demo.authorization.adapter.persistence;
 
 import de.thws.biedermann.messenger.demo.chat.model.Message;
 import de.thws.biedermann.messenger.demo.chat.repository.MessageRepository;
-import de.thws.biedermann.time.TimeSegment;
+import de.thws.biedermann.messenger.demo.shared.model.TimeSegment;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,12 +21,12 @@ public class MessageRepositoryDB implements MessageRepository {
     }
 
     @Override
-    public void deleteMessage( long messageId ) {
-
+    public boolean deleteMessage( long messageId ) {
+        return false;
     }
 
     @Override
-    public long writeMessage( Message message ) {
-        return 0;
+    public Optional<Message> writeMessage( Message message ) {
+        return Optional.empty();
     }
 }

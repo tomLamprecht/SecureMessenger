@@ -1,4 +1,4 @@
-package de.thws.biedermann.time;
+package de.thws.biedermann.messenger.demo.shared.model;
 
 import java.time.Instant;
 

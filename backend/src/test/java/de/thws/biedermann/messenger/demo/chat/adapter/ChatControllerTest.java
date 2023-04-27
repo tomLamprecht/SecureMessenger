@@ -3,6 +3,8 @@ package de.thws.biedermann.messenger.demo.chat.adapter;
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 import de.thws.biedermann.messenger.demo.chat.model.Message;
+import de.thws.biedermann.messenger.demo.chat.repository.FriendshipRepository;
+import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 class ChatControllerTest {
 
@@ -21,22 +24,26 @@ class ChatControllerTest {
     private static final long USER_ID = 1;
 
     private ChatController chatController;
-    private ChatToUserTestRepository chatToUserTestRepository;
-    private MessageTestRepository messageTestRepository;
+    private ChatToUserTestStub chatToUserTestStub;
+    private MessageTestStub messageTestStub;
     private Message testMessage;
     private long testMessageId;
 
 
     @BeforeEach
     void resetDatabase() {
-        chatToUserTestRepository = new ChatToUserTestRepository();
-        messageTestRepository = new MessageTestRepository();
+        chatToUserTestStub = new ChatToUserTestStub();
+        messageTestStub = new MessageTestStub();
         CurrentUser currentUser = new CurrentUser();
         currentUser.setUser( new User( USER_ID, "MAX MUSTERMANN" ) );
-        chatController = new ChatController( currentUser, chatToUserTestRepository, messageTestRepository, new ChatSubscriptionPublisher() );
+
+        FriendshipRepository friendshipRepositoryMock = mock( FriendshipRepository.class );
+        InstantNowRepository instantNowRepositoryMock = mock( InstantNowRepository.class );
+
+        chatController = new ChatController( currentUser, chatToUserTestStub, messageTestStub, friendshipRepositoryMock, instantNowRepositoryMock, new ChatSubscriptionPublisher() );
 
         testMessage = new Message( -1, USER_ID, CHAT_ID, "THIS IS A TEST MESSAGE", Instant.now() );
-        testMessageId = messageTestRepository.writeMessage( testMessage );
+        testMessageId = messageTestStub.writeMessage( testMessage ).orElseThrow().id();
     }
 
     @Test
@@ -50,7 +57,7 @@ class ChatControllerTest {
     void deleteMessage() {
         chatController.deleteMessage( testMessageId );
 
-        assertTrue( messageTestRepository.getMessage( testMessageId ).isEmpty() );
+        assertTrue( messageTestStub.getMessage( testMessageId ).isEmpty() );
     }
 
     @Test
@@ -59,7 +66,7 @@ class ChatControllerTest {
 
         chatController.postMessage( CHAT_ID, new Message( -1, USER_ID, CHAT_ID, messageValue, Instant.now() ) );
 
-        List<Message> allMessagesOfChat = messageTestRepository.messagesOfChatBetween( CHAT_ID, null );
+        List<Message> allMessagesOfChat = messageTestStub.messagesOfChatBetween( CHAT_ID, null );
 
         assertTrue( allMessagesOfChat.stream().map( Message::value ).toList().contains( messageValue ) );
     }

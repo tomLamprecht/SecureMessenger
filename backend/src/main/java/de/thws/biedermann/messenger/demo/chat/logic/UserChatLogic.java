@@ -1,10 +1,14 @@
 package de.thws.biedermann.messenger.demo.chat.logic;
 
 import de.thws.biedermann.messenger.demo.authorization.model.User;
+import de.thws.biedermann.messenger.demo.chat.model.ChatToUser;
+import de.thws.biedermann.messenger.demo.chat.model.Friendship;
 import de.thws.biedermann.messenger.demo.chat.model.Message;
 import de.thws.biedermann.messenger.demo.chat.repository.ChatToUserRepository;
+import de.thws.biedermann.messenger.demo.chat.repository.FriendshipRepository;
 import de.thws.biedermann.messenger.demo.chat.repository.MessageRepository;
-import de.thws.biedermann.time.TimeSegment;
+import de.thws.biedermann.messenger.demo.shared.model.TimeSegment;
+import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -15,10 +19,14 @@ public class UserChatLogic {
 
     private final ChatToUserRepository chatToUserRepository;
     private final MessageRepository messageRepository;
+    private final FriendshipRepository friendshipRepository;
+    private final InstantNowRepository instantNowRepository;
 
-    public UserChatLogic( ChatToUserRepository chatToUserRepository, MessageRepository messageRepository ) {
+    public UserChatLogic( ChatToUserRepository chatToUserRepository, MessageRepository messageRepository, FriendshipRepository friendshipRepository, InstantNowRepository instantNowRepository ) {
         this.chatToUserRepository = chatToUserRepository;
         this.messageRepository = messageRepository;
+        this.friendshipRepository = friendshipRepository;
+        this.instantNowRepository = instantNowRepository;
     }
 
     /**
@@ -69,7 +77,7 @@ public class UserChatLogic {
      */
     public boolean writeNewMessageToChat( User user, long chatId, Message message ) {
         Optional<Instant> latestAccessTime = getLatestAccessTimeOfUser( user, chatId );
-        if ( latestAccessTime.isEmpty() || latestAccessTime.get().isBefore( Instant.now() ) )
+        if ( latestAccessTime.isEmpty() || latestAccessTime.get().isBefore( instantNowRepository.get() ) )
             return false;
 
         messageRepository.writeMessage( message );
@@ -84,4 +92,21 @@ public class UserChatLogic {
     }
 
 
+    public boolean userCanCreateChatWithOtherUser( long user, long invitedUser ) {
+        return friendshipRepository.readFriendship(user, invitedUser).map( Friendship::accepted ).orElse( false );
+    }
+
+    public Optional<ChatToUser> createChatToUserAndReturnResult( ChatToUser chatToUser ) {
+        ChatToUser insert = new ChatToUser(
+                0,
+                chatToUser.userId(),
+                chatToUser.chatId(),
+                chatToUser.key(),
+                chatToUser.isAdmin(),
+                instantNowRepository.get(),
+                null
+        );
+
+        return chatToUserRepository.createChatToUser( insert );
+    }
 }
