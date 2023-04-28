@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -19,16 +20,23 @@ import java.util.concurrent.ExecutionException;
 public class RegistrationController {
 
     @PostMapping
-    public ResponseEntity<Integer> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
+    public ResponseEntity<Long> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
         final CaptchaValidator captchaValidator = new CaptchaValidator();
 
         if ( !captchaValidator.isCaptchaValid( userPayload.captchaTry( ) ) ) {
             return ResponseEntity.badRequest().body( null );
         }
         final RegisterUser registerUser = new RegisterUser( );
-        return ResponseEntity
-                .created( new URI( request.getRequestURI( ) ) )
-                .body( registerUser.registerUser( userPayload ).get() );
+
+        Optional<Long> result = registerUser.registerUser( userPayload );
+
+        if ( result.isPresent() ) {
+            return ResponseEntity
+                    .created( new URI( request.getRequestURI( ) ) )
+                    .body( result.get() );
+        }
+
+        return ResponseEntity.internalServerError().body( null );
     }
 
 }

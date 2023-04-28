@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class RegistrationDbHandler implements IRegistrationDbHandler {
@@ -13,6 +14,24 @@ public class RegistrationDbHandler implements IRegistrationDbHandler {
     private static final String password = "mysecretpassword";
 
     private static final Logger logger = LoggerFactory.getLogger(RegistrationDbHandler.class);
+
+    public CompletableFuture<Optional<Long>> createUser( String username, String publicKey ) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection conn = DriverManager.getConnection(url, user, password)) {
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO user (userName, publicKey) VALUES (?, ?) RETURNING id;");
+                statement.setString(1, username);
+                statement.setString(2, publicKey);
+                ResultSet result = statement.executeQuery();
+                if (result.next()){
+                    return Optional.of(result.getLong("id"));
+                }
+                return Optional.empty();
+            } catch (SQLException e) {
+                logger.info("Error while creating new user", e);
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     public CompletableFuture<String> loadCaptchaTextById( String id ) {
         return CompletableFuture.supplyAsync(() -> {

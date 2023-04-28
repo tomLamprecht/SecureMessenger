@@ -4,7 +4,9 @@ import de.thws.biedermann.messenger.demo.register.adapter.persistence.Registrati
 import de.thws.biedermann.messenger.demo.register.model.UserPayload;
 import de.thws.biedermann.messenger.demo.register.repository.IRegistrationDbHandler;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class RegisterUser {
     final IRegistrationDbHandler registrationDbHandler;
@@ -13,7 +15,7 @@ public class RegisterUser {
         this.registrationDbHandler = new RegistrationDbHandler();
     }
 
-    public CompletableFuture<Integer> registerUser ( final UserPayload userPayload ) {
-        return CompletableFuture.completedFuture(1);
+    public Optional<Long> registerUser ( final UserPayload userPayload ) throws ExecutionException, InterruptedException {
+         return registrationDbHandler.createUser( userPayload.userName(), userPayload.publicKey() ).get();
     }
 }
