@@ -6,6 +6,5 @@ import java.util.Optional;
 
 public interface FriendshipRepository {
 
-    Optional<Friendship> readFriendship( long fromUserId, long toUserId );
-
+    Optional<Friendship> readFriendship(long fromUserId, long toUserId );
 }

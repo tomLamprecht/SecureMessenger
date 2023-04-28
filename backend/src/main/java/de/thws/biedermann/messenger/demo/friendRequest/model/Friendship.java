@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.model;
+package de.thws.biedermann.messenger.demo.friendRequest.model;
 
 public record Friendship(long fromUserId, long toUserId, boolean accepted) {
 

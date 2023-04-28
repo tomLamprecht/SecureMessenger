@@ -3,6 +3,7 @@ package de.thws.biedermann.messenger.demo.chat;
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 import de.thws.biedermann.messenger.demo.chat.model.Message;
+
 import de.thws.biedermann.messenger.demo.chat.repository.FriendshipRepository;
 import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import org.junit.jupiter.api.BeforeEach;
