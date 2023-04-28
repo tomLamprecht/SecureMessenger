@@ -1,8 +1,10 @@
 package de.thws.biedermann.messenger.demo.authorization.adapter.rest;
 
 import de.thws.biedermann.messenger.demo.authorization.logic.UserAuthenticationByPublicKey;
-import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
+import de.thws.biedermann.messenger.demo.authorization.model.AuthorizationData;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
+import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
+import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -16,15 +18,35 @@ import java.util.Optional;
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
-    private final Logger logger = LoggerFactory.getLogger( AuthenticationInterceptor.class );
+    private static final String AUTH_HEADER_SPLITTER = "#";
 
+    private final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
     private final UserRepository userRepository;
-    private final CurrentUser currentUser;
+    private final InstantNowRepository instantNowRepository;
 
     @Autowired
-    public AuthenticationInterceptor( UserRepository userRepository, CurrentUser currentUser ) {
+    private CurrentUser currentUser;
+
+    @Autowired
+    public AuthenticationInterceptor(UserRepository userRepository, InstantNowRepository instantNowRepository) {
         this.userRepository = userRepository;
+        this.instantNowRepository = instantNowRepository;
+    }
+
+    public AuthenticationInterceptor(CurrentUser currentUser, UserRepository userRepository, InstantNowRepository instantNowRepository) {
         this.currentUser = currentUser;
+        this.userRepository = userRepository;
+        this.instantNowRepository = instantNowRepository;
+    }
+
+    private static Optional<AuthorizationData> dataOf(String authorizationHeaderString) {
+
+        String[] parts = authorizationHeaderString.split(AUTH_HEADER_SPLITTER);
+        if (parts.length != 3) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new AuthorizationData(parts[0], parts[1], parts[2]));
     }
 
     /**
@@ -35,27 +57,41 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
      * The public key must be sent in the "x-public-key" header to identify the user.
      */
     @Override
-    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler ) throws Exception {
-        logger.info( "Intercepted " + request.getRequestURI( ) );
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        logger.info("Intercepted " + request.getRequestURI());
 
-        String authorizationHeaderString = request.getHeader( "Authorization" );
-        String publicKey = request.getHeader( "x-public-key" );
+        String authorizationHeaderString = request.getHeader("Authorization");
+        String publicKey = request.getHeader("x-public-key");
 
-        logger.info( "Authorization: " + authorizationHeaderString );
-        logger.info( "public-key: " + publicKey );
+        logger.info("Authorization: " + authorizationHeaderString);
+        logger.info("public-key: " + publicKey);
 
-        Optional<User> optionalUser = new UserAuthenticationByPublicKey( userRepository ).getAuthorizedUser( authorizationHeaderString, request.getContextPath( ), publicKey );
-        currentUser.setUser(new User(1, "testUser"));
+        if (publicKey == null || publicKey.isEmpty() || authorizationHeaderString == null || authorizationHeaderString.isEmpty()) {
+            logger.info("Request unauthorized");
+            throw new NotAuthorizedException();
+        }
+
+        Optional<AuthorizationData> optionalAuthorizationData = dataOf(authorizationHeaderString);
+        if (optionalAuthorizationData.isEmpty()) {
+            throw new NotAuthorizedException();
+        }
+        AuthorizationData authorizationData = optionalAuthorizationData.get();
+
+        Optional<User> optionalUser;
+        try {
+             optionalUser = new UserAuthenticationByPublicKey(userRepository, instantNowRepository).getAuthorizedUser(authorizationData, request.getContextPath(), publicKey);
+        } catch (Exception e) {
+            throw new NotAuthorizedException();
+        }
+
+        if (optionalUser.isEmpty()) {
+            logger.info("Request unauthorized");
+            throw new NotAuthorizedException();
+        }
+
+        currentUser.setUser(optionalUser.get());
+        logger.info("Request authorized; User: " + currentUser.getUser().id());
         return true;
-//        if ( optionalUser.isEmpty( ) ) {
-//            logger.info( "Request unauthorized" );
-//            throw new NotAuthorizedException();
-//        }
-//
-//        currentUser.setUser( optionalUser.get() );
-//        logger.info( "Request authorized; User: " + currentUser.getUser().id() );
-//        return true;
     }
-
 
 }

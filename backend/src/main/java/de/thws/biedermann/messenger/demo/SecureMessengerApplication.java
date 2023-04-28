@@ -1,10 +1,11 @@
 package de.thws.biedermann.messenger.demo;
 
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.AuthenticationInterceptor;
-import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.authorization.adapter.persistence.UserRepositoryDB;
 import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
 import de.thws.biedermann.messenger.demo.chat.adapter.ChatSubscriptionPublisher;
+import de.thws.biedermann.messenger.demo.shared.adapter.InstantNowImpl;
+import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +21,13 @@ public class SecureMessengerApplication implements WebMvcConfigurer {
     }
 
     @Bean
+    public InstantNowRepository instantNowRepository() {
+        return new InstantNowImpl();
+    }
+
+    @Bean
     public AuthenticationInterceptor authorizationInterceptor() {
-        return new AuthenticationInterceptor( userRepository(), new CurrentUser() );
+        return new AuthenticationInterceptor( userRepository(),  instantNowRepository());
     }
 
     @Bean
@@ -29,9 +35,15 @@ public class SecureMessengerApplication implements WebMvcConfigurer {
         return new ChatSubscriptionPublisher();
     }
 
-    @Override
-    public void addInterceptors( InterceptorRegistry registry ) {
-        registry.addInterceptor( authorizationInterceptor() );
+    //@Override deactivated;
+    public void addInterceptorsDeactivated( InterceptorRegistry registry ) {
+        registry.addInterceptor( authorizationInterceptor() )
+                .excludePathPatterns(
+                        "/error",
+                        "/register",
+                        "/captcha",
+                        "/captcha/**"
+                );
     }
 
     public static void main( String[] args ) {

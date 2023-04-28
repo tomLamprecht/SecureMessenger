@@ -5,6 +5,7 @@ import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository
 import de.thws.biedermann.messenger.demo.authorization.model.AuthorizationData;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 import de.thws.biedermann.messenger.demo.shared.model.TimeSegment;
+import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -12,26 +13,17 @@ import java.util.Optional;
 
 public class UserAuthenticationByPublicKey {
     private final MaxTimeDifference MAX_TIME_DIFFERENCE = new MaxTimeDifference( 5 );
-    private static final String AUTH_HEADER_SPLITTER = "#";
 
     private final UserRepository userRepository;
+    private final InstantNowRepository instantNowRepository;
 
-    public UserAuthenticationByPublicKey( UserRepository userRepository ) {
+    public UserAuthenticationByPublicKey( UserRepository userRepository, InstantNowRepository instantNowRepository ) {
         this.userRepository = userRepository;
+        this.instantNowRepository = instantNowRepository;
     }
 
-    public Optional<User> getAuthorizedUser( String authorizationHeader, String endpoint, String publicKey ) throws Exception {
-        Optional<AuthorizationData> optionalAuthorizationData = dataOf( authorizationHeader );
+    public Optional<User> getAuthorizedUser( AuthorizationData authorizationData, String endpoint, String publicKey ) throws Exception {
 
-        if ( optionalAuthorizationData.isEmpty( ) ) {
-            return Optional.empty( );
-        }
-
-        if ( publicKey == null || publicKey.isEmpty( ) ) {
-            return Optional.empty( );
-        }
-
-        AuthorizationData authorizationData = optionalAuthorizationData.get( );
         Instant timestamp;
         try {
             timestamp = Instant.parse( authorizationData.timestamp() );
@@ -39,7 +31,7 @@ public class UserAuthenticationByPublicKey {
             return Optional.empty( );
         }
 
-        if ( MAX_TIME_DIFFERENCE.isMoreThanTimeBetween( new TimeSegment( timestamp, Instant.now( ) ) ) ) {
+        if ( MAX_TIME_DIFFERENCE.isMoreThanTimeBetween( new TimeSegment( timestamp, instantNowRepository.get() ) ) ) {
             return Optional.empty( );
         }
 
@@ -50,19 +42,5 @@ public class UserAuthenticationByPublicKey {
 
         return Optional.ofNullable( userRepository.getUserByPublicKey( publicKey ) );
     }
-
-    private static Optional<AuthorizationData> dataOf( String authorizationString ) {
-        if ( authorizationString == null || authorizationString.isEmpty( ) ) {
-            return Optional.empty( );
-        }
-
-        String[] parts = authorizationString.split( AUTH_HEADER_SPLITTER );
-        if ( parts.length != 3 ) {
-            return Optional.empty( );
-        }
-
-        return Optional.of( new AuthorizationData( parts[0], parts[1], parts[2] ) );
-    }
-
 
 }

@@ -7,16 +7,7 @@ import java.time.Duration;
 /**
  * This class can be used to determine if two timestamps habe a longer
  */
-public class MaxTimeDifference {
-    private final long maximalSeconds;
-
-    /**
-     * creates a MaxTimeDifference which allows a difference of maximalSeconds
-     * @param maximalSeconds the allowed time difference in seconds
-     */
-    public MaxTimeDifference( long maximalSeconds ) {
-        this.maximalSeconds = maximalSeconds;
-    }
+public record MaxTimeDifference(long maximalSeconds) {
 
     /**
      * if the duration between time1 and time2 exceeds the allowed time, this method returns true, false otherwise
