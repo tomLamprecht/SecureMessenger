@@ -22,7 +22,7 @@ public class UserChatLogic {
     private final FriendshipRepository friendshipRepository;
     private final InstantNowRepository instantNowRepository;
 
-    public UserChatLogic( ChatToUserRepository chatToUserRepository, MessageRepository messageRepository, FriendshipRepository friendshipRepository, InstantNowRepository instantNowRepository ) {
+    public UserChatLogic(ChatToUserRepository chatToUserRepository, MessageRepository messageRepository, FriendshipRepository friendshipRepository, InstantNowRepository instantNowRepository ) {
         this.chatToUserRepository = chatToUserRepository;
         this.messageRepository = messageRepository;
         this.friendshipRepository = friendshipRepository;
