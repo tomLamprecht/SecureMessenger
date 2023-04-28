@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/createChat.dart';
+
+import 'widgets/createChat.dart';
 
 void main() => runApp(const MyApp());
 
