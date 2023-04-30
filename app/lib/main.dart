@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_flutter_test/screens/register.dart';
 
 import 'widgets/createChat.dart';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Messenger Test'),
         ),
-        body: const CreateChatWidget(),
+        body: const RegisterScreen(),
       ),
     );
   }
