@@ -28,7 +28,7 @@ public class CaptchaDatabaseHandler implements ICaptchaDatabaseHandler {
                  ByteArrayOutputStream os = new ByteArrayOutputStream()) {
                 ImageIO.write(image, "png", os);
                 final InputStream is = new ByteArrayInputStream(os.toByteArray());
-                final PreparedStatement statement = conn.prepareStatement("INSERT INTO captcha (id, content, text) VALUES (?, ?, ?)");
+                final PreparedStatement statement = conn.prepareStatement("INSERT INTO captcha (id, content, text) VALUES (?, ?, ?) RETURNING id");
                 statement.setString(1, id);
                 statement.setBinaryStream(2, is);
                 statement.setString(3, text);
