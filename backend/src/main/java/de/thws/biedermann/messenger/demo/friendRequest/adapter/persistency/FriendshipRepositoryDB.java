@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ public class FriendshipRepositoryDB implements FriendshipRepository {
                 statement.setLong(2, userId);
                 ResultSet result = statement.executeQuery();
                 LinkedList<Friendship> friendships = new LinkedList<>();
-                while(result.next()){
+                while (result.next()) {
                     long fromUserId = result.getLong("fromUserId");
                     long toUserId = result.getLong("toUserId");
                     boolean accepted = result.getBoolean("accepted");
@@ -69,7 +70,7 @@ public class FriendshipRepositoryDB implements FriendshipRepository {
                 statement.setLong(1, friendshipRequest.fromUserId());
                 statement.setLong(2, friendshipRequest.toUserId());
                 ResultSet result = statement.executeQuery();
-                if (result.next()){
+                if (result.next()) {
                     return Optional.of(result.getLong("id"));
                 }
                 return Optional.empty();

@@ -1,5 +1,6 @@
 package de.thws.biedermann.messenger.demo.friendRequest.adapter;
 
+import ch.qos.logback.core.net.SyslogOutputStream;
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.friendRequest.logic.FriendshipService;
 import de.thws.biedermann.messenger.demo.friendRequest.model.Friendship;
@@ -31,7 +32,7 @@ public class FriendshipController {
     @GetMapping("/{to_user_id}")
     public ResponseEntity<Friendship> getFriendshipRequestById(@PathVariable long toUserId) {
         Optional<Friendship> result = friendshipRequestService.getFriendshipRequestById(this.currentUser.getUser().id(), toUserId);
-        if(result.isEmpty()){
+        if (result.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().body(result.get());
@@ -43,10 +44,10 @@ public class FriendshipController {
     }
 
     @DeleteMapping("/{to_user_id}")
-    public ResponseEntity<Void> deleteFriendshipRequest( @PathVariable Long toUserId) {
+    public ResponseEntity<Integer> deleteFriendshipRequest(@PathVariable Long toUserId) {
         int succeeded = friendshipRequestService.deleteFriendshipRequest(currentUser.getUser().id(), toUserId);
-        if(succeeded == 1){
-            ResponseEntity.noContent().build();
+        if (succeeded == 1) {
+            return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
     }
