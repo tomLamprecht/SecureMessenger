@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface ChatToUserRepository {
 
-    List<TimeSegment> getChatAccessTimeSegmentsOfUser( User user, long chatId);
-
-    Optional<ChatToUser> createChatToUser( ChatToUser chatToUser );
+    long createChatToUser( ChatToUser chatToUser );
 
     Optional<ChatToUser> readChatToUser(long id);
+
+    List<TimeSegment> getChatAccessTimeSegmentsOfUser( User user, long chatId);
 }

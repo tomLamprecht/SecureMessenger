@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.adapter;
+package de.thws.biedermann.messenger.demo.chat;
 
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.authorization.model.User;

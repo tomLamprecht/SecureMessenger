@@ -17,8 +17,8 @@ public class ChatToUserRepositoryDB implements ChatToUserRepository {
     }
 
     @Override
-    public Optional<ChatToUser> createChatToUser( ChatToUser chatToUser ) {
-        return Optional.empty( );
+    public long createChatToUser( ChatToUser chatToUser ) {
+        return 0;
     }
 
     @Override

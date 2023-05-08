@@ -10,9 +10,9 @@ public interface MessageRepository {
 
     Optional<Message> getMessage( long messageId );
 
-    Optional<Message> writeMessage( Message message );
+    long writeMessage( Message message );
 
-    boolean deleteMessage( long messageId );
+    int deleteMessage( long messageId );
 
     List<Message> messagesOfChatBetween( long chatId, List<TimeSegment> timeSegments );
 }

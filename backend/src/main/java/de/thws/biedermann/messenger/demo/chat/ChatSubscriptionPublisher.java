@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.adapter;
+package de.thws.biedermann.messenger.demo.chat;
 
 import de.thws.biedermann.messenger.demo.chat.logic.ChatSubscriber;
 import de.thws.biedermann.messenger.demo.chat.model.Message;

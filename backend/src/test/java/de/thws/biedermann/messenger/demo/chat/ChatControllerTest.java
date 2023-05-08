@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.adapter;
+package de.thws.biedermann.messenger.demo.chat;
 
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
@@ -17,11 +17,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ChatControllerTest {
 
     private static final long CHAT_ID = 1;
     private static final long USER_ID = 1;
+    private final Instant now = Instant.parse( "2022-10-27T10:00:00.00Z" );
 
     private ChatController chatController;
     private ChatToUserTestStub chatToUserTestStub;
@@ -39,11 +41,12 @@ class ChatControllerTest {
 
         FriendshipRepository friendshipRepositoryMock = mock( FriendshipRepository.class );
         InstantNowRepository instantNowRepositoryMock = mock( InstantNowRepository.class );
+        when( instantNowRepositoryMock.get() ).thenReturn( now );
 
         chatController = new ChatController( currentUser, chatToUserTestStub, messageTestStub, friendshipRepositoryMock, instantNowRepositoryMock, new ChatSubscriptionPublisher() );
 
-        testMessage = new Message( -1, USER_ID, CHAT_ID, "THIS IS A TEST MESSAGE", Instant.now() );
-        testMessageId = messageTestStub.writeMessage( testMessage ).orElseThrow().id();
+        testMessage = new Message( -1, USER_ID, CHAT_ID, "THIS IS A TEST MESSAGE", now );
+        testMessageId = messageTestStub.writeMessage( testMessage );
     }
 
     @Test
@@ -64,7 +67,7 @@ class ChatControllerTest {
     void postMessage() {
         String messageValue = "TEST MESSAGE FOR POST";
 
-        chatController.postMessage( CHAT_ID, new Message( -1, USER_ID, CHAT_ID, messageValue, Instant.now() ) );
+        chatController.postMessage( CHAT_ID, new Message( -1, USER_ID, CHAT_ID, messageValue, now ) );
 
         List<Message> allMessagesOfChat = messageTestStub.messagesOfChatBetween( CHAT_ID, null );
 

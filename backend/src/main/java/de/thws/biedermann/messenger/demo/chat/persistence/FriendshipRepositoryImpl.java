@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.adapter.persistence;
+package de.thws.biedermann.messenger.demo.chat.persistence;
 
 import de.thws.biedermann.messenger.demo.chat.model.Friendship;
 import de.thws.biedermann.messenger.demo.chat.repository.FriendshipRepository;

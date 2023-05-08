@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.adapter;
+package de.thws.biedermann.messenger.demo.chat;
 
 import de.thws.biedermann.messenger.demo.chat.model.Message;
 import de.thws.biedermann.messenger.demo.chat.repository.MessageRepository;
@@ -26,14 +26,14 @@ public class MessageTestStub implements MessageRepository {
     }
 
     @Override
-    public boolean deleteMessage( long messageId ) {
-        return messageMap.remove( messageId ) != null;
+    public int deleteMessage( long messageId ) {
+        return messageMap.remove( messageId ) != null ? 1 : 0;
     }
 
     @Override
-    public Optional<Message> writeMessage( Message message ) {
+    public long writeMessage( Message message ) {
         messageMap.put( counter.get(), message );
         Message result = new Message( counter.getAndIncrement(), message.fromUser(), message.chatId(), message.value(), message.timeStamp() );
-        return Optional.of( result );
+        return result.id();
     }
 }

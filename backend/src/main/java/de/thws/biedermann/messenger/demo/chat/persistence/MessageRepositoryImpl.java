@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.authorization.adapter.persistence;
+package de.thws.biedermann.messenger.demo.chat.persistence;
 
 import de.thws.biedermann.messenger.demo.chat.model.Message;
 import de.thws.biedermann.messenger.demo.chat.repository.MessageRepository;
@@ -9,15 +9,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class MessageRepositoryDB implements MessageRepository {
+public class MessageRepositoryImpl implements MessageRepository {
+
+
     @Override
     public Optional<Message> getMessage( long messageId ) {
         return Optional.empty( );
     }
 
     @Override
-    public List<Message> messagesOfChatBetween( long chatId, List<TimeSegment> timeSegments ) {
-        return null;
+    public long writeMessage( Message message ) {
+        return 0;
     }
 
     @Override
@@ -26,7 +28,7 @@ public class MessageRepositoryDB implements MessageRepository {
     }
 
     @Override
-    public long writeMessage( Message message ) {
-        return 0;
+    public List<Message> messagesOfChatBetween( long chatId, List<TimeSegment> timeSegments ) {
+        return null;
     }
 }

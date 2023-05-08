@@ -107,6 +107,6 @@ public class UserChatLogic {
                 null
         );
 
-        return chatToUserRepository.createChatToUser( insert );
+        return chatToUserRepository.readChatToUser( chatToUserRepository.createChatToUser( insert ) );
     }
 }

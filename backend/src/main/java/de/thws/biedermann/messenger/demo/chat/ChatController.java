@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.adapter;
+package de.thws.biedermann.messenger.demo.chat;
 
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.chat.logic.ChatSubscriber;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
-import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -55,8 +54,6 @@ public class ChatController {
 
     @PostMapping( "/{chat_id}" )
     public ResponseEntity<Void> postMessage( @PathVariable( "chat_id" ) long chatId, Message message ) {
-        final Message internalMessage = new Message( -1, currentUser.getUser().id(), chatId, message.value(), Instant.now() );
-
         boolean succeeded = userChatLogic.writeNewMessageToChat( currentUser.getUser(), chatId, message );
 
         if ( succeeded )

@@ -3,7 +3,7 @@ package de.thws.biedermann.messenger.demo;
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.AuthenticationInterceptor;
 import de.thws.biedermann.messenger.demo.authorization.adapter.persistence.UserRepositoryDB;
 import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
-import de.thws.biedermann.messenger.demo.chat.adapter.ChatSubscriptionPublisher;
+import de.thws.biedermann.messenger.demo.chat.ChatSubscriptionPublisher;
 import de.thws.biedermann.messenger.demo.shared.adapter.InstantNowImpl;
 import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import org.springframework.boot.SpringApplication;

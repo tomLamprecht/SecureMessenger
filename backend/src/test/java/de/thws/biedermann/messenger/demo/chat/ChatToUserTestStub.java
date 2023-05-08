@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.chat.adapter;
+package de.thws.biedermann.messenger.demo.chat;
 
 import de.thws.biedermann.messenger.demo.authorization.model.User;
 import de.thws.biedermann.messenger.demo.chat.model.ChatToUser;
@@ -24,10 +24,10 @@ public class ChatToUserTestStub implements ChatToUserRepository {
     }
 
     @Override
-    public Optional<ChatToUser> createChatToUser( ChatToUser chatToUser ) {
+    public long createChatToUser( ChatToUser chatToUser ) {
         ChatToUser result = new ChatToUser( counter.get(), chatToUser.userId(), chatToUser.chatId(), chatToUser.key(), chatToUser.isAdmin(), chatToUser.joinedAt(), chatToUser.leftAt());
         map.put( counter.getAndIncrement(), result );
-        return Optional.of( result );
+        return result.id();
     }
 
     @Override
