@@ -3,6 +3,7 @@ package de.thws.biedermann.messenger.demo.chat;
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.chat.logic.ChatSubscriber;
 import de.thws.biedermann.messenger.demo.chat.logic.UserChatLogic;
+import de.thws.biedermann.messenger.demo.chat.model.ChatToUser;
 import de.thws.biedermann.messenger.demo.chat.model.Message;
 import de.thws.biedermann.messenger.demo.chat.repository.ChatToUserRepository;
 import de.thws.biedermann.messenger.demo.chat.repository.FriendshipRepository;
@@ -44,6 +45,7 @@ public class ChatController {
     public ResponseEntity<List<Message>> getMessages( @PathVariable( "chat_id" ) long chatId ) {
         return ResponseEntity.of( userChatLogic.loadMessages( currentUser.getUser(), chatId ) );
     }
+
 
     @DeleteMapping( "/messages/{message_id}" )
     public ResponseEntity<Void> deleteMessage( @PathVariable( "message_id" ) long messageId ) {

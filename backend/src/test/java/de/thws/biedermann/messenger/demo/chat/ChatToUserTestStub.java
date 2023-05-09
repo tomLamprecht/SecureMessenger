@@ -19,7 +19,7 @@ public class ChatToUserTestStub implements ChatToUserRepository {
 
     // mock
     @Override
-    public List<TimeSegment> getChatAccessTimeSegmentsOfUser( User user, long chatId ) {
+    public List<TimeSegment> getChatAccessTimeSegmentsOfUser( long userId, long chatId ) {
         return List.of( new TimeSegment( Instant.MIN, Instant.MAX ) );
     }
 
@@ -33,6 +33,11 @@ public class ChatToUserTestStub implements ChatToUserRepository {
     @Override
     public Optional<ChatToUser> readChatToUser( long id ) {
         return Optional.ofNullable( map.get( id ));
+    }
+
+    @Override
+    public Optional<ChatToUser> readChatToUserByChatIdAndUserId( long userId, long chatId ) {
+        return Optional.empty( );
     }
 
 

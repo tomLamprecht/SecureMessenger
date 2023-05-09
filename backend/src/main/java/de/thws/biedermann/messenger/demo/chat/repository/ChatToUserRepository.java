@@ -13,5 +13,7 @@ public interface ChatToUserRepository {
 
     Optional<ChatToUser> readChatToUser(long id);
 
-    List<TimeSegment> getChatAccessTimeSegmentsOfUser( User user, long chatId);
+    Optional<ChatToUser> readChatToUserByChatIdAndUserId( long userId, long chatId );
+
+    List<TimeSegment> getChatAccessTimeSegmentsOfUser( long userId, long chatId);
 }

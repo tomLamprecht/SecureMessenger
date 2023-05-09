@@ -39,7 +39,7 @@ public class UserChatLogic {
      * @return the resulting messages or an empty optional
      */
     public Optional<List<Message>> loadMessages( User user, long chatId ) {
-        List<TimeSegment> accessTimes = chatToUserRepository.getChatAccessTimeSegmentsOfUser( user, chatId );
+        List<TimeSegment> accessTimes = chatToUserRepository.getChatAccessTimeSegmentsOfUser( user.id(), chatId );
 
         if ( accessTimes.isEmpty() )
             return Optional.empty();
@@ -76,8 +76,7 @@ public class UserChatLogic {
      * (e.g. User has no right to send to this chat or chat doesn't exist)
      */
     public boolean writeNewMessageToChat( User user, long chatId, Message message ) {
-        Optional<Instant> latestAccessTime = getLatestAccessTimeOfUser( user, chatId );
-        if ( latestAccessTime.isEmpty() || latestAccessTime.get().isBefore( instantNowRepository.get() ) )
+        if (!userCanReadChatNow( user, chatId ))
             return false;
 
         messageRepository.writeMessage( message );
@@ -85,7 +84,7 @@ public class UserChatLogic {
     }
 
     Optional<Instant> getLatestAccessTimeOfUser( User user, long chatId ) {
-        return chatToUserRepository.getChatAccessTimeSegmentsOfUser( user, chatId )
+        return chatToUserRepository.getChatAccessTimeSegmentsOfUser( user.id(), chatId )
                 .stream()
                 .map( TimeSegment::till )
                 .max( Comparator.naturalOrder() );
@@ -109,4 +108,13 @@ public class UserChatLogic {
 
         return chatToUserRepository.readChatToUser( chatToUserRepository.createChatToUser( insert ) );
     }
+
+    public boolean userCanReadChatNow( User user, long chatId ) {
+        Optional<Instant> latestAccessTime = getLatestAccessTimeOfUser( user, chatId );
+        if ( latestAccessTime.isEmpty() || latestAccessTime.get().isBefore( instantNowRepository.get() ) ) {
+            return false;
+        }
+        return true;
+    }
+
 }

@@ -12,7 +12,7 @@ import java.util.Optional;
 @Component
 public class ChatToUserRepositoryDB implements ChatToUserRepository {
     @Override
-    public List<TimeSegment> getChatAccessTimeSegmentsOfUser( User user, long chatId ) {
+    public List<TimeSegment> getChatAccessTimeSegmentsOfUser( long userId, long chatId ) {
         return null;
     }
 
@@ -23,6 +23,11 @@ public class ChatToUserRepositoryDB implements ChatToUserRepository {
 
     @Override
     public Optional<ChatToUser> readChatToUser( long id ) {
+        return Optional.empty( );
+    }
+
+    @Override
+    public Optional<ChatToUser> readChatToUserByChatIdAndUserId( long userId, long chatId ) {
         return Optional.empty( );
     }
 }

@@ -9,9 +9,7 @@ import de.thws.biedermann.messenger.demo.chat.repository.MessageRepository;
 import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Optional;
@@ -22,6 +20,7 @@ public class ChatsController {
 
     private final CurrentUser currentUser;
     private final UserChatLogic userChatLogic;
+    private final ChatToUserRepository chatToUserRepository;
 
     @Autowired
     public ChatsController(
@@ -32,6 +31,7 @@ public class ChatsController {
             InstantNowRepository instantNowRepository
     ) {
         this.currentUser = currentUser;
+        this.chatToUserRepository = chatToUserRepository;
         this.userChatLogic = new UserChatLogic( chatToUserRepository, messageRepository, friendshipRepository, instantNowRepository );
     }
 
@@ -49,6 +49,13 @@ public class ChatsController {
                 .map( ResponseEntity::created )
                 .orElse( ResponseEntity.internalServerError() )
                 .build();
+    }
+
+    @GetMapping("/{chatId:[0-9]+}/my-chat")
+    public ResponseEntity<ChatToUser> getChatToUser( @PathVariable( "chatId" ) long chatId ) {
+        return chatToUserRepository.readChatToUserByChatIdAndUserId( currentUser.getUser().id(), chatId )
+                .map( ResponseEntity::ok )
+                .orElseGet( () -> ResponseEntity.notFound().build() );
     }
 
 }
