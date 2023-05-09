@@ -1,5 +1,7 @@
 package de.thws.biedermann.databasecon;
 
+import de.thws.biedermann.throwinglambdas.ThrowingConsumer;
+import de.thws.biedermann.throwinglambdas.ThrowingFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -32,18 +35,16 @@ public abstract class DatabaseConnectionManager {
      * @throws RuntimeException if an {@link SQLException}
      *                          occurs while executing the statement or {@link ClassNotFoundException} when no driver is present
      */
-    public static CompletableFuture<Integer> executeStatementWithoutReturnValue( String statement, Consumer<PreparedStatement> preparedStatementPopulator ) {
+    public static int executeStatementWithoutReturnValue( String statement, ThrowingConsumer<PreparedStatement, SQLException> preparedStatementPopulator ) {
         checkIfDriverIsPresent();
-        return CompletableFuture.supplyAsync( () -> {
-            try ( Connection conn = DriverManager.getConnection( url, user, password ) ) {
-                PreparedStatement preparedStatement = conn.prepareStatement( statement );
-                preparedStatementPopulator.accept( preparedStatement );
-                return preparedStatement.executeUpdate();
-            } catch ( SQLException e ) {
-                logger.info( "Error storing captcha", e );
-                throw new RuntimeException( e );
-            }
-        } );
+        try ( Connection conn = DriverManager.getConnection( url, user, password ) ) {
+            PreparedStatement preparedStatement = conn.prepareStatement( statement );
+            preparedStatementPopulator.accept( preparedStatement );
+            return preparedStatement.executeUpdate();
+        } catch ( SQLException e ) {
+            logger.info( "Error storing captcha", e );
+            throw new RuntimeException( e );
+        }
     }
 
     /**
@@ -51,35 +52,32 @@ public abstract class DatabaseConnectionManager {
      * "RETURNING id" phrase. The given SQL statement <b>must</b> include the "RETURNING id" phrase
      * to return the ID after the INSERT operation.
      *
-     * @param statement                     the SQL INSERT statement to be executed, including
-     *                                      the "RETURNING id" phrase
-     * @param preparedStatementPopulator    a {@link Consumer} that sets the values of the
-     *                                      {@link PreparedStatement} parameters
-     * @return                              a {@link CompletableFuture} representing the asynchronous
-     *                                      operation, which contains an {@link Optional} of the generated
-     *                                      ID when the statement execution is finished, or an empty
-     *                                      {@link Optional} if no ID was returned
-     * @throws RuntimeException             if an {@link SQLException} or {@link ClassNotFoundException}
-     *                                      occurs while executing the statement
+     * @param statement                  the SQL INSERT statement to be executed, including
+     *                                   the "RETURNING id" phrase
+     * @param preparedStatementPopulator a {@link Consumer} that sets the values of the
+     *                                   {@link PreparedStatement} parameters
+     * @return a {@link CompletableFuture} representing the asynchronous
+     * operation, which contains an {@link Optional} of the generated
+     * ID when the statement execution is finished, or an empty
+     * {@link Optional} if no ID was returned
+     * @throws RuntimeException if an {@link SQLException} or {@link ClassNotFoundException}
+     *                          occurs while executing the statement
      */
-    public static CompletableFuture<Optional<Integer>> insertStatementWithIdReturn( String statement, Consumer<PreparedStatement> preparedStatementPopulator ) {
+    public static Optional<Integer> insertStatementWithIdReturn( String statement, ThrowingConsumer<PreparedStatement, SQLException> preparedStatementPopulator ) {
         checkIfDriverIsPresent();
-        return CompletableFuture.supplyAsync( () -> {
-            try ( Connection conn = DriverManager.getConnection( url, user, password ) ) {
-                PreparedStatement preparedStatement = conn.prepareStatement( statement );
-                preparedStatementPopulator.accept( preparedStatement );
-                ResultSet result = preparedStatement.executeQuery();
-                if ( result.next() )
-                    return Optional.of( result.getInt( 1 ) );
-                else
-                    return Optional.empty();
+        try ( Connection conn = DriverManager.getConnection( url, user, password ) ) {
+            PreparedStatement preparedStatement = conn.prepareStatement( statement );
+            preparedStatementPopulator.accept( preparedStatement );
+            ResultSet result = preparedStatement.executeQuery();
+            if ( result.next() )
+                return Optional.of( result.getInt( 1 ) );
+            else
+                return Optional.empty();
 
-            } catch ( SQLException e ) {
-                logger.error( "Error inserting Object", e );
-                throw new RuntimeException( e );
-            }
-        } );
-
+        } catch ( SQLException e ) {
+            logger.error( "Error inserting Object", e );
+            throw new RuntimeException( e );
+        }
     }
 
     /**
@@ -95,19 +93,17 @@ public abstract class DatabaseConnectionManager {
      * @throws RuntimeException if an {@link SQLException} occurs while executing the statement or
      *                          {@link ClassNotFoundException} when no driver is present
      */
-    public static CompletableFuture<DatabaseResult> executeStatementWithReturnValue( String statement, Consumer<PreparedStatement> preparedStatementPopulator ) {
+    public static DatabaseResult executeStatementWithReturnValue( String statement, ThrowingConsumer<PreparedStatement, SQLException> preparedStatementPopulator ) {
         checkIfDriverIsPresent();
-        return CompletableFuture.supplyAsync( () -> {
-            try ( Connection conn = DriverManager.getConnection( url, user, password ) ) {
-                PreparedStatement preparedStatement = conn.prepareStatement( statement );
-                preparedStatementPopulator.accept( preparedStatement );
-                ResultSet result = preparedStatement.executeQuery();
-                return new DatabaseResult( result );
-            } catch ( SQLException e ) {
-                logger.error( "Error loading captcha text", e );
-                throw new RuntimeException( e );
-            }
-        } );
+        try ( Connection conn = DriverManager.getConnection( url, user, password ) ) {
+            PreparedStatement preparedStatement = conn.prepareStatement( statement );
+            preparedStatementPopulator.accept( preparedStatement );
+            ResultSet result = preparedStatement.executeQuery();
+            return new DatabaseResult( result );
+        } catch ( SQLException e ) {
+            logger.error( "Error loading captcha text", e );
+            throw new RuntimeException( e );
+        }
     }
 
     private static void checkIfDriverIsPresent() {
@@ -137,7 +133,7 @@ public abstract class DatabaseConnectionManager {
          * or an Optional.Empty if the {@link ResultSet} is empty
          * @throws RuntimeException if an {@link SQLException} occurs while processing the {@link ResultSet}
          */
-        public <T> Optional<T> asSingle( Function<ResultSet, T> resultConverter ) {
+        public <T> Optional<T> asSingle( ThrowingFunction<ResultSet, T, SQLException> resultConverter ) {
             try {
                 if ( resultSet.next() )
                     return Optional.of( resultConverter.apply( resultSet ) );
@@ -160,7 +156,7 @@ public abstract class DatabaseConnectionManager {
          * @return a {@link List} containing the objects converted from the {@link ResultSet}
          * @throws RuntimeException if an {@link SQLException} occurs while processing the {@link ResultSet}
          */
-        public <T> List<T> asList( Function<ResultSet, T> resultConverter ) {
+        public <T> List<T> asList( ThrowingFunction<ResultSet, T, SQLException> resultConverter ) {
             return asList( ArrayList::new, resultConverter );
         }
 
@@ -176,7 +172,7 @@ public abstract class DatabaseConnectionManager {
          * @return a {@link List} containing the objects converted from the {@link ResultSet}
          * @throws RuntimeException if an {@link SQLException} occurs while processing the {@link ResultSet}
          */
-        public <T> List<T> asList( Supplier<? extends List<T>> listSupplier, Function<ResultSet, T> resultConverter ) {
+        public <T> List<T> asList( Supplier<? extends List<T>> listSupplier, ThrowingFunction<ResultSet, T, SQLException> resultConverter ) {
             List<T> resultList = listSupplier.get();
             try {
                 while ( resultSet.next() ) {
@@ -188,7 +184,6 @@ public abstract class DatabaseConnectionManager {
                 throw new RuntimeException( e );
             }
         }
-
 
     }
 
