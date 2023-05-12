@@ -1,4 +1,4 @@
-package de.thws.biedermann.messenger.demo.register.repository;
+package de.thws.biedermann.messenger.demo.users.repository;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;

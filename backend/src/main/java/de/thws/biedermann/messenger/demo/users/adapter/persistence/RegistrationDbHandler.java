@@ -1,6 +1,6 @@
-package de.thws.biedermann.messenger.demo.register.adapter.persistence;
+package de.thws.biedermann.messenger.demo.users.adapter.persistence;
 
-import de.thws.biedermann.messenger.demo.register.repository.IRegistrationDbHandler;
+import de.thws.biedermann.messenger.demo.users.repository.IRegistrationDbHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class RegistrationDbHandler implements IRegistrationDbHandler {
     public CompletableFuture<Optional<Long>> createUser( String username, String publicKey ) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection conn = DriverManager.getConnection(url, user, password)) {
-                PreparedStatement statement = conn.prepareStatement("INSERT INTO user (userName, publicKey) VALUES (?, ?) RETURNING id;");
+                PreparedStatement statement = conn.prepareStatement("INSERT INTO Account (userName, publicKey) VALUES (?, ?) RETURNING id;");
                 statement.setString(1, username);
                 statement.setString(2, publicKey);
                 ResultSet result = statement.executeQuery();

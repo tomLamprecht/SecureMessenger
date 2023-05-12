@@ -1,11 +1,10 @@
-package de.thws.biedermann.messenger.demo.register.logic;
+package de.thws.biedermann.messenger.demo.users.logic;
 
-import de.thws.biedermann.messenger.demo.register.adapter.persistence.RegistrationDbHandler;
-import de.thws.biedermann.messenger.demo.register.model.UserPayload;
-import de.thws.biedermann.messenger.demo.register.repository.IRegistrationDbHandler;
+import de.thws.biedermann.messenger.demo.users.adapter.persistence.RegistrationDbHandler;
+import de.thws.biedermann.messenger.demo.users.model.UserPayload;
+import de.thws.biedermann.messenger.demo.users.repository.IRegistrationDbHandler;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class RegisterUser {

@@ -1,8 +1,8 @@
-package de.thws.biedermann.messenger.demo.register.logic;
+package de.thws.biedermann.messenger.demo.users.logic;
 
-import de.thws.biedermann.messenger.demo.register.adapter.persistence.RegistrationDbHandler;
-import de.thws.biedermann.messenger.demo.register.model.CaptchaTry;
-import de.thws.biedermann.messenger.demo.register.repository.IRegistrationDbHandler;
+import de.thws.biedermann.messenger.demo.users.adapter.persistence.RegistrationDbHandler;
+import de.thws.biedermann.messenger.demo.users.model.CaptchaTry;
+import de.thws.biedermann.messenger.demo.users.repository.IRegistrationDbHandler;
 
 import java.util.concurrent.ExecutionException;
 

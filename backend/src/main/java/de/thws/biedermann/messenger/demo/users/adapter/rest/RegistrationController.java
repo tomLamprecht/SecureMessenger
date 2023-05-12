@@ -1,8 +1,8 @@
-package de.thws.biedermann.messenger.demo.register.adapter.rest;
+package de.thws.biedermann.messenger.demo.users.adapter.rest;
 
-import de.thws.biedermann.messenger.demo.register.logic.CaptchaValidator;
-import de.thws.biedermann.messenger.demo.register.logic.RegisterUser;
-import de.thws.biedermann.messenger.demo.register.model.UserPayload;
+import de.thws.biedermann.messenger.demo.users.logic.CaptchaValidator;
+import de.thws.biedermann.messenger.demo.users.logic.RegisterUser;
+import de.thws.biedermann.messenger.demo.users.model.UserPayload;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping("/register")
+@RequestMapping("/users/register")
 public class RegistrationController {
 
     @PostMapping
