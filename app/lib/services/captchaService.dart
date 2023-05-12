@@ -1,6 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 class CaptchaService {
@@ -17,28 +18,15 @@ class CaptchaService {
     }
   }
 
-  Future<File> getCaptchaImage(String id) async {
-    final response = await http.get(Uri.parse('$_baseUrl/captcha/$id'),
-        headers: {'Accept': 'image/png'});
-    if (response.statusCode == HttpStatus.ok) {
-      return File('captcha.png')..writeAsBytesSync(response.bodyBytes);
+  Future<ImageProvider> fetchCaptchaImage(String id) async {
+    final response = await http.get(Uri.parse('$_baseUrl/captcha/$id'));
+    if (response.statusCode == 200) {
+      final bytes = response.bodyBytes;
+      final imageBytes = Uint8List.fromList(bytes);
+      final image = MemoryImage(imageBytes);
+      return image;
     } else {
-      throw Exception('Failed to get captcha image.');
-    }
-  }
-
-  Future<bool> validateCaptcha(String id, String textTry) async {
-    final response = await http.post(Uri.parse('$_baseUrl/captcha/$id'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'textTry': textTry,
-        }));
-    if (response.statusCode == HttpStatus.ok) {
-      return response.body == 'true';
-    } else {
-      throw Exception('Failed to validate captcha.');
+      throw Exception('Failed to load captcha image');
     }
   }
 }

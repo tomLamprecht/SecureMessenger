@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:developer' as developer;
 
 class RegistrationService {
   final String _baseUrl;
@@ -12,15 +13,16 @@ class RegistrationService {
     required String publicKey,
     required String userName,
   }) async {
+    developer.log(captchaId);
     final response = await http.post(
-      Uri.parse(_baseUrl),
+      Uri.parse('$_baseUrl/users/register'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, dynamic>{
         'captchaTry': {
-          'captchaId': captchaId,
-          'captchaTry': captchaTry
+          'id': captchaId,
+          'textTry': captchaTry
         },
         'publicKey': publicKey,
         'userName': userName,
