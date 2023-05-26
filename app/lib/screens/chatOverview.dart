@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/screens/Chat.dart';
+import 'package:my_flutter_test/services/chatsService.dart';
 import 'package:my_flutter_test/widgets/createChat.dart';
+
+import '../models/Chat.dart';
 
 
 
@@ -10,7 +13,17 @@ class ChatOverviewPage extends StatefulWidget {
 }
 
 class _ChatOverviewPageState extends State<ChatOverviewPage> {
-  List<String> chats = List.generate(10, (index) => 'Chat $index');
+  ChatsService chatsService = ChatsService();
+  List<Chat>? chats = [];
+
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+  Future<void> initialize() async {
+    chats = await chatsService.getChatsFromUser();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +36,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             onPressed: () async {
               String? result = await showSearch<String>(
                 context: context,
-                delegate: ChatSearch(chats: chats),
+                delegate: ChatSearch(chats: getChatNames()),
               );
 
               if (result != null) {
@@ -42,9 +55,9 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
         ],
       ),
       body: ListView.builder(
-        itemCount: chats.length,
+        itemCount: chats?.length,
         itemBuilder: (context, index) {
-          String chat = chats[index];
+          Chat chat = chats![index]; // ToDo: schauen ob wir prüfen müssen, dass auch wirklich Werte da sind (eigentlich beim Laden schon getan)
           return Dismissible(
             key: UniqueKey(),
             background: Container(
@@ -55,7 +68,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             ),
             onDismissed: (direction) {
               setState(() {
-                chats.removeAt(index);
+                chats?.removeAt(index);
               });
             },
             child: Hero(
@@ -65,9 +78,10 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                   backgroundImage:
                   AssetImage('assets/images/avatar_placeholder.png'),
                 ),
-                title: Text(chat),
-                subtitle: Text('Last message...'),
-                trailing: Text('Time'),
+                title: Text(chat.name),
+                // subtitle: Text('Last message...'), //ToDo: nicht im MVP
+                // trailing: Text('Time'), //ToDo: nicht im MVP
+                subtitle: Text(chat.description),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -92,6 +106,11 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
         child: Icon(Icons.chat),
       ),
     );
+  }
+  List<String> getChatNames() {
+    List<String> chatNames = [];
+    chats?.forEach((chat) {chatNames.add(chat.name); });
+    return chatNames;
   }
 }
 
