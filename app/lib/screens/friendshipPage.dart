@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_flutter_test/services/friendshipService.dart';
 
-import 'friendship.dart';
+import '../models/friendship.dart';
 
 class FriendshipPage extends StatefulWidget {
   @override
@@ -13,26 +14,18 @@ class FriendshipPage extends StatefulWidget {
 
 class _FriendshipPageState extends State<FriendshipPage> {
   final _friendIdController = TextEditingController();
+  final FriendshipServcie friendshipService = FriendshipServcie();
   List<Friendship> _friendshipList = [];
 
   void _getFriendshipRequests() async {
-    final response =
-    await http.get(Uri.parse('http://localhost:8080/friendships/'));
-    if (response.statusCode == 200) {
-      List<Friendship> friendshipRequests = [];
-      final jsonList = json.decode(response.body);
-      for (var json in jsonList) {
-        friendshipRequests.add(Friendship.fromJson(json));
-      }
-      setState(() {
-        _friendshipList = friendshipRequests;
-      });
-    } else {
-      throw Exception('Failed to load friendship requests');
-    }
+    setState(() {
+      _friendshipList = friendshipService.getFriendshipRequests() as List<Friendship>;
+    });
   }
 
   void _createFriendshipRequest() async {
+    //Todo hier muss der userName übergeben werden und dann auf den entsprechenden User gemappt werden
+    //Todo der Aufruf hier muss über den friendshipService laufen
     final response = await http.post(Uri.parse(
         'http://localhost:8080/friendships/${_friendIdController.text}'));
     if (response.statusCode == 200) {
@@ -46,6 +39,7 @@ class _FriendshipPageState extends State<FriendshipPage> {
   }
 
   void _deleteFriendshipRequest(int toUserId) async {
+    //Todo der Aufruf hier muss über den friendshipService laufen
     final response =
     await http.delete(Uri.parse('http://localhost:8080/friendships/$toUserId'));
     if (response.statusCode == 204) {
@@ -78,7 +72,7 @@ class _FriendshipPageState extends State<FriendshipPage> {
               decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Wie heißt dein potenzieller Freund?'),
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.number, //Todo hier nicht number sondern text (name)
               onChanged: (value) {},
             ),
             const SizedBox(height: 16),
@@ -87,7 +81,7 @@ class _FriendshipPageState extends State<FriendshipPage> {
               child: const Text('Freundschaftsanfrage senden'),
             ),
             const SizedBox(height: 32),
-            const Text('Deine offnen Freundschaftsanfragen:'),
+            const Text('Deine offenen Freundschaftsanfragen:'),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
@@ -95,7 +89,7 @@ class _FriendshipPageState extends State<FriendshipPage> {
                 itemBuilder: (context, index) {
                   final friendshipRequest = _friendshipList[index];
                   return ListTile(
-                    title: Text('From: ${friendshipRequest.fromUserId}'),
+                    title: Text('From: ${friendshipRequest.fromUserId}'), //Todo fromUsername statt fromUserId
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () =>
