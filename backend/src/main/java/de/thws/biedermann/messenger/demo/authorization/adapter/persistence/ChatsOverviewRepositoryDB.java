@@ -30,7 +30,7 @@ public class ChatsOverviewRepositoryDB implements ChatsOverviewRepository {
                 ResultSet result = statement.executeQuery();
                 List<Chat> chats = new ArrayList<>( );
                 while( result.next() ) {
-                    chats.add( new Chat( result.getLong("id"), result.getLong("ownerid"), result.getString("name"), result.getString("description"), result.getTimestamp("createdat").toInstant() ) );
+                    chats.add( new Chat( result.getLong("id"), result.getString("name"), result.getString("description"), result.getTimestamp("createdat").toInstant() ) );
                 }
                 return Optional.of( chats );
             } catch (SQLException e) {
