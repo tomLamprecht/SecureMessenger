@@ -68,8 +68,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             ),
             onDismissed: (direction) {
               setState(() {
-                // ToDo: wollen wir hier chat löschen (also User aus Chat entfernen) oder chat archivieren machen? Oder des wegswipen als Funktion entfernen?
-                // chats?.removeAt(index);
+                chats?.removeAt(index);
               });
             },
             child: Hero(
@@ -87,7 +86,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ChatWidget(), // ToDo: wie weis die Klasse, welchen Chat wir brauchen?
+                      builder: (context) => const ChatWidget(),
                     ),
                   );
                 },
