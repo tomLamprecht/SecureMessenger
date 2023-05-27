@@ -4,6 +4,8 @@ import de.thws.biedermann.messenger.demo.authorization.adapter.rest.Authenticati
 import de.thws.biedermann.messenger.demo.authorization.adapter.persistence.UserRepositoryDB;
 import de.thws.biedermann.messenger.demo.authorization.repository.UserRepository;
 import de.thws.biedermann.messenger.demo.chat.ChatSubscriptionPublisher;
+import de.thws.biedermann.messenger.demo.friendRequest.adapter.persistency.FriendshipRepositoryDB;
+import de.thws.biedermann.messenger.demo.friendRequest.repository.FriendshipRepository;
 import de.thws.biedermann.messenger.demo.shared.adapter.InstantNowImpl;
 import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import org.springframework.boot.SpringApplication;
@@ -34,6 +36,10 @@ public class SecureMessengerApplication implements WebMvcConfigurer {
     public ChatSubscriptionPublisher chatSubscriptionPublisher() {
         return new ChatSubscriptionPublisher();
     }
+
+    @Bean
+    public FriendshipRepository friendshipRepository(){ return new FriendshipRepositoryDB(); }
+
 
     //@Override deactivated;
     public void addInterceptorsDeactivated( InterceptorRegistry registry ) {

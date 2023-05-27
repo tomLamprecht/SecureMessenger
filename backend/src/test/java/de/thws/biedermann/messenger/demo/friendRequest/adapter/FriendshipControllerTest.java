@@ -2,30 +2,16 @@ package de.thws.biedermann.messenger.demo.friendRequest.adapter;
 
 import de.thws.biedermann.messenger.demo.authorization.adapter.rest.CurrentUser;
 import de.thws.biedermann.messenger.demo.authorization.model.User;
-import de.thws.biedermann.messenger.demo.chat.adapter.ChatController;
-import de.thws.biedermann.messenger.demo.chat.adapter.ChatSubscriptionPublisher;
-import de.thws.biedermann.messenger.demo.chat.adapter.ChatToUserTestStub;
-import de.thws.biedermann.messenger.demo.chat.adapter.MessageTestStub;
-import de.thws.biedermann.messenger.demo.chat.model.Message;
-import de.thws.biedermann.messenger.demo.chat.repository.ChatToUserRepository;
 import de.thws.biedermann.messenger.demo.friendRequest.logic.FriendshipService;
 import de.thws.biedermann.messenger.demo.friendRequest.model.Friendship;
-import de.thws.biedermann.messenger.demo.friendRequest.repository.FriendshipRepository;
-import de.thws.biedermann.messenger.demo.shared.repository.InstantNowRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class FriendshipControllerTest {
     private FriendshipController friendshipController;
