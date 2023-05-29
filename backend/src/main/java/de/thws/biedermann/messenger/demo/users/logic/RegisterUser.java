@@ -1,20 +1,23 @@
 package de.thws.biedermann.messenger.demo.users.logic;
 
-import de.thws.biedermann.messenger.demo.users.adapter.persistence.RegistrationDbHandler;
 import de.thws.biedermann.messenger.demo.users.model.UserPayload;
 import de.thws.biedermann.messenger.demo.users.repository.IRegistrationDbHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
+@Service
 public class RegisterUser {
     final IRegistrationDbHandler registrationDbHandler;
 
-    public RegisterUser() {
-        this.registrationDbHandler = new RegistrationDbHandler();
+    @Autowired
+    public RegisterUser(IRegistrationDbHandler registrationDbHandler) {
+        this.registrationDbHandler = registrationDbHandler;
     }
 
-    public Optional<Long> registerUser ( final UserPayload userPayload ) throws ExecutionException, InterruptedException {
-         return registrationDbHandler.createUser( userPayload.userName(), userPayload.publicKey() ).get();
+
+    public Optional<Integer> registerUser ( final UserPayload userPayload ) {
+         return registrationDbHandler.createUser( userPayload.userName(), userPayload.publicKey());
     }
 }

@@ -1,32 +1,31 @@
 package de.thws.biedermann.messenger.demo.users.logic;
 
-import de.thws.biedermann.messenger.demo.users.adapter.persistence.RegistrationDbHandler;
 import de.thws.biedermann.messenger.demo.users.model.CaptchaTry;
 import de.thws.biedermann.messenger.demo.users.repository.IRegistrationDbHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 
+
+@Service
 public class CaptchaValidator {
+    private final IRegistrationDbHandler registrationDbHandler;
 
-    final IRegistrationDbHandler registrationDbHandler;
-
-    public CaptchaValidator() {
-        this.registrationDbHandler = new RegistrationDbHandler();
+    @Autowired
+    public CaptchaValidator(IRegistrationDbHandler registrationDbHandler) {
+        this.registrationDbHandler = registrationDbHandler;
     }
 
-    public boolean isCaptchaValid ( final CaptchaTry captchaTry ) throws InterruptedException, ExecutionException {
-        return this.registrationDbHandler.loadCaptchaTextById( captchaTry.id( ) ).thenApply( content -> {
-            try {
-                return checkCaptchaAndCleanup( captchaTry.id( ), content, captchaTry.textTry( ) );
-            } catch ( ExecutionException | InterruptedException e ) {
-                throw new RuntimeException( e );
-            }
-        } ).get();
+    public Optional<Boolean> isCaptchaValid ( CaptchaTry captchaTry ) {
+        Optional<String> expectedCaptchaText = registrationDbHandler.loadCaptchaTextById( captchaTry.id( ) );
+        return expectedCaptchaText.map( s -> checkCaptchaAndCleanup( captchaTry.id( ), s, captchaTry.textTry( ) ) );
     }
 
-    private boolean checkCaptchaAndCleanup( String id, String content, String textTry ) throws ExecutionException, InterruptedException {
-        if (content.equals(textTry)) {
-            return this.registrationDbHandler.deleteCaptchaById( id ).thenApply( x -> true ).get( );
+    private boolean checkCaptchaAndCleanup( String id, String content, String textTry ) {
+        if ( content.equals( textTry ) ) {
+            registrationDbHandler.deleteCaptchaById( id );
+            return true;
         }
         return false;
     }

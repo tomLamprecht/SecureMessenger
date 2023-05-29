@@ -1,6 +1,5 @@
 package de.thws.biedermann.messenger.demo.chat;
 
-import de.thws.biedermann.messenger.demo.authorization.model.User;
 import de.thws.biedermann.messenger.demo.chat.model.ChatToUser;
 import de.thws.biedermann.messenger.demo.chat.repository.ChatToUserRepository;
 import de.thws.biedermann.messenger.demo.shared.model.TimeSegment;

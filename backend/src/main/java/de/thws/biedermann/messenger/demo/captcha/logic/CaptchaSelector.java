@@ -2,26 +2,35 @@ package de.thws.biedermann.messenger.demo.captcha.logic;
 
 import de.thws.biedermann.messenger.demo.captcha.application.persistence.CaptchaDatabaseHandler;
 import de.thws.biedermann.messenger.demo.captcha.repository.ICaptchaDatabaseHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 
+@Service
 public class CaptchaSelector {
 
-    public static StreamingResponseBody loadCaptchaImageById(String id) throws ExecutionException, InterruptedException {
-        ICaptchaDatabaseHandler captchaDatabaseHandler = new CaptchaDatabaseHandler();
+    private final ICaptchaDatabaseHandler captchaDatabaseHandler;
 
-        BufferedImage image = captchaDatabaseHandler.loadCaptchaImageById(id).get();
-        return outputStream -> {
-            try {
-                ImageIO.write(image, "png", outputStream);
+    @Autowired
+    public CaptchaSelector(ICaptchaDatabaseHandler captchaDatabaseHandler) {
+        this.captchaDatabaseHandler = captchaDatabaseHandler;
+    }
+
+    public Optional<StreamingResponseBody> loadCaptchaImageById(String id) {
+        Optional<BufferedImage> image = captchaDatabaseHandler.loadCaptchaImageById(id);
+        return image.map(bufferedImage -> outputStream -> {
+            try (outputStream) {
+                ImageIO.write(bufferedImage, "png", outputStream);
+                outputStream.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        };
+        });
     }
 
 }

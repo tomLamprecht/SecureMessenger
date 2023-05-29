@@ -2,40 +2,39 @@ package de.thws.biedermann.messenger.demo.captcha.application.rest;
 
 import de.thws.biedermann.messenger.demo.captcha.logic.CaptchaGenerator;
 import de.thws.biedermann.messenger.demo.captcha.logic.CaptchaSelector;
-import de.thws.biedermann.messenger.demo.captcha.logic.CaptchaValidator;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 
 @RestController
+@RequestMapping("/captcha")
 public class CaptchaController {
 
-    @GetMapping(value = "/captcha", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<String> getNewCaptcha(HttpServletResponse response) throws IOException, ExecutionException, InterruptedException {
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(CaptchaGenerator.createNewCaptchaImage());
+    private final CaptchaGenerator captchaGenerator;
+    private final CaptchaSelector captchaSelector;
+
+    public CaptchaController(CaptchaGenerator captchaGenerator, CaptchaSelector captchaSelector) {
+        this.captchaGenerator = captchaGenerator;
+        this.captchaSelector = captchaSelector;
     }
 
-    @GetMapping(value = "/captcha/{id}", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<StreamingResponseBody> getCaptchaImage(HttpServletResponse response, @PathVariable String id) throws ExecutionException, InterruptedException {
+    @GetMapping()
+    public ResponseEntity<String> getNewCaptcha() {
         return ResponseEntity
+                .ok()
+                .body(captchaGenerator.createNewCaptchaImage());
+    }
+
+    @GetMapping(value = "/{id}", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<StreamingResponseBody> getCaptchaImage( @PathVariable String id) {
+        Optional<StreamingResponseBody> responseStream = captchaSelector.loadCaptchaImageById(id);
+        return responseStream.map(streamingResponseBody -> ResponseEntity
                 .ok()
                 .contentType(MediaType.IMAGE_PNG)
-                .body(CaptchaSelector.loadCaptchaImageById(id));
-    }
-
-    @PostMapping(value = "/captcha/{id}")
-    public ResponseEntity<Boolean> validateCaptcha(HttpServletResponse response, @PathVariable String id, @RequestBody String textTry) throws ExecutionException, InterruptedException {
-
-        return ResponseEntity
-                .ok()
-                .body(CaptchaValidator.isCaptchaValid(id, textTry));
+                .body(streamingResponseBody))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

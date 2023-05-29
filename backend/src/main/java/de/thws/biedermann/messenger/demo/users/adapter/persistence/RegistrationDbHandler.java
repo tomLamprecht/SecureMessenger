@@ -1,69 +1,27 @@
 package de.thws.biedermann.messenger.demo.users.adapter.persistence;
 
+import de.thws.biedermann.databasecon.DatabaseConnectionManager;
 import de.thws.biedermann.messenger.demo.users.repository.IRegistrationDbHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.*;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
-public class RegistrationDbHandler implements IRegistrationDbHandler {
-    private static final String url = "jdbc:postgresql://localhost:5432/mydatabase";
-    private static final String user = "postgres";
-    private static final String password = "mysecretpassword";
-
-    private static final Logger logger = LoggerFactory.getLogger(RegistrationDbHandler.class);
-
-    public CompletableFuture<Optional<Long>> createUser( String username, String publicKey ) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection conn = DriverManager.getConnection(url, user, password)) {
-                PreparedStatement statement = conn.prepareStatement("INSERT INTO Account (userName, publicKey) VALUES (?, ?) RETURNING id;");
-                statement.setString(1, username);
-                statement.setString(2, publicKey);
-                ResultSet result = statement.executeQuery();
-                if (result.next()){
-                    return Optional.of(result.getLong("id"));
-                }
-                return Optional.empty();
-            } catch (SQLException e) {
-                logger.info("Error while creating new user", e);
-                throw new RuntimeException(e);
-            }
+public class RegistrationDbHandler extends DatabaseConnectionManager implements IRegistrationDbHandler {
+    public Optional<Integer> createUser( final String username, final String publicKey ) {
+        String sqlStatement = "INSERT INTO Account (userName, publicKey) VALUES (?, ?) RETURNING id;";
+        return insertStatementWithIdReturn(sqlStatement, preparedStatement -> {
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, publicKey);
         });
     }
 
-    public CompletableFuture<String> loadCaptchaTextById( String id ) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection conn = DriverManager.getConnection(url, user, password)) {
-                PreparedStatement statement = conn.prepareStatement("SELECT * FROM Captcha WHERE Id = ?;");
-                statement.setString(1, id);
-                ResultSet result = statement.executeQuery();
-                if (result.next()){
-                    String captchaText = result.getString("Text");
-                    logger.info(String.format("Captcha text loaded from database for id %s", id));
-                    return captchaText;
-                }
-                return "";
-            } catch (SQLException e) {
-                logger.info("Error loading captcha text", e);
-                throw new RuntimeException(e);
-            }
-        });
+    public Optional<String> loadCaptchaTextById( final String id ) {
+        String sqlStatement = "SELECT Text FROM Captcha WHERE Id = ?;";
+        return executeStatementWithReturnValue(sqlStatement, preparedStatement -> preparedStatement.setString(1, id))
+                .asSingle(resultSet -> resultSet.getString(1));
     }
 
-    public CompletableFuture<Void> deleteCaptchaById(String id ) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection conn = DriverManager.getConnection(url, user, password)) {
-                PreparedStatement statement = conn.prepareStatement("DELETE FROM captcha WHERE id = ?");
-                statement.setString(1, id);
-                statement.execute();
-            } catch (SQLException e) {
-                logger.info("Error storing captcha", e);
-                throw new RuntimeException(e);
-            }
-            return null;
-        });
+    public void deleteCaptchaById( final String id ) {
+        String sqlStatement = "DELETE FROM captcha WHERE id = ?;";
+        executeStatementWithoutReturnValue(sqlStatement, preparedStatement -> preparedStatement.setString(1, id));
     }
 
 }

@@ -4,6 +4,8 @@ import de.thws.biedermann.messenger.demo.users.logic.CaptchaValidator;
 import de.thws.biedermann.messenger.demo.users.logic.RegisterUser;
 import de.thws.biedermann.messenger.demo.users.model.UserPayload;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,21 +21,32 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/users/register")
 public class RegistrationController {
 
-    @PostMapping
-    public ResponseEntity<Long> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
-        final CaptchaValidator captchaValidator = new CaptchaValidator();
+    private final CaptchaValidator captchaValidator;
+    private final RegisterUser registerUser;
 
-        if ( !captchaValidator.isCaptchaValid( userPayload.captchaTry( ) ) ) {
-            return ResponseEntity.badRequest().body( null );
+    @Autowired
+    public RegistrationController(CaptchaValidator captchaValidator, RegisterUser registerUser) {
+        this.captchaValidator = captchaValidator;
+        this.registerUser = registerUser;
+    }
+
+    @PostMapping( produces = MediaType.TEXT_PLAIN_VALUE )
+    public ResponseEntity<String> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
+        Optional<Boolean> captchaValidationResult = captchaValidator.isCaptchaValid( userPayload.captchaTry( ) );
+        if ( captchaValidationResult.isEmpty( ) ) {
+            return ResponseEntity.notFound( ).build( );
         }
-        final RegisterUser registerUser = new RegisterUser( );
+        if ( !captchaValidationResult.get( ) ) {
+            return ResponseEntity.badRequest( ).body( null );
+        }
 
-        Optional<Long> result = registerUser.registerUser( userPayload );
+        Optional<Integer> result = registerUser.registerUser( userPayload );
 
-        if ( result.isPresent() ) {
+        if ( result.isPresent( ) ) {
             return ResponseEntity
-                    .created( new URI( request.getRequestURI( ) ) )
-                    .body( result.get() );
+                    .created( new URI( request.getRequestURI( ) + "/" + result.get( ) ) )
+                    .contentType( MediaType.TEXT_PLAIN )
+                    .body( result.get().toString() );
         }
 
         return ResponseEntity.internalServerError().body( null );
