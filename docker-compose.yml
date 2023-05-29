@@ -18,9 +18,14 @@ services:
       - "8080:8080"
 
   db:
-    image: postgres:15.2-alpine3.17
-    restart: on-failure
-    env_file:
-      - ./database/config.env
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: messenger
+      POSTGRES_PASSWORD: WrP3w336gbR2DIUztKjSF4istgp4b2qHW7E43det
+      POSTGRES_DB: messenger
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./database/migration:/docker-entrypoint-initdb.d/
     ports:
-      - '5432:5432'
+      - "5432:5432"
