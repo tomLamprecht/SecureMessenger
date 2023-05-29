@@ -33,6 +33,7 @@ dependencies:
   http: ^0.13.3
   provider: ^6.0.1
   encrypt: ^5.0.1
+  universal_html: ^2.0.8
 
 
   # The following adds the Cupertino Icons font to your application.
