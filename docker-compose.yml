@@ -5,7 +5,7 @@ services:
     build: ./app
     restart: on-failure
     depends_on:
-    00  - backend
+      - backend
     ports:
       - "80:80"
 
