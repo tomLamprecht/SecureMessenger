@@ -34,7 +34,7 @@ public class ChatsOverviewRepositoryDB implements ChatsOverviewRepository {
                 }
                 return Optional.of( chats );
             } catch (SQLException e) {
-                logger.error("Error while selecting friendship", e);
+                logger.error("Error while getChats SQL-Statement", e);
                 return Optional.empty();
             }
         });
