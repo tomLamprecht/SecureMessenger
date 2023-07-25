@@ -2,7 +2,6 @@ package de.thws.biedermann.messenger.demo.captcha.repository;
 
 import java.awt.image.BufferedImage;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public interface ICaptchaDatabaseHandler {
 

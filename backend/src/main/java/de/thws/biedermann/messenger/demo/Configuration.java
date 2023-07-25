@@ -15,10 +15,11 @@ import de.thws.biedermann.messenger.demo.users.repository.IRegistrationDbHandler
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Profile("prod")
+@Profile("default")
 @org.springframework.context.annotation.Configuration
-public class Configuration {
+public class Configuration implements WebMvcConfigurer {
     @Bean
     public IRegistrationDbHandler registrationDbHandler() {
         return new RegistrationDbHandler();
@@ -52,8 +53,9 @@ public class Configuration {
         return new AuthenticationInterceptor( userRepository(),  instantNowRepository());
     }
 
-    //@Override deactivated;
-    public void addInterceptorsDeactivated( InterceptorRegistry registry ) {
+
+    @Override
+    public void addInterceptors( InterceptorRegistry registry ) {
         registry.addInterceptor( authorizationInterceptor() )
                 .excludePathPatterns(
                         "/error",
