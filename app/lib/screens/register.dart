@@ -64,12 +64,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           publicKey: _publicKey,
           userName: userName);
       if (response == 0) {
-        throw Exception('Failed to register user.');
+        throw Exception('Failed to register account.');
       }
       _redirectToChatOverview();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to register user: $e'),
+        content: Text('Failed to register account: $e'),
         backgroundColor: Colors.red,
       ));
     }
