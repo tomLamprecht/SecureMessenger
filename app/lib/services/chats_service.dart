@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 
-import '../models/Chat.dart';
+import '../models/chat.dart';
 import 'api/api_config.dart';
 
 class ChatsService {

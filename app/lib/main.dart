@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/screens/chat_screen.dart';
-import 'package:my_flutter_test/screens/register.dart';
+import 'package:my_flutter_test/screens/login_screen.dart';
+import 'package:my_flutter_test/screens/register_screen.dart';
 
 void main() => runApp(
   const MaterialApp(
     home: WidgetList(
         widgets: {
           'Chat Page': ChatScreen(chatTitle: 'Test Chat', chatId: 1),
-          'Register Page': RegisterScreen()
+          'Register Page': RegisterScreen(),
+          'Login Page': LoginScreen(),
         }
       )
   )

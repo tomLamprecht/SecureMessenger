@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/models/Chat.dart';
+import 'package:my_flutter_test/models/chat.dart';
 import 'package:my_flutter_test/screens/chat_screen.dart';
-import 'package:my_flutter_test/services/chatsService.dart';
+import 'package:my_flutter_test/services/chats_service.dart';
 import 'package:my_flutter_test/widgets/createChat.dart';
 
 

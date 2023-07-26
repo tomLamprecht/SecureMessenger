@@ -3,16 +3,16 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_flutter_test/services/friendshipService.dart';
+import 'package:my_flutter_test/services/friendship_service.dart';
 
 import '../models/friendship.dart';
 
-class FriendshipPage extends StatefulWidget {
+class FriendshipScreen extends StatefulWidget {
   @override
-  _FriendshipPageState createState() => _FriendshipPageState();
+  _FriendshipScreenState createState() => _FriendshipScreenState();
 }
 
-class _FriendshipPageState extends State<FriendshipPage> {
+class _FriendshipScreenState extends State<FriendshipScreen> {
   final _friendIdController = TextEditingController();
   final FriendshipServcie friendshipService = FriendshipServcie();
   List<Friendship> _friendshipList = [];

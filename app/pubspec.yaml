@@ -35,7 +35,7 @@ dependencies:
   pointycastle: ^3.3.2
   encrypt: ^5.0.1
   universal_html: ^2.0.8
-
+  file_picker: ^4.2.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
