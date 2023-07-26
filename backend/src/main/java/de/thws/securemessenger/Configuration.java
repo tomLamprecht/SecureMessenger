@@ -10,6 +10,7 @@ import de.thws.securemessenger.repositories.implementations.RegistrationDbHandle
 import de.thws.securemessenger.repositories.IRegistrationDbHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -29,9 +30,21 @@ public class Configuration implements WebMvcConfigurer {
         registry.addInterceptor( authorizationInterceptor() )
                 .excludePathPatterns(
                         "/error",
+                        "/users/register",
                         "/register",
+                        "/register/**",
                         "/captcha",
                         "/captcha/**"
                 );
+    }
+
+
+    //Allows CORS - Turn off for production!
+    @Override
+    public void addCorsMappings( CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .allowedOrigins("*");
     }
 }

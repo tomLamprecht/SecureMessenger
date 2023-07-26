@@ -1,6 +1,7 @@
 package de.thws.securemessenger.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,11 +11,14 @@ import java.util.Optional;
 @Entity
 public class Account {
     @Id
-    @GeneratedValue
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String username;
+    @Column(length = 1000)
     private String publicKey;
+
+    @CreationTimestamp
     private LocalDateTime joinedAt;
 
     @OneToMany(mappedBy = "account", fetch = FetchType.EAGER)

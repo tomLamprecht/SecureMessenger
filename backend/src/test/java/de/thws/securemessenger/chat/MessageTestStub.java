@@ -10,27 +10,27 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class MessageTestStub implements MessageRepository {
+public abstract class MessageTestStub implements MessageRepository {
 
     private final Map<Long, Message> messageMap = new HashMap<>();
     private final AtomicLong counter = new AtomicLong(1);
 
-    @Override
+  //  @Override
     public Optional<Message> getMessage( long messageId ) {
         return Optional.ofNullable( messageMap.get( messageId ) );
     }
 
-    @Override
+  //  @Override
     public List<Message> messagesOfChatBetween( long chatId, List<TimeSegment> timeSegments ) {
         return messageMap.values().stream().filter( m -> m.chat().id() == chatId ).toList();
     }
 
-    @Override
+  //  @Override
     public int deleteMessage( long messageId ) {
         return messageMap.remove( messageId ) != null ? 1 : 0;
     }
 
-    @Override
+  //  @Override
     public long writeMessage( Message message ) {
         messageMap.put( counter.get(), message );
         Message result = new Message( counter.getAndIncrement(), message.fromUser(), message.chat(), message.value(), message.timeStamp() );

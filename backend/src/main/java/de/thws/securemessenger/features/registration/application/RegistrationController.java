@@ -4,6 +4,8 @@ import de.thws.securemessenger.features.registration.logic.CaptchaValidator;
 import de.thws.securemessenger.features.registration.logic.RegisterUser;
 import de.thws.securemessenger.features.registration.models.UserPayload;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,8 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/users/register")
 public class RegistrationController {
 
+    private final Logger logger = LoggerFactory.getLogger( RegistrationController.class );
+
     private final CaptchaValidator captchaValidator;
     private final RegisterUser registerUser;
 
@@ -34,10 +38,12 @@ public class RegistrationController {
     public ResponseEntity<String> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
         Optional<Boolean> captchaValidationResult = captchaValidator.isCaptchaValid( userPayload.captchaTry( ) );
         if ( captchaValidationResult.isEmpty( ) ) {
+            logger.info( "User tried to validate against captcha that doesn't exist" );
             return ResponseEntity.notFound( ).build( );
         }
         if ( !captchaValidationResult.get( ) ) {
-            return ResponseEntity.badRequest( ).body( null );
+            logger.info( "A User provided an invalid captcha" );
+            return ResponseEntity.badRequest( ).body( "Captcha Wrong" );
         }
 
         Optional<Integer> result = registerUser.registerUser( userPayload );
