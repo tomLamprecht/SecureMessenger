@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pointycastle/key_derivators/api.dart';
 import 'package:pointycastle/key_derivators/pbkdf2.dart';
@@ -13,9 +14,12 @@ import 'package:pointycastle/macs/hmac.dart';
 import 'package:pointycastle/api.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
+import 'aes_helper.dart';
 import 'rsa_helper.dart';
 
 import 'download_service.dart';
+
+import 'package:crypto/crypto.dart';
 
 
 
@@ -53,9 +57,26 @@ class CertFileHandler {
   }
 
   Future<void> downloadFile(String value, String filename) async {
-    DownloadService downloadService =
-    kIsWeb ? WebDownloadService() : MobileDownloadService();
-    await downloadService.download(text: value, filename: filename);
+    DownloadService downloadService = kIsWeb ? WebDownloadService() : MobileDownloadService();
+
+    // Encode the value string to UTF-8 bytes
+    List<int> valueBytes = utf8.encode(value);
+
+    await downloadService.download(
+      text: value,
+      filename: filename,
+    );
+  }
+
+  Future<void> downloadCertificate(AsymmetricKeyPair<PublicKey, PrivateKey> keyPair, String fileName, String password) async {
+    var encodedPrivateKey = RSAHelper().encodePrivateKeyToPemPKCS1(keyPair.privateKey as RSAPrivateKey);
+    var encodedPublicKey = RSAHelper().encodePublicKeyToPemPKCS1(keyPair.publicKey as RSAPublicKey);
+    var value = "$encodedPrivateKey\n$encodedPublicKey";
+
+    // Encrypt the value with AES using the password as the encryption key
+    var encryptedValue = encryptFileContentByPassword(value, password);
+
+    await downloadFile(encryptedValue, fileName);
   }
 
   ///  Generates a private and public key and encrypts it using the given password. It will provide a download for the encrypted Certificate including

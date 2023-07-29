@@ -16,6 +16,13 @@ class CustomHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
+    log("PublicKey: ${RsaKeyStore().publicKey}");
+    var publicKey = RsaKeyStore().publicKey;
+
+    if (publicKey == null) {
+      return _client.send(request);
+    }
+
     String timestamp = DateTime.now().toIso8601String();
     String endpoint = request.url.toString();
     String requestHash = hashRequest(request);
@@ -24,7 +31,7 @@ class CustomHttpClient extends http.BaseClient {
     String encodedTimestamp = Uri.encodeFull(timestamp);
     String encodedEndpoint = Uri.encodeFull(endpoint);
     String encodedRequestHash = Uri.encodeFull(requestHash);
-    String encodedPublicKey = Uri.encodeFull(RSAHelper().encodePublicKeyToString(RsaKeyStore().publicKey));
+    String encodedPublicKey = Uri.encodeFull(RSAHelper().encodePublicKeyToString(publicKey));
 
     // header
     String authorizationHeader = encodedTimestamp + encodedEndpoint + encodedRequestHash;
@@ -38,7 +45,8 @@ class CustomHttpClient extends http.BaseClient {
 
     request.headers['Authorization'] = authorizationHeader;
     request.headers['x-public-key'] = publicKeyHeader;
-
+    log("Send request");
+    print(request.headers);
     return _client.send(request);
   }
 

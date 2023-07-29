@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import '../CustomHttpClient.dart';
+import '../custom_http_client.dart';
 import '../models/chat.dart';
 import 'api/api_config.dart';
 

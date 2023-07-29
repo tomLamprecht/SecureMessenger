@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
-import '../CustomHttpClient.dart';
+import '../custom_http_client.dart';
 
 class RegistrationService {
   final String _baseUrl;

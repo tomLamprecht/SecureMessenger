@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 
-import '../CustomHttpClient.dart';
+import '../custom_http_client.dart';
 
 class CaptchaService {
   final String _baseUrl;

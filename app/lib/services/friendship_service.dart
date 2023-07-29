@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:my_flutter_test/models/friendship.dart';
-import '../CustomHttpClient.dart';
+import '../custom_http_client.dart';
 import 'api/api_config.dart';
 
 class FriendshipServcie {

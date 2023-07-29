@@ -1,14 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
+import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter/src/widgets/basic.dart' as flutter_widgets;
 import 'package:my_flutter_test/services/register_service.dart';
 import 'package:my_flutter_test/services/captcha_service.dart';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
+import 'package:pointycastle/api.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
+import '../services/files/cert_file_handler.dart';
 import '../services/files/rsa_helper.dart';
+import 'chat_overview_screen.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -21,11 +25,15 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   late TextEditingController _userNameController;
   late TextEditingController _captchaController;
+  late TextEditingController _certPasswordController;
   late String _captchaId;
   late CaptchaService _captchaService;
   late RegistrationService _registrationService;
-  late String _privateKey = "";
-  late String _publicKey = "";
+  late String _publicKey;
+  AsymmetricKeyPair<PublicKey, PrivateKey>? _keyPair;
+  final _certFileHandler = CertFileHandler();
+
+  final ValueNotifier<bool> _isDownloadButtonEnabled = ValueNotifier(false);
 
   @override
   void initState() {
@@ -36,27 +44,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _captchaId = '';
     _captchaService = CaptchaService();
     _registrationService = RegistrationService();
+    _certPasswordController = TextEditingController();
+    _certPasswordController.addListener(_onTextFieldChanged);
   }
 
   @override
   void dispose() {
     _userNameController.dispose();
+    _certPasswordController.dispose();
     _captchaController.dispose();
     super.dispose();
   }
 
+  void _onTextFieldChanged() {
+    _isDownloadButtonEnabled.value = _certPasswordController.text.isNotEmpty;
+  }
+
   Future _generateKeys() async {
     var rsaHelper = RSAHelper();
-    var keypair = await rsaHelper.getRSAKeyPair(rsaHelper.getSecureRandom());
+    _keyPair = await rsaHelper.getRSAKeyPair(rsaHelper.getSecureRandom());
 
-    var encodedPublicKey = rsaHelper.encodePublicKeyToString(keypair.publicKey as RSAPublicKey);
-    var encodedPrivateKey = rsaHelper.encodePrivateKeyToString(keypair.privateKey as RSAPrivateKey);
-    RsaKeyStore().publicKey = keypair.publicKey as RSAPublicKey;
-    RsaKeyStore().privateKey = keypair.privateKey as RSAPrivateKey;
-    setState(() {
-      _publicKey = encodedPublicKey;
-      _privateKey = encodedPrivateKey;
-    });
+    var encodedPublicKey = rsaHelper.encodePublicKeyToString(_keyPair!.publicKey as RSAPublicKey);
+    _publicKey = encodedPublicKey;
   }
 
   Future<ImageProvider> _loadCaptchaImage() async {
@@ -67,6 +76,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _registerUser() async {
     final userName = _userNameController.text;
+    if (_keyPair == null) {
+      await _generateKeys();
+    }
+
     try {
       final response = await _registrationService.registerUser(
           captchaId: _captchaId,
@@ -76,6 +89,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response == 0) {
         throw Exception('Failed to register user.');
       }
+
+      await _certFileHandler.downloadCertificate(_keyPair!, "certificate.pem", _certPasswordController.text);
+
+      RsaKeyStore().publicKey = _keyPair!.publicKey as RSAPublicKey;
+      RsaKeyStore().privateKey = _keyPair!.privateKey as RSAPrivateKey;
       _redirectToChatOverview();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -87,48 +105,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 
   void _redirectToChatOverview() {
-    // TODO: Navigate to chat overview screen
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ChatOverviewPage()
+        )
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
+      body: flutter_widgets.Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Private Key:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _privateKey,
-              style: TextStyle(fontFamily: 'Monospace'),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Public Key:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _publicKey,
-              style: TextStyle(fontFamily: 'Monospace'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _generateKeys,
-              child: const Text('Keys erzeugen'),
-            ),
-            const SizedBox(height: 32),
             TextField(
               controller: _userNameController,
               decoration: const InputDecoration(
-                labelText: 'Benutzername',
+                labelText: 'Username',
               ),
               keyboardType: TextInputType.name,
+              textCapitalization: TextCapitalization.words,
+              maxLength: 50,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+            ),
+            TextField(
+              controller: _certPasswordController,
+              decoration: const InputDecoration(
+                labelText: 'Certificate Password',
+              ),
+              keyboardType: TextInputType.visiblePassword,
               textCapitalization: TextCapitalization.words,
               maxLength: 50,
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -172,7 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
 
             const SizedBox(height: 16),
-            TextField(
+              TextField(
               controller: _captchaController,
               decoration: const InputDecoration(
                 labelText: 'Captcha',

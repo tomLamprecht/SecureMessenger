@@ -1,12 +1,9 @@
-package de.thws.biedermann.messenger.demo.users.adapter.rest;
+package de.thws.securemessenger.features.registration.application;
 
-import de.thws.biedermann.messenger.demo.authorization.adapter.rest.AuthenticationInterceptor;
-import de.thws.biedermann.messenger.demo.users.logic.CaptchaValidator;
-import de.thws.biedermann.messenger.demo.users.logic.RegisterUser;
-import de.thws.biedermann.messenger.demo.users.model.UserPayload;
+import de.thws.securemessenger.features.registration.logic.CaptchaValidator;
+import de.thws.securemessenger.features.registration.logic.RegisterUser;
+import de.thws.securemessenger.features.registration.models.UserPayload;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

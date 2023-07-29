@@ -37,7 +37,7 @@ class RSAHelper {
   String encodePrivateKeyToPemPKCS1(RSAPrivateKey privateKey) {
     var encodedPrivateKey = encodePrivateKeyToString(privateKey);
 
-    return """-----BEGIN PRIVATE KEY-----\r\n$encodedPrivateKey\r\n-----END PRIVATE KEY-----""";
+    return """-----BEGIN RSA PRIVATE KEY-----\n$encodedPrivateKey\n-----END PRIVATE KEY-----""";
   }
 
   /// Encode Public key to PEM Format
@@ -45,7 +45,7 @@ class RSAHelper {
   /// Given [RSAPublicKey] returns a base64 encoded [String] with standard PEM headers and footers
   String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
     var encodedPublicKey = encodePublicKeyToString(publicKey);
-    return """-----BEGIN PUBLIC KEY-----\r\n$encodedPublicKey\r\n-----END PUBLIC KEY-----""";
+    return """-----BEGIN RSA PUBLIC KEY-----\n$encodedPublicKey\n-----END PUBLIC KEY-----""";
   }
 
   String encodePrivateKeyToString(RSAPrivateKey privateKey) {
