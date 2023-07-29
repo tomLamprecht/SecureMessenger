@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
-import 'package:my_flutter_test/services/registerService.dart';
-import 'package:my_flutter_test/services/captchaService.dart';
+import 'package:my_flutter_test/services/register_service.dart';
+import 'package:my_flutter_test/services/captcha_service.dart';
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/services/stores/RsaKeyStore.dart';
+import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
-import '../services/files/RSAHelper.dart';
+import '../services/files/rsa_helper.dart';
 
 
 class RegisterScreen extends StatefulWidget {

@@ -9,9 +9,9 @@ import 'package:flutter/foundation.dart';
 import 'package:pointycastle/api.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
-import '../services/files/DownloadService.dart';
-import '../services/files/RSAHelper.dart';
-import '../services/files/certFileHandler.dart';
+import '../services/files/download_service.dart';
+import '../services/files/rsa_helper.dart';
+import '../services/files/cert_file_handler.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);

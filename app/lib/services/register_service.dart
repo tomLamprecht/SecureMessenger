@@ -33,7 +33,7 @@ class RegistrationService {
     if (response.statusCode == 201) {
       return int.parse(response.body);
     } else {
-      throw Exception('Failed to register account.');
+      throw Exception('Failed to register user.');
     }
   }
 }

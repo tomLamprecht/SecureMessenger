@@ -1,5 +1,6 @@
-import 'package:my_flutter_test/services/auth_data.dart';
-import 'package:my_flutter_test/services/files/certFileHandler.dart';
+import 'package:my_flutter_test/services/files/cert_file_handler.dart';
+
+import '../models/auth_data.dart';
 
 bool signIn(String keyPairPemEncrypted, String password) {
   String keyPairPem = CertFileHandler().decryptFileContentByPassword(keyPairPemEncrypted, password);

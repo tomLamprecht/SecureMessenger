@@ -13,9 +13,9 @@ import 'package:pointycastle/macs/hmac.dart';
 import 'package:pointycastle/api.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
-import 'RSAHelper.dart';
+import 'rsa_helper.dart';
 
-import 'DownloadService.dart';
+import 'download_service.dart';
 
 
 

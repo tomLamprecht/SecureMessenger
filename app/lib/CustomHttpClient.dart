@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_flutter_test/services/files/RSAHelper.dart';
-import 'package:my_flutter_test/services/stores/RsaKeyStore.dart';
+import 'package:my_flutter_test/services/files/rsa_helper.dart';
+import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
 
 
 class CustomHttpClient extends http.BaseClient {
