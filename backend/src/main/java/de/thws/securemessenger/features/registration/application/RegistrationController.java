@@ -1,8 +1,9 @@
-package de.thws.securemessenger.features.registration.application;
+package de.thws.biedermann.messenger.demo.users.adapter.rest;
 
-import de.thws.securemessenger.features.registration.logic.CaptchaValidator;
-import de.thws.securemessenger.features.registration.logic.RegisterUser;
-import de.thws.securemessenger.features.registration.models.UserPayload;
+import de.thws.biedermann.messenger.demo.authorization.adapter.rest.AuthenticationInterceptor;
+import de.thws.biedermann.messenger.demo.users.logic.CaptchaValidator;
+import de.thws.biedermann.messenger.demo.users.logic.RegisterUser;
+import de.thws.biedermann.messenger.demo.users.model.UserPayload;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +24,6 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/users/register")
 public class RegistrationController {
 
-    private final Logger logger = LoggerFactory.getLogger( RegistrationController.class );
-
     private final CaptchaValidator captchaValidator;
     private final RegisterUser registerUser;
 
@@ -36,14 +35,13 @@ public class RegistrationController {
 
     @PostMapping( produces = MediaType.TEXT_PLAIN_VALUE )
     public ResponseEntity<String> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
+
         Optional<Boolean> captchaValidationResult = captchaValidator.isCaptchaValid( userPayload.captchaTry( ) );
         if ( captchaValidationResult.isEmpty( ) ) {
-            logger.info( "User tried to validate against captcha that doesn't exist" );
             return ResponseEntity.notFound( ).build( );
         }
         if ( !captchaValidationResult.get( ) ) {
-            logger.info( "A User provided an invalid captcha" );
-            return ResponseEntity.badRequest( ).body( "Captcha Wrong" );
+            return ResponseEntity.badRequest( ).body( null );
         }
 
         Optional<Integer> result = registerUser.registerUser( userPayload );
