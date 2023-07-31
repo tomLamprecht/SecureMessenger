@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:encrypt/encrypt.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_flutter_test/services/files/rsa_helper.dart';
 import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
+import 'package:pointycastle/export.dart';
 
 
 class CustomHttpClient extends http.BaseClient {
@@ -34,7 +37,7 @@ class CustomHttpClient extends http.BaseClient {
     String encodedPublicKey = Uri.encodeFull(RSAHelper().encodePublicKeyToString(publicKey));
 
     // header
-    String authorizationHeader = encodedTimestamp + encodedEndpoint + encodedRequestHash;
+    String authorizationHeader = encryptStringWithPrivateKey(encodedTimestamp + encodedEndpoint + encodedRequestHash);
 
     String publicKeyHeader = encodedPublicKey;
 
@@ -54,6 +57,15 @@ class CustomHttpClient extends http.BaseClient {
     List<int> requestBytes = utf8.encode(request.toString());
     var hashedRequest = sha256.convert(requestBytes);
     return hashedRequest.toString();
+  }
+
+  String encryptStringWithPrivateKey(String plaintext) {
+    final encrypter = RSAEngine()..init(true, PrivateKeyParameter<RSAPrivateKey>(RsaKeyStore().privateKey as PrivateKey));
+
+    final input = Uint8List.fromList(utf8.encode(plaintext));
+    final encrypted = encrypter.process(input);
+
+    return base64.encode(encrypted);
   }
 
 }
