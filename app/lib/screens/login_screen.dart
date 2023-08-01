@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:my_flutter_test/screens/register.dart';
+import 'package:my_flutter_test/screens/register_screen.dart';
 import '../services/login_service.dart';
 import 'chat_overview_screen.dart';
 
