@@ -1,6 +1,6 @@
 package de.thws.securemessenger.features.authorization.application;
 
-import de.thws.securemessenger.features.authorization.logic.UserAuthenticationByPublicKey;
+import de.thws.securemessenger.features.authorization.logic.AuthenticationService;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.features.authorization.model.AuthorizationData;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,31 +10,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.util.Optional;
 
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
-    private static final String AUTH_HEADER_SPLITTER = "#";
-
     private final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
 
     @Autowired
     private CurrentAccount currentAccount;
-
-    private static Optional<AuthorizationData> dataOf(String authorizationHeaderString) {
-        String[] parts = authorizationHeaderString.split(AUTH_HEADER_SPLITTER);
-        if (parts.length != 3) {
-            return Optional.empty();
-        }
-
-        return Optional.of(new AuthorizationData(parts[0], parts[1], parts[2]));
-    }
+    @Autowired
+    private AuthenticationService authenticationService;
 
     /**
-     * Handles the authorization. Only authorizes if the AuthorizationHeader contains the current timestamp,
-     * the origin message unsigned and the origin message signed with the private key, all separated by AUTH_HEADER_SPLITTER.
+     * Handles the authorization.
      * The timestamp must be the UTC timestamp in ISO-8601 format, and not older than MAX_TIMESTAMP_DIFF (seconds).
      * The signed message must be base64 encoded.
      * The public key must be sent in the "x-public-key" header to identify the user.
@@ -43,37 +34,44 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         logger.info("Intercepted " + request.getRequestURI());
 
-        String authorizationHeaderString = request.getHeader("Authorization");
+        String timestamp = request.getHeader("x-auth-timestamp");
+        String signature = request.getHeader("x-auth-signature");
         String publicKey = request.getHeader("x-public-key");
 
-        logger.info("Authorization: " + authorizationHeaderString);
-        logger.info("public-key: " + publicKey);
+        logger.info("timestamp from client: " + timestamp);
+        logger.info("signature from client: " + signature);
+        logger.info("public-key from client: " + publicKey);
 
-        if (publicKey == null || publicKey.isEmpty() || authorizationHeaderString == null || authorizationHeaderString.isEmpty()) {
-            logger.info("Request unauthorized");
+        if (timestamp == null || timestamp.isEmpty() || publicKey == null || publicKey.isEmpty() || signature == null || signature.isEmpty()) {
+            logger.info("request unauthorized because null value or empty header");
             throw new NotAuthorizedException();
         }
 
-        Optional<AuthorizationData> optionalAuthorizationData = dataOf(authorizationHeaderString);
-        if (optionalAuthorizationData.isEmpty()) {
+        if (!(request instanceof ContentCachingRequestWrapper contentWrapper)) {
+            logger.info("request could not be parsed to ContentCachingRequestWrapper. Maybe the filterChain is broken?");
             throw new NotAuthorizedException();
         }
-        AuthorizationData authorizationData = optionalAuthorizationData.get();
+
+        String content = new String(contentWrapper.getContentAsByteArray(), contentWrapper.getCharacterEncoding());
+
+        AuthorizationData authData = new AuthorizationData(signature, publicKey, timestamp, request.getMethod().toUpperCase(), request.getRequestURI(), content);
+        logger.info("trying to authenticate user with following authentication data: " + authData);
 
         Optional<Account> optionalUser;
         try {
-             optionalUser = new UserAuthenticationByPublicKey().getAuthorizedUser(authorizationData, request.getContextPath(), publicKey);
-        } catch (Exception e) {
+             optionalUser = authenticationService.getAuthorizedAccount(authData);
+        } catch (AuthenticationService.VerifySignatureException e) {
+            logger.info("signature could not be verified");
             throw new NotAuthorizedException();
         }
 
         if (optionalUser.isEmpty()) {
-            logger.info("Request unauthorized");
+            logger.info("no account associated by this public key");
             throw new NotAuthorizedException();
         }
 
         currentAccount.setUser(optionalUser.get());
-        logger.info("Request authorized; User: " + currentAccount.getAccount().id());
+        logger.info("Request authorized; Account id: " + currentAccount.getAccount().id());
         return true;
     }
 
