@@ -63,7 +63,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future _generateKeys() async {
     var rsaHelper = RSAHelper();
     _keyPair = await rsaHelper.getRSAKeyPair(rsaHelper.getSecureRandom());
-
     var encodedPublicKey = rsaHelper.encodePublicKeyToString(_keyPair!.publicKey as RSAPublicKey);
     _publicKey = encodedPublicKey;
   }

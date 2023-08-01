@@ -19,7 +19,6 @@ class CustomHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    log("PublicKey: ${RsaKeyStore().publicKey}");
     var publicKey = RsaKeyStore().publicKey;
 
     if (publicKey == null) {
