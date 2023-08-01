@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:my_flutter_test/screens/register_screen.dart';
 import '../services/login_service.dart';
+import 'chat_overview_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,8 +36,13 @@ class LoginScreenState extends State<LoginScreen> {
       if (!success) {
         _showAlertDialog('File is not in the right format!');
       }
-      print(
-          'SignIn button clicked with file: ${_selectedFile!.name}, and password: ${_passwordController.text}');
+
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ChatOverviewPage()
+          )
+      );
     }
   }
 
@@ -82,6 +89,15 @@ class LoginScreenState extends State<LoginScreen> {
             child: Text('Sign In'),
             onPressed: _signIn,
           ),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const RegisterScreen()
+                ),
+            );
+          }, child: Text("Register"))
         ],
       ),
     );

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:pointycastle/api.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
-import 'DownloadService.dart';
-import 'RSAHelper.dart';
+import 'download_service.dart';
+import 'rsa_helper.dart';
 
 class RSAKeyPairWidget extends StatefulWidget {
   const RSAKeyPairWidget({super.key});

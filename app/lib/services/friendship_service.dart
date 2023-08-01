@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:my_flutter_test/models/friendship.dart';
-import 'package:http/http.dart' as http;
+import '../custom_http_client.dart';
 import 'api/api_config.dart';
 
 class FriendshipServcie {
   Future<List<Friendship>?> getFriendshipRequests() async {
     final url = Uri.parse('${ApiConfig.baseUrl}/friendships');
 
-    final response = await http.get(url);
+    final response = await CustomHttpClient().get(url);
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       final List<Friendship> chatList = jsonList.map((json) => Friendship.fromJson(json))
@@ -26,7 +26,7 @@ class FriendshipServcie {
     final headers = {'Content-Type': 'application/json'};
     final body = json.encode({'targetUserName': targetUserName});
 
-    final response = await http.post(url, headers: headers, body: body);
+    final response = await CustomHttpClient().post(url, headers: headers, body: body);
     log("response: $response");
     if (response.statusCode == 201) {
       final friendshipId = json.decode(response.body)['friendshipId'];

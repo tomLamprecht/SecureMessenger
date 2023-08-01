@@ -17,7 +17,7 @@ public class RegisterUser {
     }
 
 
-    public Optional<Integer> registerUser ( final UserPayload userPayload ) {
+    public Optional<Integer> registerUser (final UserPayload userPayload ) {
          return registrationDbHandler.createUser( userPayload.userName(), userPayload.publicKey());
     }
 }

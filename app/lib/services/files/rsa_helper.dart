@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import "package:pointycastle/export.dart";
@@ -19,9 +20,6 @@ class RSAHelper {
     return await compute(computeRSAKeyPair, secureRandom);
   }
 
-
-
-
   SecureRandom getSecureRandom() {
     var secureRandom = FortunaRandom();
     var random = Random.secure();
@@ -37,7 +35,20 @@ class RSAHelper {
   ///
   /// Given [RSAPrivateKey] returns a base64 encoded [String] with standard PEM headers and footers
   String encodePrivateKeyToPemPKCS1(RSAPrivateKey privateKey) {
+    var encodedPrivateKey = encodePrivateKeyToString(privateKey);
 
+    return """-----BEGIN RSA PRIVATE KEY-----\n$encodedPrivateKey\n-----END PRIVATE KEY-----""";
+  }
+
+  /// Encode Public key to PEM Format
+  ///
+  /// Given [RSAPublicKey] returns a base64 encoded [String] with standard PEM headers and footers
+  String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
+    var encodedPublicKey = encodePublicKeyToString(publicKey);
+    return """-----BEGIN RSA PUBLIC KEY-----\n$encodedPublicKey\n-----END PUBLIC KEY-----""";
+  }
+
+  String encodePrivateKeyToString(RSAPrivateKey privateKey) {
     var topLevel = ASN1Sequence();
 
     var version = ASN1Integer(BigInt.from(0));
@@ -63,22 +74,16 @@ class RSAHelper {
     topLevel.add(exp2);
     topLevel.add(co);
 
-    var dataBase64 = base64.encode(topLevel.encodedBytes);
-
-    return """-----BEGIN PRIVATE KEY-----\r\n$dataBase64\r\n-----END PRIVATE KEY-----""";
+    return base64.encode(topLevel.encodedBytes);
   }
 
-  /// Encode Public key to PEM Format
-  ///
-  /// Given [RSAPublicKey] returns a base64 encoded [String] with standard PEM headers and footers
-  String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
+  String encodePublicKeyToString(RSAPublicKey publicKey) {
     var topLevel = ASN1Sequence();
 
     topLevel.add(ASN1Integer(publicKey.modulus!));
     topLevel.add(ASN1Integer(publicKey.exponent!));
 
-    var dataBase64 = base64.encode(topLevel.encodedBytes);
-    return """-----BEGIN PUBLIC KEY-----\r\n$dataBase64\r\n-----END PUBLIC KEY-----""";
+    return base64.encode(topLevel.encodedBytes);
   }
 
 }

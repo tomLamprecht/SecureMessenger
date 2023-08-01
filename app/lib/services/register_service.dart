@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
+
+import '../custom_http_client.dart';
 
 class RegistrationService {
   final String _baseUrl;
@@ -14,7 +15,7 @@ class RegistrationService {
     required String userName,
   }) async {
     developer.log(captchaId);
-    final response = await http.post(
+    final response = await CustomHttpClient().post(
       Uri.parse('$_baseUrl/users/register'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
@@ -32,7 +33,7 @@ class RegistrationService {
     if (response.statusCode == 201) {
       return int.parse(response.body);
     } else {
-      throw Exception('Failed to register account.');
+      throw Exception('Failed to register user.');
     }
   }
 }
