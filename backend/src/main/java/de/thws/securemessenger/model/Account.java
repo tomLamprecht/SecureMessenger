@@ -14,8 +14,9 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String username;
-    @Column(length = 1000)
+    @Column(length = 1000, unique = true, nullable = false)
     private String publicKey;
 
     @CreationTimestamp
