@@ -1,7 +1,7 @@
 class Chat {
   final int id;
   final String name;
-  final String description;
+  final String description; // todo: eigentlich wäre ja eine Gruppenbeschreibung valid, welche Anfangs leer ist und dann befüllt werden könnte
   final DateTime createdAt;
 
   const Chat(

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/screens/chat_overview_screen.dart';
+import 'package:my_flutter_test/screens/chat_screen.dart';
 import 'package:my_flutter_test/screens/login_screen.dart';
-import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
+import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
 
 void main() => runApp(
   const MaterialApp(
@@ -14,9 +15,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EccKeyStore().publicKey == null
-        ? LoginScreen()
-        : ChatOverviewPage();
+    // return RsaKeyStore().publicKey == null
+    //     ? LoginScreen()
+    //     : ChatOverviewPage();
+    return ChatOverviewPage();
   }
 }
 

@@ -1,8 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/chat.dart';
 import 'package:my_flutter_test/screens/chat_screen.dart';
+import 'package:my_flutter_test/screens/friend_request_screen.dart';
+import 'package:my_flutter_test/screens/friendship_screen.dart';
 import 'package:my_flutter_test/services/chats_service.dart';
 import 'package:my_flutter_test/widgets/create_chat.dart';
 
@@ -14,19 +14,25 @@ class ChatOverviewPage extends StatefulWidget {
 
 class _ChatOverviewPageState extends State<ChatOverviewPage> {
   ChatsService chatsService = ChatsService();
-  List<Chat>? chats = [];
+  // List<Chat>? chats = [];
+  List<Chat> chats = [
+    Chat(1, "Chat Room 1", "This is chat room 1.", DateTime(2023, 7, 31, 10, 30)),
+    Chat(2, "Chat Room 2", "Welcome to chat room 2!", DateTime(2023, 8, 1, 15, 45)),
+    Chat(3, "General Chat", "A place for general discussions.", DateTime(2023, 8, 1, 9, 0)),
+    Chat(4, "Private Chat", "Private conversations here.", DateTime(2023, 7, 30, 18, 20)),
+    Chat(5, "Party Planning", "Organizing the upcoming party.", DateTime(2023, 7, 29, 20, 0)),
+  ];
 
-  @override
-  void initState() {
-    initialize();
-    super.initState();
-  }
-  Future<void> initialize() async {
-    var temp = await chatsService.getChatsFromUser();
-    setState(() {
-      chats = temp;
-    });
-  }
+  bool _isHovering = false;
+
+  // @override
+  // void initState() {
+  //   initialize();
+  //   super.initState();
+  // }
+  // Future<void> initialize() async {
+  //   chats = await chatsService.getChatsFromUser();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +53,13 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
               }
             },
           ),
-          PopupMenuButton(
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(child: Text('New group')),
-                PopupMenuItem(child: Text('Settings')),
-              ];
+          IconButton(
+            icon: Icon(Icons.person_add_alt_1),
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FriendRequestPage()),
+              );
             },
           ),
         ],
