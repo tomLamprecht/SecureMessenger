@@ -25,4 +25,12 @@ public class PublicAccountInformationHelper {
         }
         return Optional.of(new PublicAccountInformation(account.id(), account.username(), account.publicKey()));
     }
+
+    public Optional<PublicAccountInformation> getAccountByUsername(String username) {
+        Account account = accountRepository.findAccountByUsername(username);
+        if (account == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new PublicAccountInformation(account.id(), account.username(), account.publicKey()));
+    }
 }

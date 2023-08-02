@@ -2,6 +2,7 @@ package de.thws.securemessenger.features.registration.application;
 
 import de.thws.securemessenger.features.registration.logic.CaptchaValidator;
 import de.thws.securemessenger.features.registration.logic.RegisterUser;
+import de.thws.securemessenger.features.registration.logic.UserNameValidator;
 import de.thws.securemessenger.features.registration.models.UserPayload;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +24,13 @@ public class RegistrationController {
 
     private final CaptchaValidator captchaValidator;
     private final RegisterUser registerUser;
+    private final UserNameValidator userNameValidator;
 
     @Autowired
-    public RegistrationController(CaptchaValidator captchaValidator, RegisterUser registerUser) {
+    public RegistrationController(CaptchaValidator captchaValidator, RegisterUser registerUser, UserNameValidator userNameValidator) {
         this.captchaValidator = captchaValidator;
         this.registerUser = registerUser;
+        this.userNameValidator = userNameValidator;
     }
 
     @PostMapping( produces = MediaType.TEXT_PLAIN_VALUE )
@@ -39,6 +42,9 @@ public class RegistrationController {
         }
         if ( !captchaValidationResult.get( ) ) {
             return ResponseEntity.badRequest( ).body( null );
+        }
+        if  ( !userNameValidator.isValidUserName( userPayload.userName( ) ) ) {
+            return ResponseEntity.badRequest().body( "Invalid Username was given." );
         }
 
         Optional<Integer> result = registerUser.registerUser( userPayload );

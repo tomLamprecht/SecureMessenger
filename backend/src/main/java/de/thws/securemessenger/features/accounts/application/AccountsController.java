@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URLEncoder;
 import java.util.Optional;
 
 @RestController
@@ -20,10 +21,20 @@ public class AccountsController {
         this.publicAccountInformationHelper = publicAccountInformationHelper;
     }
 
-    @GetMapping(value = "/{userId}")
-    public ResponseEntity<PublicAccountInformation> getPublicUserInformation(@PathVariable long userId){
-        Optional<PublicAccountInformation> publicAccountInformation = publicAccountInformationHelper.getAccountById(userId);
-        System.out.println(publicAccountInformation);
+    @GetMapping(value = "/{accountId:[0-9]+}")
+    public ResponseEntity<PublicAccountInformation> getPublicUserInformation(@PathVariable long accountId){
+        Optional<PublicAccountInformation> publicAccountInformation = publicAccountInformationHelper.getAccountById(accountId);
+        return publicAccountInformation.map(accountInformation -> ResponseEntity
+                .ok()
+                .body(accountInformation)
+        ).orElseGet(() -> ResponseEntity
+                .notFound()
+                .build());
+    }
+
+    @GetMapping("/by-username/{username}")
+    public ResponseEntity<PublicAccountInformation> getPublicAccountInformationByUsername(@PathVariable String username) {
+        Optional<PublicAccountInformation> publicAccountInformation = publicAccountInformationHelper.getAccountByUsername(username);
         return publicAccountInformation.map(accountInformation -> ResponseEntity
                 .ok()
                 .body(accountInformation)

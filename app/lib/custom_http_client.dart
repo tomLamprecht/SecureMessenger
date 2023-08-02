@@ -38,6 +38,13 @@ class CustomHttpClient extends http.BaseClient {
     request.headers['x-auth-timestamp'] = encodedTimestamp;
     request.headers['x-public-key'] = encodedPublicKey;
 
+    final http.StreamedResponse response = await _client.send(request);
+    final int statusCode = response.statusCode;
+
+    if (statusCode >= 400 || statusCode < 500) {
+
+    }
+
     return _client.send(request);
   }
 
