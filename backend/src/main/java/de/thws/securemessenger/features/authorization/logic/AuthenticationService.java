@@ -46,7 +46,7 @@ public class AuthenticationService {
             throw new VerifySignatureException();
         }
 
-        return Optional.ofNullable(accountRepository.findAccountByPublicKey(authData.publicKey()));
+        return accountRepository.findAccountByPublicKey(authData.publicKey());
     }
 
     public static boolean verifySignature(String message, String signature, String publicKeyBase64) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidKeySpecException {

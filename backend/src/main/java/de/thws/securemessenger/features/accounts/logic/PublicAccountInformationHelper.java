@@ -19,18 +19,12 @@ public class PublicAccountInformationHelper {
     }
 
     public Optional<PublicAccountInformation> getAccountById(long accountId) {
-        Account account = accountRepository.findAccountById(accountId);
-        if (account == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new PublicAccountInformation(account.id(), account.username(), account.publicKey()));
+        Optional<Account> account = accountRepository.findAccountById(accountId);
+        return account.map(value -> new PublicAccountInformation(value.id(), value.username(), value.publicKey()));
     }
 
     public Optional<PublicAccountInformation> getAccountByUsername(String username) {
-        Account account = accountRepository.findAccountByUsername(username);
-        if (account == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new PublicAccountInformation(account.id(), account.username(), account.publicKey()));
+        Optional<Account> account = accountRepository.findAccountByUsername(username);
+        return account.map(value -> new PublicAccountInformation(value.id(), value.username(), value.publicKey()));
     }
 }

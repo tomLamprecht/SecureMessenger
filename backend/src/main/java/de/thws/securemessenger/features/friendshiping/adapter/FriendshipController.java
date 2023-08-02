@@ -2,13 +2,13 @@ package de.thws.securemessenger.features.friendshiping.adapter;
 
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.features.friendshiping.logic.FriendshipService;
-import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Friendship;
-import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,38 +17,58 @@ import java.util.Optional;
 @RequestMapping("/friendships")
 public class FriendshipController {
 
-    @Autowired
-    private FriendshipService friendshipRequestService;
+    private final FriendshipService friendshipRequestService;
     private final CurrentAccount currentAccount;
 
     @Autowired
-    EntityManager entityManager;
-
     public FriendshipController(FriendshipService friendshipRequestService, CurrentAccount currentAccount) {
         this.friendshipRequestService = friendshipRequestService;
         this.currentAccount = currentAccount;
     }
 
-    @GetMapping("/")
-    public ResponseEntity<List<Friendship>> getAllFriendshipRequests() {
-        return ResponseEntity.ok().body(friendshipRequestService.getAllFriendshipRequestsById(currentAccount.getAccount()));
+    @PostMapping("/{toAccountId:[0-9+]}")
+    public ResponseEntity<Void> createFriendship(@PathVariable long toAccountId) throws URISyntaxException {
+        Optional<Long> friendshipId = friendshipRequestService.handleFriendshipRequest(currentAccount.getAccount(), toAccountId);
+
+        if (friendshipId.isEmpty()) {
+            return ResponseEntity
+                    .notFound()
+                    .build();
+        }
+
+        return ResponseEntity
+                .created(new URI("/friendships/" + friendshipId))
+                .build();
     }
 
-    @GetMapping("/{toAccountId}")
-    public ResponseEntity<Friendship> getFriendshipRequestById(@PathVariable long toAccountId) {
-        Optional<Friendship> result = friendshipRequestService.getFriendshipRequestByAccount(this.currentAccount.getAccount(), entityManager.find(Account.class, toAccountId));
-        return result.map(friendship -> ResponseEntity.ok().body(friendship)).orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{toAccountId:[0-9+]}")
+    public ResponseEntity<Friendship> getFriendship(@PathVariable long toAccountId) {
+        Optional<Friendship> friendship = friendshipRequestService.getFriendshipWith(currentAccount.getAccount(), toAccountId);
+        return friendship
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{toAccountId}")
-    public ResponseEntity<Long> createFriendshipRequest(@PathVariable long toAccountId) {
-        return ResponseEntity.of(Optional.of(friendshipRequestService.createFriendshipRequest(this.currentAccount.getAccount(), entityManager.find(Account.class, toAccountId))));
+    @DeleteMapping("/{toAccountId:[0-9+]}")
+    public ResponseEntity<Void> deleteFriendship(@PathVariable long toAccountId){
+        if (friendshipRequestService.deleteFriendshipRequest(currentAccount.getAccount(), toAccountId)){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{toAccountId}")
-    public ResponseEntity<Void> deleteFriendshipRequest(@PathVariable long toAccountId) {
-        boolean succeeded = friendshipRequestService.deleteFriendshipRequest(currentAccount.getAccount(), entityManager.find(Account.class, toAccountId));
-        return succeeded ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    @GetMapping()
+    public ResponseEntity<List<Friendship>> getAllFriendships(){
+        return ResponseEntity.ok(friendshipRequestService.getAllAcceptedFriendships(currentAccount.getAccount()));
+    }
+
+    @GetMapping("/incoming")
+    public ResponseEntity<List<Friendship>> getIncomingFriendshipRequests(@RequestParam(defaultValue = "false") boolean showOnlyPending){
+        return ResponseEntity.ok(friendshipRequestService.getAllIncomingFriendshipRequests(currentAccount.getAccount(), showOnlyPending));
+    }
+
+    @GetMapping("/outgoing")
+    public ResponseEntity<List<Friendship>> getOutgoingFriendshipRequests(@RequestParam(defaultValue = "false") boolean showOnlyPending){
+        return ResponseEntity.ok(friendshipRequestService.getAllOutgoingFriendshipRequests(currentAccount.getAccount(), showOnlyPending));
     }
 }
-
