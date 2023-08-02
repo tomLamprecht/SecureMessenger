@@ -1,8 +1,8 @@
 package de.thws.securemessenger.features.authorization.application;
 
 import de.thws.securemessenger.features.authorization.logic.AuthenticationService;
-import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.features.authorization.model.AuthorizationData;
+import de.thws.securemessenger.model.Account;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;

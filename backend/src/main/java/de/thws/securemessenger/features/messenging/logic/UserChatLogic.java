@@ -1,14 +1,14 @@
 package de.thws.securemessenger.features.messenging.logic;
 
-import de.thws.securemessenger.model.Chat;
-import de.thws.securemessenger.repositories.ChatRepository;
-import de.thws.securemessenger.repositories.MessageRepository;
+import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
+import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.model.Message;
+import de.thws.securemessenger.repositories.ChatRepository;
 import de.thws.securemessenger.repositories.ChatToAccountRepository;
-import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.repositories.InstantNowRepository;
+import de.thws.securemessenger.repositories.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

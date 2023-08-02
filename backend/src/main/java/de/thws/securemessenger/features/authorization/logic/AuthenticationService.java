@@ -2,10 +2,9 @@ package de.thws.securemessenger.features.authorization.logic;
 
 import de.thws.securemessenger.features.authorization.model.AuthorizationData;
 import de.thws.securemessenger.features.authorization.model.MaxTimeDifference;
-import de.thws.securemessenger.repositories.AccountRepository;
-import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
-import de.thws.securemessenger.repositories.InstantNowRepository;
+import de.thws.securemessenger.model.Account;
+import de.thws.securemessenger.repositories.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

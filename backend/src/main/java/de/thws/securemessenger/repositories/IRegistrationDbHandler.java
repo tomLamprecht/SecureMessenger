@@ -3,7 +3,6 @@ package de.thws.securemessenger.repositories;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Repository
 public interface IRegistrationDbHandler {

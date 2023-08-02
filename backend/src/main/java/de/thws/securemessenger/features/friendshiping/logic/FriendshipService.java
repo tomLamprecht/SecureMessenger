@@ -1,6 +1,5 @@
 package de.thws.securemessenger.features.friendshiping.logic;
 
-import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Friendship;
 import de.thws.securemessenger.repositories.AccountRepository;

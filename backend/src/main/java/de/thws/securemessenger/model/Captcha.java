@@ -1,8 +1,5 @@
 package de.thws.securemessenger.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-
 import java.awt.image.BufferedImage;
 
 

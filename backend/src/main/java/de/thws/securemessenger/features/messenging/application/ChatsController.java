@@ -2,11 +2,9 @@ package de.thws.securemessenger.features.messenging.application;
 
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.features.messenging.logic.UserChatLogic;
-import de.thws.securemessenger.repositories.ChatToAccountRepository;
-import de.thws.securemessenger.repositories.MessageRepository;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
-import de.thws.securemessenger.repositories.InstantNowRepository;
+import de.thws.securemessenger.repositories.ChatToAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
