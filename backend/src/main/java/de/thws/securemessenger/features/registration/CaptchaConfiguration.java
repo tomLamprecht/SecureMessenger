@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Profile("prod")
-@ComponentScan(basePackages = "de.thws.biedermann.messenger.demo.registration") // TODO update
+@ComponentScan(basePackages = "de.thws.securemessenger.registration") // TODO update
 public class CaptchaConfiguration {
 
 }
