@@ -4,13 +4,14 @@ import de.thws.securemessenger.features.accounts.logic.PublicAccountInformationH
 import de.thws.securemessenger.features.accounts.modules.PublicAccountInformation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/accounts")
 public class AccountsController {
 
     private final PublicAccountInformationHelper publicAccountInformationHelper;
@@ -19,9 +20,10 @@ public class AccountsController {
         this.publicAccountInformationHelper = publicAccountInformationHelper;
     }
 
-    @GetMapping(value = "/{userName}")
-    public ResponseEntity<PublicAccountInformation> getPublicUserInformation(long userId){
+    @GetMapping(value = "/{userId}")
+    public ResponseEntity<PublicAccountInformation> getPublicUserInformation(@PathVariable long userId){
         Optional<PublicAccountInformation> publicAccountInformation = publicAccountInformationHelper.getAccountById(userId);
+        System.out.println(publicAccountInformation);
         return publicAccountInformation.map(accountInformation -> ResponseEntity
                 .ok()
                 .body(accountInformation)
