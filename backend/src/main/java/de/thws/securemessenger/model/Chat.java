@@ -1,5 +1,6 @@
 package de.thws.securemessenger.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -15,9 +16,11 @@ public class Chat {
     private String description;
     private Instant createdAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
     private List<Message> messages;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
     private List<ChatToAccount> chatToAccounts;
 

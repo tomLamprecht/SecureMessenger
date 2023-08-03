@@ -1,17 +1,23 @@
 package de.thws.securemessenger.features.authorization.application;
 
 import de.thws.securemessenger.features.authorization.logic.AuthenticationService;
-import de.thws.securemessenger.features.authorization.model.AuthorizationData;
 import de.thws.securemessenger.model.Account;
+import de.thws.securemessenger.features.authorization.model.AuthorizationData;
+import de.thws.securemessenger.repositories.AccountRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
 @Component
@@ -23,6 +29,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private CurrentAccount currentAccount;
     @Autowired
     private AuthenticationService authenticationService;
+    @Autowired
+    private AccountRepository accountRepository;
 
     /**
      * Handles the authorization.
@@ -33,6 +41,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         logger.info("Intercepted " + request.getRequestURI());
+
+        if (request.getMethod().toUpperCase().equals(HttpMethod.OPTIONS.name())) {
+            logger.info("OPTIONS method is always allowed, forwarding to endpoint");
+            return true;
+        }
 
         String timestamp = request.getHeader("x-auth-timestamp");
         String signature = request.getHeader("x-auth-signature");
@@ -48,29 +61,41 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         }
 
         if (!(request instanceof ContentCachingRequestWrapper contentWrapper)) {
-            logger.info("request could not be parsed to ContentCachingRequestWrapper. Maybe the filterChain is broken?");
-            throw new NotAuthorizedException();
+            logger.error("request could not be parsed to ContentCachingRequestWrapper. Maybe the filterChain is broken?");
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         String content = new String(contentWrapper.getContentAsByteArray(), contentWrapper.getCharacterEncoding());
 
-        AuthorizationData authData = new AuthorizationData(signature, publicKey, timestamp, request.getMethod().toUpperCase(), request.getRequestURI(), content);
+        Instant instant;
+        try {
+            instant = Instant.parse(timestamp);
+        } catch (DateTimeParseException e) {
+            logger.info("timestamp could not be parsed: " + timestamp);
+            throw new NotAuthorizedException();
+        }
+        AuthorizationData authData = new AuthorizationData(signature, publicKey, instant, request.getMethod().toUpperCase(), request.getRequestURI(), content);
         logger.info("trying to authenticate user with following authentication data: " + authData);
 
-        Optional<Account> optionalUser;
+        boolean authenticated;
         try {
-             optionalUser = authenticationService.getAuthorizedAccount(authData);
+             authenticated = authenticationService.isAuthenticated(authData);
         } catch (AuthenticationService.VerifySignatureException e) {
-            logger.info("signature could not be verified");
+            logger.info("signature could not be verified: " + e.getMessage());
             throw new NotAuthorizedException();
         }
 
-        if (optionalUser.isEmpty()) {
+        if (!authenticated) {
+            throw new NotAuthorizedException();
+        }
+
+        Optional<Account> authorizedAccount = accountRepository.findAccountByPublicKey(authData.publicKey());
+        if (authorizedAccount.isEmpty()) {
             logger.info("no account associated by this public key");
             throw new NotAuthorizedException();
         }
 
-        currentAccount.setUser(optionalUser.get());
+        currentAccount.setUser(authorizedAccount.get());
         logger.info("Request authorized; Account id: " + currentAccount.getAccount().id());
         return true;
     }

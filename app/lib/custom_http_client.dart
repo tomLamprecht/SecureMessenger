@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as enc;
@@ -25,13 +26,17 @@ class CustomHttpClient extends http.BaseClient {
     }
 
     final String timestamp = DateTime.now().toUtc().toIso8601String();
-    final String method = request.method;
-    final String path = Uri.encodeFull(request.url.toString());
+    final String method = request.method.toUpperCase();
+    final String path = request.url.toString();
     final String body = _getBody(request);
 
+    log("sending request with:");
+    log("method: $method");
+    log("path: $path");
+    log("body: $body");
+
     final String encodedTimestamp = Uri.encodeFull(timestamp);
-    final String encodedPublicKey =
-    Uri.encodeFull(RSAHelper().encodePublicKeyToString(publicKey));
+    final String encodedPublicKey = RSAHelper().encodePublicKeyToString(publicKey);
     String authorizationHeader = signMessage(RsaKeyStore().privateKey! , "$method#$path#$timestamp#$body");
 
     request.headers['x-auth-signature'] = authorizationHeader;
@@ -45,12 +50,14 @@ class CustomHttpClient extends http.BaseClient {
 
     }
 
+    log("x-auth-signature: $authorizationHeader");
+    log("x-auth-timestamp: $encodedTimestamp");
+    log("x-public-key: $encodedPublicKey");
+
     return _client.send(request);
   }
 
   String signMessage(RSAPrivateKey privateKey, String message){
-
-
     Uint8List sourceBytes = Uint8List.fromList(utf8.encode(message));
 
     return enc.RSASigner(enc.RSASignDigest.SHA256, privateKey: privateKey).sign(sourceBytes).base64;
@@ -75,16 +82,5 @@ class CustomHttpClient extends http.BaseClient {
       }
     }
     return bodyJson;
-  }
-
-  String _getBodyHash(http.BaseRequest request) {
-    String bodyJson = _getBody(request);
-    return _calculateSHA256Hash(bodyJson);
-  }
-
-  String _calculateSHA256Hash(String input) {
-    var bytes = utf8.encode(input);
-    var digest = sha256.convert(bytes);
-    return digest.toString();
   }
 }

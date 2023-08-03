@@ -1,67 +1,56 @@
 package de.thws.securemessenger.features.messenging.application;
 
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
-import de.thws.securemessenger.features.messenging.logic.ChatSubscriber;
 import de.thws.securemessenger.features.messenging.logic.UserChatLogic;
-import de.thws.securemessenger.model.Message;
+import de.thws.securemessenger.repositories.ChatToAccountRepository;
+import de.thws.securemessenger.model.Chat;
+import de.thws.securemessenger.model.ChatToAccount;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/chats")
 public class ChatController {
 
     @Autowired
     private CurrentAccount currentAccount;
     @Autowired
-    private ChatSubscriptionPublisher chatSubscriptionPublisher;
-    @Autowired
     private UserChatLogic userChatLogic;
+    @Autowired
+    private ChatToAccountRepository chatToAccountRepository;
 
+    @PostMapping
+    public ResponseEntity<Void> postChatToUser(ChatToAccount chatToAccount) {
+        if (!userChatLogic.userCanCreateChatWithOtherUser(currentAccount.getAccount(), chatToAccount.account())) {
+            return ResponseEntity.notFound().build();
+        }
 
-    @GetMapping("/{chat_id}")
-    public ResponseEntity<List<Message>> getMessages(@PathVariable("chat_id") long chatId) {
-        return ResponseEntity.of(userChatLogic.getAllowedMessages(currentAccount.getAccount(), chatId));
+        Optional<ChatToAccount> resultChatToUser = userChatLogic.createChatToUserAndReturnResult(chatToAccount);
+
+        return resultChatToUser
+                .map( ChatToAccount::chat )
+                .map( id -> URI.create( "/chats/" + id) )
+                .map( ResponseEntity::created )
+                .orElse( ResponseEntity.internalServerError() )
+                .build();
     }
 
-
-    @DeleteMapping("/messages/{message_id}")
-    public ResponseEntity<Void> deleteMessage(@PathVariable("message_id") long messageId) {
-        boolean succeeded = userChatLogic.deleteMessageIfAllowed(currentAccount.getAccount(), messageId);
-
-        return succeeded ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    @GetMapping
+    public ResponseEntity<List<Chat>> getChatsOfUser( ) {
+        List<Chat> resultChatOverview = currentAccount.getAccount().chatToAccounts().stream().map(ChatToAccount::chat).toList();
+        return ResponseEntity.ok().body( resultChatOverview );
     }
 
-    @PostMapping("/{chat_id}")
-    public ResponseEntity<Void> postMessage(@PathVariable("chat_id") long chatId, Message message) {
-        boolean succeeded = userChatLogic.saveMessageToChatIfAllowed(currentAccount.getAccount(), chatId, message);
-
-        if (succeeded)
-            this.chatSubscriptionPublisher.notifyChatSubscriptions(chatId, message);
-
-        return succeeded ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    @GetMapping("/{chatId:[0-9]+}/my-chat")
+    public ResponseEntity<ChatToAccount> getChatToUser(@PathVariable( "chatId" ) long chatId ) {
+        return currentAccount.getAccount().chatToAccounts().stream().filter(chatToAccount -> chatToAccount.chat().id() == chatId).findAny()
+            .map( ResponseEntity::ok )
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
-
-    @GetMapping("/{chat_id}/sub")
-    public Flux<Message> getMessageStream(@PathVariable("chat_id") long chatId) {
-        Sinks.Many<Message> sink = Sinks.many().unicast().onBackpressureBuffer();
-        Flux<Message> hotFlux = sink.asFlux().publish().autoConnect();
-
-        var chatSubscriber = ChatSubscriber.of(chatId, sink, hotFlux);
-
-        this.chatSubscriptionPublisher.subscribe(chatSubscriber);
-
-        hotFlux.doFinally(s -> chatSubscriptionPublisher.unsubscribe(chatSubscriber));
-
-        return hotFlux;
-    }
-
 
 }

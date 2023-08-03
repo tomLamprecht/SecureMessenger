@@ -1,26 +1,8 @@
 package de.thws.securemessenger.chat;
 
-import de.thws.securemessenger.features.authorization.application.CurrentAccount;
-import de.thws.securemessenger.features.messenging.application.ChatController;
-import de.thws.securemessenger.features.messenging.application.ChatSubscriptionPublisher;
-import de.thws.securemessenger.model.Account;
-import de.thws.securemessenger.model.Message;
-
-import de.thws.securemessenger.repositories.FriendshipRepository;
-import de.thws.securemessenger.repositories.InstantNowRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
-import reactor.core.publisher.Flux;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class ChatControllerTest {
 /*
