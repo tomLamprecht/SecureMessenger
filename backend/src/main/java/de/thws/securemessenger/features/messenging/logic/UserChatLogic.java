@@ -1,20 +1,23 @@
 package de.thws.securemessenger.features.messenging.logic;
 
+import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.model.Message;
-import de.thws.securemessenger.repositories.ChatRepository;
-import de.thws.securemessenger.repositories.ChatToAccountRepository;
-import de.thws.securemessenger.repositories.InstantNowRepository;
-import de.thws.securemessenger.repositories.MessageRepository;
+import de.thws.securemessenger.repositories.*;
+import jakarta.transaction.Transactional;
+import org.postgresql.core.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.swing.text.html.Option;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Component
 public class UserChatLogic {
@@ -27,6 +30,8 @@ public class UserChatLogic {
     private MessageRepository messageRepository;
     @Autowired
     private InstantNowRepository instantNowRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
     /**
      * Returns a list of all messages the user is allowed to read in the chat,
@@ -120,4 +125,31 @@ public class UserChatLogic {
     }
 
 
+    public Optional<String> getSymmetricKey(Account account, long chatId) {
+        return chatToAccountRepository.findChatToAccountByIdAndAccount(chatId, account).map(ChatToAccount::key);
+    }
+
+    public boolean allFriendshipsExists(CreateNewChatRequest request, Account currentAccount) {
+        List<Optional<Account>> withAccounts = request.accountIdToEncryptedSymKeys().stream().map(entry -> accountRepository.findAccountById(entry.accountId())).toList();
+        if (withAccounts.stream().anyMatch(Optional::isEmpty)) {
+            return false;
+        }
+        return withAccounts.stream().map(Optional::get).allMatch(currentAccount::isFriendsWith);
+    }
+
+    @Transactional
+    public long createNewChat(CreateNewChatRequest request, Account currentAccount) {
+        final Chat newChat = chatRepository.save(new Chat(0, request.chatName(), request.description(), Instant.now()));
+        List<ChatToAccount> newChatToAccounts = request.accountIdToEncryptedSymKeys().stream().map(entry -> createNewChatToAccountEntry(newChat, entry.accountId(), entry.encryptedSymmetricKey(), currentAccount)).toList();
+        chatToAccountRepository.saveAll(newChatToAccounts);
+        return newChat.id();
+    }
+
+    private ChatToAccount createNewChatToAccountEntry(final Chat chat, final long withAccountId, final String encryptedSymmetricKey, final Account currentAccount) {
+        Optional<Account> withAccount = accountRepository.findAccountById(withAccountId);
+        if (withAccount.isEmpty()){
+            throw new IllegalStateException("Account with id " + withAccountId + " not exists.");
+        }
+        return new ChatToAccount(0, withAccount.get(), chat, encryptedSymmetricKey, withAccountId == currentAccount.id(), Instant.now(), null);
+    }
 }

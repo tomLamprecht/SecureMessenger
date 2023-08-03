@@ -14,8 +14,8 @@ import reactor.core.publisher.Sinks;
 import java.util.List;
 
 @RestController
-@RequestMapping("/chats/{chat_id}/messages")
-public class MessageController {
+@RequestMapping("/chat")
+public class ChatOldController {
 
     @Autowired
     private CurrentAccount currentAccount;
@@ -25,20 +25,24 @@ public class MessageController {
     private UserChatLogic userChatLogic;
 
 
-    @GetMapping()
+    @GetMapping("/{chat_id}")
     public ResponseEntity<List<Message>> getMessages(@PathVariable("chat_id") long chatId) {
         return ResponseEntity.of(userChatLogic.getAllowedMessages(currentAccount.getAccount(), chatId));
     }
 
+    @GetMapping("/{chatId}/symmetric-key")
+    public ResponseEntity<String> getSymmetricKey(@PathVariable long chatId) {
+        return ResponseEntity.of(userChatLogic.getSymmetricKey(currentAccount.getAccount(), chatId));
+    }
 
-    @DeleteMapping("/{message_id}")
+    @DeleteMapping("/messages/{message_id}")
     public ResponseEntity<Void> deleteMessage(@PathVariable("message_id") long messageId) {
         boolean succeeded = userChatLogic.deleteMessageIfAllowed(currentAccount.getAccount(), messageId);
 
         return succeeded ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    @PostMapping()
+    @PostMapping("/{chat_id}")
     public ResponseEntity<Void> postMessage(@PathVariable("chat_id") long chatId, Message message) {
         boolean succeeded = userChatLogic.saveMessageToChatIfAllowed(currentAccount.getAccount(), chatId, message);
 
@@ -49,7 +53,7 @@ public class MessageController {
     }
 
 
-    @GetMapping("/subscription")
+    @GetMapping("/{chat_id}/sub")
     public Flux<Message> getMessageStream(@PathVariable("chat_id") long chatId) {
         Sinks.Many<Message> sink = Sinks.many().unicast().onBackpressureBuffer();
         Flux<Message> hotFlux = sink.asFlux().publish().autoConnect();
