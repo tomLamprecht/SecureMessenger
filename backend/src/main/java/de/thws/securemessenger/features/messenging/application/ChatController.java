@@ -25,19 +25,8 @@ public class ChatController {
     private ChatToAccountRepository chatToAccountRepository;
 
     @PostMapping
-    public ResponseEntity<Void> postChatToUser(ChatToAccount chatToAccount) {
-        if (!userChatLogic.userCanCreateChatWithOtherUser(currentAccount.getAccount(), chatToAccount.account())) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Optional<ChatToAccount> resultChatToUser = userChatLogic.createChatToUserAndReturnResult(chatToAccount);
-
-        return resultChatToUser
-                .map( ChatToAccount::chat )
-                .map( id -> URI.create( "/chats/" + id) )
-                .map( ResponseEntity::created )
-                .orElse( ResponseEntity.internalServerError() )
-                .build();
+    public ResponseEntity<Long> createChat(CreateNewChatRequest request) {
+        userChatLogic.createNewChat(request);
     }
 
     @GetMapping
@@ -46,11 +35,17 @@ public class ChatController {
         return ResponseEntity.ok().body( resultChatOverview );
     }
 
-    @GetMapping("/{chatId:[0-9]+}/my-chat")
+    @GetMapping("/{chatId:[0-9]+}")
     public ResponseEntity<ChatToAccount> getChatToUser(@PathVariable( "chatId" ) long chatId ) {
+        // todo: check, weather the user has access to the chat
         return currentAccount.getAccount().chatToAccounts().stream().filter(chatToAccount -> chatToAccount.chat().id() == chatId).findAny()
             .map( ResponseEntity::ok )
             .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{chatId}/symmetric-key")
+    public ResponseEntity<String> getOwnSymmetricKeyOfChat(@PathVariable long chatId) {
+        return ResponseEntity.of(userChatLogic.getSymmetricKey(currentAccount.getAccount(), chatId));
     }
 
 }

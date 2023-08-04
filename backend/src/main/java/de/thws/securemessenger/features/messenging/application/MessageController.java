@@ -14,7 +14,7 @@ import reactor.core.publisher.Sinks;
 import java.util.List;
 
 @RestController
-@RequestMapping("/chats/{chat_id}/messages")
+@RequestMapping("/chats/{chatId}/messages")
 public class MessageController {
 
     @Autowired
@@ -26,20 +26,21 @@ public class MessageController {
 
 
     @GetMapping()
-    public ResponseEntity<List<Message>> getMessages(@PathVariable("chat_id") long chatId) {
+    public ResponseEntity<List<Message>> getMessages(@PathVariable() long chatId) {
         return ResponseEntity.of(userChatLogic.getAllowedMessages(currentAccount.getAccount(), chatId));
     }
 
 
-    @DeleteMapping("/{message_id}")
-    public ResponseEntity<Void> deleteMessage(@PathVariable("message_id") long messageId) {
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<Void> deleteMessage(@PathVariable() long messageId) {
         boolean succeeded = userChatLogic.deleteMessageIfAllowed(currentAccount.getAccount(), messageId);
 
         return succeeded ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @PostMapping()
-    public ResponseEntity<Void> postMessage(@PathVariable("chat_id") long chatId, Message message) {
+    public ResponseEntity<Void> postMessage(@PathVariable() long chatId, Message message) {
+        // todo: user should not be able to set the timestamp
         boolean succeeded = userChatLogic.saveMessageToChatIfAllowed(currentAccount.getAccount(), chatId, message);
 
         if (succeeded)
@@ -50,7 +51,7 @@ public class MessageController {
 
 
     @GetMapping("/subscription")
-    public Flux<Message> getMessageStream(@PathVariable("chat_id") long chatId) {
+    public Flux<Message> getMessageStream(@PathVariable("chatId") long chatId) {
         Sinks.Many<Message> sink = Sinks.many().unicast().onBackpressureBuffer();
         Flux<Message> hotFlux = sink.asFlux().publish().autoConnect();
 
