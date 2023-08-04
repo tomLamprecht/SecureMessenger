@@ -6,6 +6,10 @@ import '../models/chat.dart';
 import 'api/api_config.dart';
 
 class ChatsService {
+  //einzelner Chat, Gruppenchat (Namen, chatnamen, description)
+  // im Frontend wird keypair generiert
+  // mit pubkey verschlüssel
+  //
   Future<int?> createChat(String targetUserName) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
     final headers = {'Content-Type': 'application/json'};

@@ -15,10 +15,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return RsaKeyStore().publicKey == null
-    //     ? LoginScreen()
-    //     : ChatOverviewPage();
-    return ChatOverviewPage();
+    return RsaKeyStore().publicKey == null
+        ? LoginScreen()
+        : ChatOverviewPage();
+    // return ChatOverviewPage();
   }
 }
 

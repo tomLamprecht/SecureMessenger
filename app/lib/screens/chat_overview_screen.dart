@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/chat.dart';
 import 'package:my_flutter_test/screens/chat_screen.dart';
 import 'package:my_flutter_test/screens/friend_request_screen.dart';
-import 'package:my_flutter_test/screens/friendship_screen.dart';
 import 'package:my_flutter_test/services/chats_service.dart';
 import 'package:my_flutter_test/widgets/create_chat.dart';
 
@@ -38,10 +37,10 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat Overview'),
+        title: const Text('Chat Overview'),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () async {
               String? result = await showSearch<String>(
                 context: context,
@@ -49,12 +48,12 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
               );
 
               if (result != null) {
-                // Navigate to the chat when selected from search results
+                // Navigate to the chat when selected from search results //todo: macht es doch schon
               }
             },
           ),
           IconButton(
-            icon: Icon(Icons.person_add_alt_1),
+            icon: const Icon(Icons.person_add_alt_1),
             onPressed: () async {
               Navigator.push(
                 context,
@@ -87,7 +86,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundImage:
-                  AssetImage('assets/images/avatar_placeholder.png'),
+                  AssetImage('assets/images/avatar_placeholder.png'), //todo: wasch des?
                 ),
                 title: Text(chat.name),
                 // subtitle: Text('Last message...'), //ToDo: nicht im MVP
