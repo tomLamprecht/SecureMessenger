@@ -1,5 +1,6 @@
 package de.thws.securemessenger.features.messenging.logic;
 
+import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Chat;
@@ -7,7 +8,6 @@ import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.*;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -18,16 +18,19 @@ import java.util.function.Predicate;
 @Component
 public class UserChatLogic {
 
-    @Autowired
-    private ChatRepository chatRepository;
-    @Autowired
-    private ChatToAccountRepository chatToAccountRepository;
-    @Autowired
-    private MessageRepository messageRepository;
-    @Autowired
-    private InstantNowRepository instantNowRepository;
-    @Autowired
-    private AccountRepository accountRepository;
+    private final ChatRepository chatRepository;
+    private final ChatToAccountRepository chatToAccountRepository;
+    private final MessageRepository messageRepository;
+    private final InstantNowRepository instantNowRepository;
+    private final AccountRepository accountRepository;
+
+    public UserChatLogic(ChatRepository chatRepository, ChatToAccountRepository chatToAccountRepository, MessageRepository messageRepository, InstantNowRepository instantNowRepository, AccountRepository accountRepository) {
+        this.chatRepository = chatRepository;
+        this.chatToAccountRepository = chatToAccountRepository;
+        this.messageRepository = messageRepository;
+        this.instantNowRepository = instantNowRepository;
+        this.accountRepository = accountRepository;
+    }
 
     /**
      * Returns a list of all messages the user is allowed to read in the chat,
@@ -101,25 +104,6 @@ public class UserChatLogic {
         return false;
     }
 
-
-    public boolean userCanCreateChatWithOtherUser(Account account, Account invitedAccount) {
-        return account.isFriendsWith(invitedAccount);
-    }
-
-    public Optional<ChatToAccount> createChatToUserAndReturnResult(ChatToAccount chatToAccount) {
-        ChatToAccount insert = new ChatToAccount(
-                0,
-                chatToAccount.account(),
-                chatToAccount.chat(),
-                chatToAccount.key(),
-                chatToAccount.isAdmin(),
-                instantNowRepository.get(),
-                null
-        );
-
-        return Optional.of(chatToAccountRepository.save(insert));
-    }
-
     public Optional<String> getSymmetricKey(Account account, long chatId) {
         return chatToAccountRepository.findChatToAccountByIdAndAccount(chatId, account).map(ChatToAccount::key);
     }
@@ -145,7 +129,7 @@ public class UserChatLogic {
         if (withAccount.isEmpty()){
             throw new IllegalStateException("Account with id " + withAccountId + " not exists.");
         }
-        return new ChatToAccount(0, withAccount.get(), chat, encryptedSymmetricKey, withAccountId == currentAccount.id(), Instant.now(), null);
+        return new ChatToAccount(0, withAccount.get(), chat, encryptedSymmetricKey, withAccountId == currentAccount.id(), instantNowRepository.get(), null);
     }
 
 }

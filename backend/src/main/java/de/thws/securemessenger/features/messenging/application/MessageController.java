@@ -17,12 +17,16 @@ import java.util.List;
 @RequestMapping("/chats/{chatId}/messages")
 public class MessageController {
 
+    private final CurrentAccount currentAccount;
+    private final ChatSubscriptionPublisher chatSubscriptionPublisher;
+    private final UserChatLogic userChatLogic;
+
     @Autowired
-    private CurrentAccount currentAccount;
-    @Autowired
-    private ChatSubscriptionPublisher chatSubscriptionPublisher;
-    @Autowired
-    private UserChatLogic userChatLogic;
+    public MessageController(CurrentAccount currentAccount, ChatSubscriptionPublisher chatSubscriptionPublisher, UserChatLogic userChatLogic) {
+        this.currentAccount = currentAccount;
+        this.chatSubscriptionPublisher = chatSubscriptionPublisher;
+        this.userChatLogic = userChatLogic;
+    }
 
 
     @GetMapping()

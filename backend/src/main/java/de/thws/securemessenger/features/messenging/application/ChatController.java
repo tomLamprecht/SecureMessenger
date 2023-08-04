@@ -2,7 +2,7 @@ package de.thws.securemessenger.features.messenging.application;
 
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.features.messenging.logic.UserChatLogic;
-import de.thws.securemessenger.repositories.ChatToAccountRepository;
+import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,23 +10,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/chats")
 public class ChatController {
 
+    private final CurrentAccount currentAccount;
+    private final UserChatLogic userChatLogic;
+
     @Autowired
-    private CurrentAccount currentAccount;
-    @Autowired
-    private UserChatLogic userChatLogic;
-    @Autowired
-    private ChatToAccountRepository chatToAccountRepository;
+    public ChatController(CurrentAccount currentAccount, UserChatLogic userChatLogic) {
+        this.currentAccount = currentAccount;
+        this.userChatLogic = userChatLogic;
+    }
 
     @PostMapping
-    public ResponseEntity<Long> createChat(CreateNewChatRequest request) {
-        userChatLogic.createNewChat(request);
+    public ResponseEntity<Long> createChat(CreateNewChatRequest request) throws URISyntaxException {
+        long newChatId = userChatLogic.createNewChat(request, currentAccount.getAccount());
+        return ResponseEntity.created(new URI("/chats/" + newChatId)).body(newChatId);
     }
 
     @GetMapping
