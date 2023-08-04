@@ -1,35 +1,25 @@
 package de.thws.securemessenger.features.messenging.logic;
 
-import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Chat;
-import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.*;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 @Component
-public class UserChatLogic {
+public class ChatMessagesLogic {
 
     private final ChatRepository chatRepository;
-    private final ChatToAccountRepository chatToAccountRepository;
     private final MessageRepository messageRepository;
-    private final InstantNowRepository instantNowRepository;
-    private final AccountRepository accountRepository;
 
-    public UserChatLogic(ChatRepository chatRepository, ChatToAccountRepository chatToAccountRepository, MessageRepository messageRepository, InstantNowRepository instantNowRepository, AccountRepository accountRepository) {
+    public ChatMessagesLogic(ChatRepository chatRepository, MessageRepository messageRepository) {
         this.chatRepository = chatRepository;
-        this.chatToAccountRepository = chatToAccountRepository;
         this.messageRepository = messageRepository;
-        this.instantNowRepository = instantNowRepository;
-        this.accountRepository = accountRepository;
     }
 
     /**
@@ -66,15 +56,15 @@ public class UserChatLogic {
     /**
      * deletes the message if possible
      *
-     * @param account   the authenticated user
+     * @param currentAccount   the authenticated user
      * @param messageId the message to be deleted
      * @return true, if the operation was successful,
      * false when the user is not allowed to do this operation or the message does not exist
      */
-    public boolean deleteMessageIfAllowed(Account account, long messageId) {
+    public boolean deleteMessageIfAllowed(Account currentAccount, long messageId) {
         Optional<Message> message = messageRepository.findById(messageId);
 
-        if (message.isEmpty() || message.get().fromUser().id() != account.id())
+        if (message.isEmpty() || message.get().fromUser().id() != currentAccount.id())
             return false;
 
         messageRepository.deleteById(messageId);
@@ -103,33 +93,4 @@ public class UserChatLogic {
         // TODO refactor chatToAccount logic
         return false;
     }
-
-    public Optional<String> getSymmetricKey(Account account, long chatId) {
-        return chatToAccountRepository.findChatToAccountByIdAndAccount(chatId, account).map(ChatToAccount::key);
-    }
-
-    public boolean allFriendshipsExists(CreateNewChatRequest request, Account currentAccount) {
-        List<Optional<Account>> withAccounts = request.accountIdToEncryptedSymKeys().stream().map(entry -> accountRepository.findAccountById(entry.accountId())).toList();
-        if (withAccounts.stream().anyMatch(Optional::isEmpty)) {
-            return false;
-        }
-        return withAccounts.stream().map(Optional::get).allMatch(currentAccount::isFriendsWith);
-    }
-
-    @Transactional
-    public long createNewChat(CreateNewChatRequest request, Account currentAccount) {
-        final Chat newChat = chatRepository.save(new Chat(0, request.chatName(), request.description(), Instant.now()));
-        List<ChatToAccount> newChatToAccounts = request.accountIdToEncryptedSymKeys().stream().map(entry -> createNewChatToAccountEntry(newChat, entry.accountId(), entry.encryptedSymmetricKey(), currentAccount)).toList();
-        chatToAccountRepository.saveAll(newChatToAccounts);
-        return newChat.id();
-    }
-
-    private ChatToAccount createNewChatToAccountEntry(final Chat chat, final long withAccountId, final String encryptedSymmetricKey, final Account currentAccount) {
-        Optional<Account> withAccount = accountRepository.findAccountById(withAccountId);
-        if (withAccount.isEmpty()){
-            throw new IllegalStateException("Account with id " + withAccountId + " not exists.");
-        }
-        return new ChatToAccount(0, withAccount.get(), chat, encryptedSymmetricKey, withAccountId == currentAccount.id(), instantNowRepository.get(), null);
-    }
-
 }

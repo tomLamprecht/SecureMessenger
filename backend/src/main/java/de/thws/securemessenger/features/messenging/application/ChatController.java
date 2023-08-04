@@ -1,7 +1,9 @@
 package de.thws.securemessenger.features.messenging.application;
 
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
-import de.thws.securemessenger.features.messenging.logic.UserChatLogic;
+import de.thws.securemessenger.features.messenging.logic.ChatLogic;
+import de.thws.securemessenger.features.messenging.logic.ChatMemberLogic;
+import de.thws.securemessenger.features.messenging.model.AccountToChat;
 import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
@@ -19,17 +21,19 @@ import java.util.List;
 public class ChatController {
 
     private final CurrentAccount currentAccount;
-    private final UserChatLogic userChatLogic;
+    private final ChatLogic chatLogic;
+    private final ChatMemberLogic chatMemberLogic;
 
     @Autowired
-    public ChatController(CurrentAccount currentAccount, UserChatLogic userChatLogic) {
+    public ChatController(CurrentAccount currentAccount, ChatLogic chatLogic, ChatMemberLogic chatMemberLogic) {
         this.currentAccount = currentAccount;
-        this.userChatLogic = userChatLogic;
+        this.chatLogic = chatLogic;
+        this.chatMemberLogic = chatMemberLogic;
     }
 
     @PostMapping
     public ResponseEntity<Long> createChat(CreateNewChatRequest request) throws URISyntaxException {
-        long newChatId = userChatLogic.createNewChat(request, currentAccount.getAccount());
+        long newChatId = chatLogic.createNewChat(request, currentAccount.getAccount());
         return ResponseEntity.created(new URI("/chats/" + newChatId)).body(newChatId);
     }
 
@@ -49,7 +53,18 @@ public class ChatController {
 
     @GetMapping("/{chatId}/symmetric-key")
     public ResponseEntity<String> getOwnSymmetricKeyOfChat(@PathVariable long chatId) {
-        return ResponseEntity.of(userChatLogic.getSymmetricKey(currentAccount.getAccount(), chatId));
+        return ResponseEntity.of(chatLogic.getSymmetricKey(currentAccount.getAccount(), chatId));
     }
 
+    @PostMapping("/{chatId:[0-9]+}/accounts")
+    public ResponseEntity<Long> addAccountsToGroup(@PathVariable long chatId, List<AccountToChat> request) throws URISyntaxException {
+        chatMemberLogic.addAccountsToChat(chatId, request, currentAccount.getAccount());
+        return ResponseEntity.created(new URI("/chats/" + chatId + "/accounts")).build();
+    }
+
+    @DeleteMapping("/{chatId:[0-9]+}/accounts/{accountId:[0-9]+}")
+    public ResponseEntity<Void> removeAccountFromChat(@PathVariable long chatId, @PathVariable long accountId) {
+        chatMemberLogic.deleteAccountFromChat(chatId, accountId, currentAccount.getAccount());
+        return ResponseEntity.noContent().build();
+    }
 }

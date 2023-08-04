@@ -1,8 +1,8 @@
 package de.thws.securemessenger.features.messenging.application;
 
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
+import de.thws.securemessenger.features.messenging.logic.ChatMessagesLogic;
 import de.thws.securemessenger.features.messenging.logic.ChatSubscriber;
-import de.thws.securemessenger.features.messenging.logic.UserChatLogic;
 import de.thws.securemessenger.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,25 +19,25 @@ public class MessageController {
 
     private final CurrentAccount currentAccount;
     private final ChatSubscriptionPublisher chatSubscriptionPublisher;
-    private final UserChatLogic userChatLogic;
+    private final ChatMessagesLogic chatMessagesLogic;
 
     @Autowired
-    public MessageController(CurrentAccount currentAccount, ChatSubscriptionPublisher chatSubscriptionPublisher, UserChatLogic userChatLogic) {
+    public MessageController(CurrentAccount currentAccount, ChatSubscriptionPublisher chatSubscriptionPublisher, ChatMessagesLogic chatMessagesLogic) {
         this.currentAccount = currentAccount;
         this.chatSubscriptionPublisher = chatSubscriptionPublisher;
-        this.userChatLogic = userChatLogic;
+        this.chatMessagesLogic = chatMessagesLogic;
     }
 
 
     @GetMapping()
     public ResponseEntity<List<Message>> getMessages(@PathVariable() long chatId) {
-        return ResponseEntity.of(userChatLogic.getAllowedMessages(currentAccount.getAccount(), chatId));
+        return ResponseEntity.of(chatMessagesLogic.getAllowedMessages(currentAccount.getAccount(), chatId));
     }
 
 
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> deleteMessage(@PathVariable() long messageId) {
-        boolean succeeded = userChatLogic.deleteMessageIfAllowed(currentAccount.getAccount(), messageId);
+        boolean succeeded = chatMessagesLogic.deleteMessageIfAllowed(currentAccount.getAccount(), messageId);
 
         return succeeded ? ResponseEntity.status(HttpStatus.NO_CONTENT).build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
@@ -45,7 +45,7 @@ public class MessageController {
     @PostMapping()
     public ResponseEntity<Void> postMessage(@PathVariable() long chatId, Message message) {
         // todo: user should not be able to set the timestamp
-        boolean succeeded = userChatLogic.saveMessageToChatIfAllowed(currentAccount.getAccount(), chatId, message);
+        boolean succeeded = chatMessagesLogic.saveMessageToChatIfAllowed(currentAccount.getAccount(), chatId, message);
 
         if (succeeded)
             this.chatSubscriptionPublisher.notifyChatSubscriptions(chatId, message);
