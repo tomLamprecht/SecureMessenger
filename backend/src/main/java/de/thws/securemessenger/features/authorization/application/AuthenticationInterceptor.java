@@ -185,11 +185,6 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             logger.error("request could not be parsed to CustomCachingRequestWrapper. Maybe the filterChain is broken?");
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        try {
-            System.out.println(contentWrapper.getReader().lines().toList());
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
         String bodyAsString;
         try {
             StringWriter content = new StringWriter();
