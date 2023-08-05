@@ -61,16 +61,16 @@ public class FriendshipService {
 
     public List<Friendship> getAllIncomingFriendshipRequests(Account currentAccount, boolean showOnlyPending){
         if (showOnlyPending){
-            return friendshipRepository.findAllByToAccountId(currentAccount.id());
+            return friendshipRepository.findAllByToAccountIdAndAcceptedEquals(currentAccount.id(), false);
         }
-        return friendshipRepository.findAllByToAccountIdAndAcceptedEquals(currentAccount.id(), false);
+        return friendshipRepository.findAllByToAccountId(currentAccount.id());
     }
 
     public List<Friendship> getAllOutgoingFriendshipRequests(Account currentAccount, boolean showOnlyPending){
         if (showOnlyPending){
-            return friendshipRepository.findAllByFromAccountId(currentAccount.id());
+            return friendshipRepository.findAllByFromAccountIdAndAcceptedEquals(currentAccount.id(), false);
         }
-        return friendshipRepository.findAllByFromAccountIdAndAcceptedEquals(currentAccount.id(), false);
+        return friendshipRepository.findAllByFromAccountId(currentAccount.id());
     }
 
     public boolean deleteFriendshipRequest(Account currentAccount, long toAccountId) {
