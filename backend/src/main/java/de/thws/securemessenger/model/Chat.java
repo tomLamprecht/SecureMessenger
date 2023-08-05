@@ -85,4 +85,16 @@ public class Chat {
     public void setChatToAccounts(List<ChatToAccount> chatToAccounts) {
         this.chatToAccounts = chatToAccounts;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }
