@@ -7,7 +7,6 @@ import de.thws.securemessenger.model.ApiExceptions.UnauthorizedException;
 import de.thws.securemessenger.repositories.AccountRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
