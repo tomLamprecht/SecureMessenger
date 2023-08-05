@@ -14,7 +14,7 @@ public class CachingRequestBodyFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         if (servletRequest instanceof HttpServletRequest) {
             HttpServletRequest request = (HttpServletRequest) servletRequest;
-            ContentCachingRequestWrapper contentWrapper = new ContentCachingRequestWrapper(request);
+            CustomCachingRequestWrapper contentWrapper = new CustomCachingRequestWrapper(request);
             filterChain.doFilter(contentWrapper, servletResponse);
         }
         else {

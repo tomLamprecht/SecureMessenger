@@ -7,6 +7,7 @@ import de.thws.securemessenger.model.ApiExceptions.UnauthorizedException;
 import de.thws.securemessenger.repositories.AccountRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -15,12 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -29,6 +31,7 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
@@ -179,12 +182,25 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     }
 
     private String getBody(HttpServletRequest request) throws UnsupportedEncodingException {
-        if (!(request instanceof ContentCachingRequestWrapper contentWrapper)) {
-            logger.error("request could not be parsed to ContentCachingRequestWrapper. Maybe the filterChain is broken?");
+        if (!(request instanceof CustomCachingRequestWrapper contentWrapper)) {
+            logger.error("request could not be parsed to CustomCachingRequestWrapper. Maybe the filterChain is broken?");
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        String bodyAsString = new String(contentWrapper.getContentAsByteArray(), contentWrapper.getCharacterEncoding());
-        return bodyAsString.isEmpty() ? "{}" : bodyAsString;
+        try {
+            System.out.println(contentWrapper.getReader().lines().toList());
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        String bodyAsString;
+        try {
+            StringWriter content = new StringWriter();
+            contentWrapper.getReader().transferTo( content );
+            bodyAsString = content.toString();
+        } catch ( IOException e ) {
+            logger.error( e.getMessage() );
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return bodyAsString == null || bodyAsString.isEmpty() ? "{}" : bodyAsString;
     }
 }
 
