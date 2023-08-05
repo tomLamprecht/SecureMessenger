@@ -51,7 +51,7 @@ public class ChatController {
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{chatId}/symmetric-key")
+    @GetMapping(value= "/{chatId}/symmetric-key", produces = "text/plain")
     public ResponseEntity<String> getOwnSymmetricKeyOfChat(@PathVariable long chatId) {
         return ResponseEntity.of(chatLogic.getSymmetricKey(currentAccount.getAccount(), chatId));
     }

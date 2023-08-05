@@ -3,10 +3,13 @@ package de.thws.securemessenger.features.messenging.logic;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Chat;
+import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -17,7 +20,8 @@ public class ChatMessagesLogic {
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
 
-    public ChatMessagesLogic(ChatRepository chatRepository, MessageRepository messageRepository) {
+    @Autowired
+    public ChatMessagesLogic( ChatRepository chatRepository, MessageRepository messageRepository ) {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
     }
@@ -31,43 +35,43 @@ public class ChatMessagesLogic {
      * @param chatId  the chatId of the messages which should be loaded
      * @return the resulting messages or an empty optional
      */
-    public Optional<List<Message>> getAllowedMessages(Account account, long chatId) {
-        Optional<Chat> chat = chatRepository.findById(chatId);
-        if(chat.isEmpty() || notAMember(account, chat.get())) {
+    public Optional<List<Message>> getAllowedMessages( Account account, long chatId ) {
+        Optional<Chat> chat = chatRepository.findById( chatId );
+        if ( chat.isEmpty() || notAMember( account, chat.get() ) ) {
             return Optional.empty();
         }
 
         List<TimeSegment> accountAccessTimes = chat.get()
                 .chatToAccounts()
                 .stream()
-                .filter(chatToAccount -> chatToAccount.account().id() == account.id())
-                .map(c -> new TimeSegment(c.joinedAt(), c.leftAt()))
+                .filter( chatToAccount -> chatToAccount.account().id() == account.id() )
+                .map( c -> new TimeSegment( c.joinedAt(), c.leftAt() == null ? Instant.MAX : c.leftAt() ) )
                 .toList();
 
-        Predicate<Message> isInAccessTimes = message -> accountAccessTimes.stream().anyMatch(a -> a.contains(message.timeStamp()));
+        Predicate<Message> isInAccessTimes = message -> accountAccessTimes.stream().anyMatch( a -> a.contains( message.timeStamp() ) );
 
-        return Optional.of(chat.get().messages().stream().filter(isInAccessTimes).toList());
+        return Optional.of( chat.get().messages().stream().filter( isInAccessTimes ).toList() );
     }
 
-    private static boolean notAMember(Account account, Chat chat) {
-        return chat.members().stream().noneMatch(member -> member.id() == account.id());
+    private static boolean notAMember( Account account, Chat chat ) {
+        return chat.members().stream().noneMatch( member -> member.id() == account.id() );
     }
 
     /**
      * deletes the message if possible
      *
-     * @param currentAccount   the authenticated user
-     * @param messageId the message to be deleted
+     * @param currentAccount the authenticated user
+     * @param messageId      the message to be deleted
      * @return true, if the operation was successful,
      * false when the user is not allowed to do this operation or the message does not exist
      */
-    public boolean deleteMessageIfAllowed(Account currentAccount, long messageId) {
-        Optional<Message> message = messageRepository.findById(messageId);
+    public boolean deleteMessageIfAllowed( Account currentAccount, long messageId ) {
+        Optional<Message> message = messageRepository.findById( messageId );
 
-        if (message.isEmpty() || message.get().fromUser().id() != currentAccount.id())
+        if ( message.isEmpty() || message.get().fromUser().id() != currentAccount.id() )
             return false;
 
-        messageRepository.deleteById(messageId);
+        messageRepository.deleteById( messageId );
         return true;
     }
 
@@ -81,16 +85,18 @@ public class ChatMessagesLogic {
      * @return true if the message could be created, false if a problem occurred
      * (e.g. User has no right to send to this chat or chat doesn't exist)
      */
-    public boolean saveMessageToChatIfAllowed(Account account, long chatId, Message message) {
-        if (!accountIsActiveMember(account, chatId))
+    public boolean saveMessageToChatIfAllowed( Account account, long chatId, Message message ) {
+        if ( !accountIsActiveMember( account, chatId ) )
             return false;
 
-        messageRepository.save(message);
+        messageRepository.save( message );
         return true;
     }
 
-    private boolean accountIsActiveMember(Account account, long chatId) {
-        // TODO refactor chatToAccount logic
-        return false;
+    private boolean accountIsActiveMember( Account account, long chatId ) {
+        Optional<Chat> chat = chatRepository.findById( chatId );
+        return chat.map( c -> c.activeMembers().stream()
+                        .anyMatch( a -> a.publicKey().equals( account.publicKey() ) ) )
+                .orElse( false );
     }
 }

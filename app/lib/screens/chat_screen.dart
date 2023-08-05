@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:my_flutter_test/services/files/rsa_helper.dart';
 
 import '../services/encryption_service.dart';
 import '../services/message_service.dart';
@@ -20,6 +24,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final int chatId;
   late final String chatKey;
 
+
   bool _isComposing = false;
 
   ChatScreenState({required this.chatId});
@@ -39,9 +44,19 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _saveChatKeyAndGetAllMessages(String chatKey) {
-    this.chatKey = chatKey;
-    readAllMessages(chatId).then((value) => null);
+  void _saveChatKeyAndGetAllMessages(String chatKey) async {
+
+    //TODO Key is still RSA encrypted at this point. So we first gotta decrypt the key! However i assume Tim and Valerie gonna do this in their branch. So i first wait...
+
+    //this.chatKey = chatKey;
+    this.chatKey = "Ekwp0wkd0PE2aasuEb1Z4oNKX1y36TCy3dRF47H+DCs="; //DUMMY DATA TODO DELETE FOR PRODUCTION
+
+    var temp = await readAllMessages(chatId);
+
+    _messages.addAll(temp.map((e) => ChatMessage(text: aesDecrypt(e.value, chatKey), animationController: AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 0),
+    ))));
   }
 
   void _sendMessageEncrypted(String message) {
@@ -139,6 +154,7 @@ class ChatMessage extends StatelessWidget {
   final AnimationController animationController;
 
   const ChatMessage({super.key, required this.text, required this.animationController});
+
 
   @override
   Widget build(BuildContext context) {

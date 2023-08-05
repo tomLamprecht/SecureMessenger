@@ -38,6 +38,13 @@ public class Chat {
         return chatToAccounts.stream().map(ChatToAccount::account).toList();
     }
 
+    public List<Account> activeMembers(){
+        return chatToAccounts.stream()
+                .filter( a -> a.leftAt() == null || a.leftAt().isAfter( Instant.now() ) )
+                .map( ChatToAccount::account )
+                .toList();
+    }
+
     public long id() {
         return id;
     }
@@ -96,5 +103,9 @@ public class Chat {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public long getId() {
+        return id;
     }
 }

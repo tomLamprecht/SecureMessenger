@@ -71,4 +71,8 @@ public class Message {
     public void setTimeStamp(Instant timeStamp) {
         this.timeStamp = timeStamp;
     }
+
+    public String getValue() {
+        return value;
+    }
 }
