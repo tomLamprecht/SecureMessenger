@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/chat.dart';
 import 'package:my_flutter_test/screens/chat_screen.dart';
@@ -20,7 +22,10 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
     super.initState();
   }
   Future<void> initialize() async {
-    chats = await chatsService.getChatsFromUser();
+    var temp = await chatsService.getChatsFromUser();
+    setState(() {
+      chats = temp;
+    });
   }
 
   @override

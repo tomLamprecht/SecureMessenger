@@ -51,12 +51,22 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     //this.chatKey = chatKey;
     this.chatKey = "Ekwp0wkd0PE2aasuEb1Z4oNKX1y36TCy3dRF47H+DCs="; //DUMMY DATA TODO DELETE FOR PRODUCTION
 
-    var temp = await readAllMessages(chatId);
-
-    _messages.addAll(temp.map((e) => ChatMessage(text: aesDecrypt(e.value, chatKey), animationController: AnimationController(
+    AnimationController animationControllerForInitialLoading = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 0),
-    ))));
+      duration: const Duration(milliseconds: 300),
+    );
+
+    var temp = await readAllMessages(chatId);
+    Iterable<ChatMessage> chatMessages = [];
+    setState(() {
+      chatMessages = temp.map((e) => ChatMessage(fromUserName: e.fromUserName, text: aesDecrypt(e.value, this.chatKey), timestamp: e.timestamp, animationController: animationControllerForInitialLoading));
+      _messages.addAll(chatMessages);
+    });
+
+    animationControllerForInitialLoading.forward();
+
+
+
   }
 
   void _sendMessageEncrypted(String message) {
@@ -72,7 +82,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     });
 
     ChatMessage message = ChatMessage(
+      fromUserName: "You",
       text: text,
+      timestamp: DateTime.now(),
       animationController: AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 300),
@@ -148,13 +160,13 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
 }
-
 class ChatMessage extends StatelessWidget {
+  final String fromUserName;
   final String text;
+  final DateTime timestamp;
   final AnimationController animationController;
 
-  const ChatMessage({super.key, required this.text, required this.animationController});
-
+  const ChatMessage({Key? key, required this.fromUserName, required this.timestamp, required this.text, required this.animationController}): super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -177,8 +189,17 @@ class ChatMessage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Username',
-                      style: Theme.of(context).textTheme.subtitle1),
+                  Row(
+                    children: <Widget>[
+                      Text(fromUserName,
+                          style: Theme.of(context).textTheme.titleMedium),
+                      SizedBox(width: 10), // Add some space between the username and timestamp
+                      Text(
+                        timestamp.toString(),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                   Container(
                     margin: const EdgeInsets.only(top: 5.0),
                     child: Text(text),

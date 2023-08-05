@@ -31,7 +31,10 @@ public class ChatLogic {
     }
 
     public Optional<String> getSymmetricKey(Account account, long chatId) {
-        return chatToAccountRepository.findChatToAccountByIdAndAccount(chatId, account).map(ChatToAccount::key);
+        Optional<Chat> chat = chatRepository.findById( chatId );
+        if(chat.isEmpty())
+            return Optional.empty();
+        return chatToAccountRepository.findChatToAccountByChatAndAccount(chat.get(), account).map(ChatToAccount::key);
     }
 
     @Transactional

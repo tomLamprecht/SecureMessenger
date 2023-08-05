@@ -35,7 +35,9 @@ public class ChatMemberLogic {
         chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(errorMessage));
         validateChatAccessAndAdminRole(chatId, currentAccount);
         Account accountToRemove = accountRepository.findAccountById(accountId).orElseThrow(() -> new NotFoundException(errorMessage));
-        ChatToAccount accountToRemoveToChat = chatToAccountRepository.findChatToAccountByIdAndAccount(chatId, accountToRemove).orElseThrow(() -> new NotFoundException(errorMessage));
+
+        Chat chat = chatRepository.findById( chatId ).orElseThrow(() -> new NotFoundException( errorMessage ));
+        ChatToAccount accountToRemoveToChat = chatToAccountRepository.findChatToAccountByChatAndAccount(chat, accountToRemove).orElseThrow(() -> new NotFoundException(errorMessage));
         chatToAccountRepository.delete(accountToRemoveToChat);
     }
 
@@ -73,9 +75,15 @@ public class ChatMemberLogic {
     }
 
     private void validateChatAccessAndAdminRole(final long chatId, final Account currentAccount) {
-        Optional<ChatToAccount> currentAccountToChat = chatToAccountRepository.findChatToAccountByIdAndAccount(chatId, currentAccount);
+        String errorMessage = "You are not authorized to perform this action without the admin role!";
+        Optional<Chat> chat = chatRepository.findById( chatId );
+        if(chat.isEmpty())
+            throw new UnauthorizedException( errorMessage );
+
+
+        Optional<ChatToAccount> currentAccountToChat = chatToAccountRepository.findChatToAccountByChatAndAccount(chat.get(), currentAccount);
         if (currentAccountToChat.isEmpty() || !currentAccountToChat.get().isAdmin()) {
-            throw new UnauthorizedException("You are not authorized to perform this action without the admin role!");
+            throw new UnauthorizedException(errorMessage);
         }
     }
 }

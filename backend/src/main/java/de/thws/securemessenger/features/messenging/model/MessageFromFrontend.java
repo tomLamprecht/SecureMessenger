@@ -1,13 +1,13 @@
 package de.thws.securemessenger.features.messenging.model;
 
-public class MessageFrontend {
+public class MessageFromFrontend {
 
     private String value;
 
-    public MessageFrontend() {
+    public MessageFromFrontend() {
     }
 
-    public MessageFrontend( String value ) {
+    public MessageFromFrontend( String value ) {
         this.value = value;
     }
 

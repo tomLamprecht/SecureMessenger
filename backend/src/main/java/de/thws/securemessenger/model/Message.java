@@ -75,4 +75,12 @@ public class Message {
     public String getValue() {
         return value;
     }
+
+    public Account getFromUser() {
+        return fromUser;
+    }
+
+    public Chat getChat() {
+        return chat;
+    }
 }
