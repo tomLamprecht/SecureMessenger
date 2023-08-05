@@ -181,8 +181,9 @@ class ChatMessage extends StatelessWidget {
           children: <Widget>[
             Container(
               margin: const EdgeInsets.only(right: 16.0),
-              child: const CircleAvatar(
-                foregroundColor: Colors.cyan,
+              child: CircleAvatar(
+                backgroundColor: _getColorFromUserName(fromUserName),
+                foregroundColor: Colors.white, // Just in case you put any child widget in your avatar that need to contrast with the background
               ),
             ),
             Expanded(
@@ -211,5 +212,11 @@ class ChatMessage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getColorFromUserName(String userName) {
+    final int hash = userName.hashCode.abs();
+    final double hue = (hash % 360).toDouble();
+    return HSVColor.fromAHSV(1.0, hue, 0.7, 0.9).toColor();
   }
 }
