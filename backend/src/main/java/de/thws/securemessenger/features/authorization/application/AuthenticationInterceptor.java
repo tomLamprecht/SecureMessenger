@@ -57,7 +57,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         logger.info("Intercepted " + request.getRequestURI());
 
-        if (isOptionsMethod(request)) {
+        if (isOptionsMethod(request) ||isSwaggerEndpoint(request)) {
             return true;
         }
 
@@ -90,6 +90,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private boolean isOptionsMethod(HttpServletRequest request) {
         return request.getMethod().toUpperCase().equals(HttpMethod.OPTIONS.name());
+    }
+
+    private boolean isSwaggerEndpoint(HttpServletRequest request) {
+        String uri = request.getRequestURI().toLowerCase();
+        return uri.contains("swagger") || uri.contains("api-docs");
     }
 
     private boolean isMissingRequiredHeaders(String publicKeyString, String authTimestamp, String authSignature) {
