@@ -6,7 +6,9 @@ import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
 
-bool signIn(String keyPairPemEncrypted, String password) {
+bool signIn(Map<String, dynamic> data) {
+  String keyPairPemEncrypted = data["keyPairPemEncrypted"];
+  String password = data["password"];
   String keyPairPem = CertFileHandler().decryptFileContentByPassword(keyPairPemEncrypted, password);
 
   RsaKeyStore().publicKey = parsePublicKey(keyPairPem);

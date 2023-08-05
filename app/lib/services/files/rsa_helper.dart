@@ -31,6 +31,15 @@ class RSAHelper {
     return secureRandom;
   }
 
+  String encodePublicKeyToString(RSAPublicKey publicKey) {
+    var topLevel = ASN1Sequence();
+
+    topLevel.add(ASN1Integer(publicKey.modulus!));
+    topLevel.add(ASN1Integer(publicKey.exponent!));
+
+    return base64.encode(topLevel.encodedBytes);
+  }
+
   /// Encode Private key to PEM Format
   ///
   /// Given [RSAPrivateKey] returns a base64 encoded [String] with standard PEM headers and footers
@@ -73,15 +82,6 @@ class RSAHelper {
     topLevel.add(exp1);
     topLevel.add(exp2);
     topLevel.add(co);
-
-    return base64.encode(topLevel.encodedBytes);
-  }
-
-  String encodePublicKeyToString(RSAPublicKey publicKey) {
-    var topLevel = ASN1Sequence();
-
-    topLevel.add(ASN1Integer(publicKey.modulus!));
-    topLevel.add(ASN1Integer(publicKey.exponent!));
 
     return base64.encode(topLevel.encodedBytes);
   }

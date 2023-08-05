@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import '../deprecated_custom_http_client.dart';
 import '../custom_http_client.dart';
 import '../models/chat.dart';
 import 'api/api_config.dart';
@@ -22,8 +23,9 @@ class ChatsService {
   }
 
   Future<List<Chat>?> getChatsFromUser() async {
+    print("get all chats");
     final url = Uri.parse('${ApiConfig.baseUrl}/chats');
-
+    print("use uri $url");
     final response = await CustomHttpClient().get(url);
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);

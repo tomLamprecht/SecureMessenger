@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:my_flutter_test/screens/register_screen.dart';
@@ -15,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   TextEditingController _passwordController = TextEditingController();
   PlatformFile? _selectedFile;
+  bool isLoading = false;
 
   void _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -29,20 +31,29 @@ class LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _signIn() {
+  Future<void> _signIn() async {
     if (_selectedFile != null) {
+      setState(() {
+        isLoading = true;
+      });
+
       String content = utf8.decode(_selectedFile!.bytes!);
-      final success = signIn(content, _passwordController.text);
+      final success = await compute(signIn, {"keyPairPemEncrypted": content, "password": _passwordController.text});
+
+      setState(() {
+        isLoading = false;
+      });
+
       if (!success) {
         _showAlertDialog('File is not in the right format!');
-      }
-
-      Navigator.push(
+      } else {
+        Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ChatOverviewPage()
-          )
-      );
+            builder: (context) => ChatOverviewPage(),
+          ),
+        );
+      }
     }
   }
 
@@ -87,17 +98,28 @@ class LoginScreenState extends State<LoginScreen> {
               : 'No file selected'),
           ElevatedButton(
             child: Text('Sign In'),
-            onPressed: _signIn,
+            onPressed: isLoading ? null : _signIn,
           ),
+          if (isLoading)
+            SizedBox(
+              height: 36,
+              width: 36,
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+            ),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: () {
-            Navigator.push(
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const RegisterScreen()
+                  builder: (context) => const RegisterScreen(),
                 ),
-            );
-          }, child: Text("Register"))
+              );
+            },
+            child: Text("Register"),
+          ),
         ],
       ),
     );
