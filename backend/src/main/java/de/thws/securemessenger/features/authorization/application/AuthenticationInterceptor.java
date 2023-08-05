@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.x509.RSAPublicKeyStructure;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +136,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private boolean verifySignature(String publicKeyString, String payload, String authSignature) throws Exception {
         PublicKey publicKey = getPublicKey(publicKeyString);
         Signature publicSignature = getSignatureInstance(publicKey);
-        byte[] signatureBytes = Base64.getDecoder().decode(authSignature);;
+        byte[] signatureBytes = Base64.getDecoder().decode(authSignature);
 
         publicSignature.update(payload.getBytes(StandardCharsets.UTF_8));
         return publicSignature.verify(signatureBytes);
@@ -147,8 +146,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         publicKeyContent = sanitizePublicKeyContent(publicKeyContent);
 
         ASN1Primitive primitive = getPrimitiveFromPublicKey(publicKeyContent);
-        RSAPublicKeyStructure publicKeyStructure = RSAPublicKeyStructure.getInstance(primitive);
-        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(publicKeyStructure.getModulus(), publicKeyStructure.getPublicExponent());
+        org.bouncycastle.asn1.pkcs.RSAPublicKey rsaPublicKey = org.bouncycastle.asn1.pkcs.RSAPublicKey.getInstance(primitive);
+        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(rsaPublicKey.getModulus(), rsaPublicKey.getPublicExponent());
 
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePublic(publicKeySpec);
