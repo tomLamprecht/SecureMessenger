@@ -33,7 +33,7 @@ public class FriendshipService {
             return Optional.empty();
         }
 
-        Optional<Friendship> existingFriendshipRequest = friendshipRepository.findFriendshipByFromAccountAndToAccount(currentAccount, toAccount.get());
+        Optional<Friendship> existingFriendshipRequest = friendshipRepository.findFriendshipByFromAccountAndToAccount(toAccount.get(), currentAccount);
 
         if (existingFriendshipRequest.isEmpty()) {
             Friendship newFriendship = new Friendship(0, currentAccount, toAccount.get(), false);
