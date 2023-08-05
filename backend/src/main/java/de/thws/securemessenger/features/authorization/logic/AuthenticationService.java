@@ -7,12 +7,10 @@ import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Base64;
 
 @Service
@@ -27,7 +25,7 @@ public class AuthenticationService {
             return false;
         }
 
-        String messageNotSigned = String.format("%s#%s#%s#%s", authData.method(), authData.path(), authData.timestamp(), authData.requestBody());
+        String messageNotSigned = String.format("%s#%s#%s#%s", authData.method(), authData.path(), authData.timestamp(), authData.requestBody().isEmpty() ? "{}" : authData.requestBody());
 
         try {
             if (!verifySignature(messageNotSigned, authData.signature(), authData.publicKey())) {

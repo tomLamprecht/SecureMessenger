@@ -15,7 +15,7 @@ public class CurrentAccount {
         return account;
     }
 
-    public void setUser( Account account) {
+    public void setAccount(Account account) {
         this.account = account;
     }
 }

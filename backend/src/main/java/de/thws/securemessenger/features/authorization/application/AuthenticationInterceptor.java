@@ -1,14 +1,18 @@
 package de.thws.securemessenger.features.authorization.application;
 
-import de.thws.securemessenger.features.authorization.logic.AuthenticationService;
+import de.thws.securemessenger.features.authorization.model.MaxTimeDifference;
+import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
-import de.thws.securemessenger.features.authorization.model.AuthorizationData;
+import de.thws.securemessenger.model.ApiExceptions.UnauthorizedException;
 import de.thws.securemessenger.repositories.AccountRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.x509.RSAPublicKeyStructure;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,88 +20,168 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.Optional;
 
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
-    private final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
+    private static final String TIMESTAMP_HEADER = "x-auth-timestamp";
+    private static final String PUBLIC_KEY_HEADER = "x-public-key";
+    private static final String SIGNATURE_HEADER = "x-auth-signature";
+    private static final String ERROR_MESSAGE = "";
+    private static final MaxTimeDifference MAX_TIME_DIFFERENCE = new MaxTimeDifference(500000000);
+    private final Logger logger = LoggerFactory.getLogger(DeprecatedAuthenticationInterceptor.class);
+    private final CurrentAccount currentAccount;
+    private final AccountRepository accountRepository;
 
-    @Autowired
-    private CurrentAccount currentAccount;
-    @Autowired
-    private AuthenticationService authenticationService;
-    @Autowired
-    private AccountRepository accountRepository;
+    static {
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
+    }
 
-    /**
-     * Handles the authorization.
-     * The timestamp must be the UTC timestamp in ISO-8601 format, and not older than MAX_TIMESTAMP_DIFF (seconds).
-     * The signed message must be base64 encoded.
-     * The public key must be sent in the "x-public-key" header to identify the user.
-     */
+    public AuthenticationInterceptor(CurrentAccount currentAccount, AccountRepository accountRepository) {
+        this.currentAccount = currentAccount;
+        this.accountRepository = accountRepository;
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         logger.info("Intercepted " + request.getRequestURI());
 
-        if (request.getMethod().toUpperCase().equals(HttpMethod.OPTIONS.name())) {
-            logger.info("OPTIONS method is always allowed, forwarding to endpoint");
+        if (isOptionsMethod(request)) {
             return true;
         }
 
-        String timestamp = request.getHeader("x-auth-timestamp");
-        String signature = request.getHeader("x-auth-signature");
-        String publicKey = request.getHeader("x-public-key");
+        String publicKeyString = request.getHeader(PUBLIC_KEY_HEADER);
+        String authTimestamp = request.getHeader(TIMESTAMP_HEADER);
+        String authSignature = request.getHeader(SIGNATURE_HEADER);
 
-        logger.info("timestamp from client: " + timestamp);
-        logger.info("signature from client: " + signature);
-        logger.info("public-key from client: " + publicKey);
-
-        if (timestamp == null || timestamp.isEmpty() || publicKey == null || publicKey.isEmpty() || signature == null || signature.isEmpty()) {
-            logger.info("request unauthorized because null value or empty header");
-            throw new NotAuthorizedException();
+        if (isMissingRequiredHeaders(publicKeyString, authTimestamp, authSignature)) {
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Missing required headers");
+            return false;
         }
 
+        Instant timestamp = parseTimestamp(authTimestamp);
+        TimeSegment timeDelta = new TimeSegment(timestamp, Instant.now());
+        String payload = buildPayload(request, timestamp);
+
+        if (MAX_TIME_DIFFERENCE.isMoreThanTimeBetween(timeDelta)){
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), ERROR_MESSAGE);
+        }
+
+        if (!isSignatureValid(publicKeyString, payload, authSignature)) {
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), ERROR_MESSAGE);
+            return false;
+        }
+
+        authorizeAccount(publicKeyString);
+
+        return true;
+    }
+
+    private boolean isOptionsMethod(HttpServletRequest request) {
+        return request.getMethod().toUpperCase().equals(HttpMethod.OPTIONS.name());
+    }
+
+    private boolean isMissingRequiredHeaders(String publicKeyString, String authTimestamp, String authSignature) {
+        return publicKeyString == null || authTimestamp == null || authSignature == null;
+    }
+
+    private Instant parseTimestamp(String authTimestamp) {
+        try {
+            return Instant.parse(authTimestamp);
+        } catch (DateTimeParseException e) {
+            logger.info("timestamp could not be parsed: " + authTimestamp);
+            throw new UnauthorizedException(ERROR_MESSAGE);
+        }
+    }
+
+    private String buildPayload(HttpServletRequest request, Instant timestamp) throws UnsupportedEncodingException {
+        String method = request.getMethod();
+        String uri = request.getRequestURI();
+        String body = getBody(request);
+
+        return method + "#" + uri + "#" + timestamp + "#" + body;
+    }
+
+    private boolean isSignatureValid(String publicKeyString, String payload, String authSignature) {
+        try {
+            return verifySignature(publicKeyString, payload, authSignature);
+        } catch (Exception e) {
+            throw new UnauthorizedException(ERROR_MESSAGE);
+        }
+    }
+
+    private void authorizeAccount(String publicKeyString) {
+        Optional<Account> authorizedAccount = accountRepository.findAccountByPublicKey(publicKeyString);
+
+        if (authorizedAccount.isEmpty()) {
+            logger.info("no account associated with this public key");
+            throw new UnauthorizedException(ERROR_MESSAGE);
+        }
+
+        currentAccount.setAccount(authorizedAccount.get());
+        logger.info("Request authorized with the AccountId " + currentAccount.getAccount().id());
+    }
+
+    private boolean verifySignature(String publicKeyString, String payload, String authSignature) throws Exception {
+        PublicKey publicKey = getPublicKey(publicKeyString);
+        Signature publicSignature = getSignatureInstance(publicKey);
+        byte[] signatureBytes = Base64.getDecoder().decode(authSignature);;
+
+        publicSignature.update(payload.getBytes(StandardCharsets.UTF_8));
+        return publicSignature.verify(signatureBytes);
+    }
+
+    private PublicKey getPublicKey(String publicKeyContent) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+        publicKeyContent = sanitizePublicKeyContent(publicKeyContent);
+
+        ASN1Primitive primitive = getPrimitiveFromPublicKey(publicKeyContent);
+        RSAPublicKeyStructure publicKeyStructure = RSAPublicKeyStructure.getInstance(primitive);
+        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(publicKeyStructure.getModulus(), publicKeyStructure.getPublicExponent());
+
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return keyFactory.generatePublic(publicKeySpec);
+    }
+
+    private String sanitizePublicKeyContent(String publicKeyContent) {
+        return publicKeyContent.replaceAll("\\n", "")
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "");
+    }
+
+    private ASN1Primitive getPrimitiveFromPublicKey(String publicKeyContent) throws IOException {
+        byte[] decoded = Base64.getDecoder().decode(publicKeyContent);
+        ASN1InputStream inputStream = new ASN1InputStream(decoded);
+        ASN1Primitive primitive = inputStream.readObject();
+        inputStream.close();
+        return primitive;
+    }
+
+    private Signature getSignatureInstance(PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException {
+        Signature publicSignature = Signature.getInstance("SHA256withRSA", BouncyCastleProvider.PROVIDER_NAME);
+        publicSignature.initVerify(publicKey);
+        return publicSignature;
+    }
+
+    private String getBody(HttpServletRequest request) throws UnsupportedEncodingException {
         if (!(request instanceof ContentCachingRequestWrapper contentWrapper)) {
             logger.error("request could not be parsed to ContentCachingRequestWrapper. Maybe the filterChain is broken?");
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        String content = new String(contentWrapper.getContentAsByteArray(), contentWrapper.getCharacterEncoding());
-
-        Instant instant;
-        try {
-            instant = Instant.parse(timestamp);
-        } catch (DateTimeParseException e) {
-            logger.info("timestamp could not be parsed: " + timestamp);
-            throw new NotAuthorizedException();
-        }
-        AuthorizationData authData = new AuthorizationData(signature, publicKey, instant, request.getMethod().toUpperCase(), request.getRequestURI(), content);
-        logger.info("trying to authenticate user with following authentication data: " + authData);
-
-        boolean authenticated;
-        try {
-             authenticated = authenticationService.isAuthenticated(authData);
-        } catch (AuthenticationService.VerifySignatureException e) {
-            logger.info("signature could not be verified: " + e.getMessage());
-            throw new NotAuthorizedException();
-        }
-
-        if (!authenticated) {
-            throw new NotAuthorizedException();
-        }
-
-        Optional<Account> authorizedAccount = accountRepository.findAccountByPublicKey(authData.publicKey());
-        if (authorizedAccount.isEmpty()) {
-            logger.info("no account associated by this public key");
-            throw new NotAuthorizedException();
-        }
-
-        currentAccount.setUser(authorizedAccount.get());
-        logger.info("Request authorized; Account id: " + currentAccount.getAccount().id());
-        return true;
+        String bodyAsString = new String(contentWrapper.getContentAsByteArray(), contentWrapper.getCharacterEncoding());
+        return bodyAsString.isEmpty() ? "{}" : bodyAsString;
     }
-
 }
+
+
