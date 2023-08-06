@@ -22,7 +22,7 @@ Future<int?> sendMessage(int chatId, String message) async {
 }
 
 Future<void> deleteMessage(int chatId, int messageId) async {
-  log("send message");
+  log("delete message $messageId");
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages/$messageId');
 
   final response = await CustomHttpClient().delete(url);

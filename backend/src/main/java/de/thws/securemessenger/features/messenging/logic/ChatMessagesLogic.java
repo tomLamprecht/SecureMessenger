@@ -65,10 +65,10 @@ public class ChatMessagesLogic {
      * @return true, if the operation was successful,
      * false when the user is not allowed to do this operation or the message does not exist
      */
-    public boolean deleteMessageIfAllowed( Account currentAccount, long messageId ) {
+    public boolean deleteMessageIfAllowed( Account currentAccount, long messageId, long chatId ) {
         Optional<Message> message = messageRepository.findById( messageId );
 
-        if ( message.isEmpty() || message.get().fromUser().id() != currentAccount.id() )
+        if ( message.isEmpty() || message.get().fromUser().id() != currentAccount.id() || message.get().chat().id() != chatId )
             return false;
 
         messageRepository.deleteById( messageId );

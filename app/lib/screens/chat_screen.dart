@@ -57,27 +57,45 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     await session.connect(url, sessionKey);
     session.messages.listen((jsonMessage) {
       log("incomming message from Websocket: $jsonMessage");
-      var parsedMessage = Message.fromJson(json.decode(jsonMessage), chatId);
+      var jsonObject = json.decode(jsonMessage);
+      bool isDeleteMessage = jsonObject['deleteMessage'];
 
-      AnimationController animationControllerForIncommingMessages =
-      AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 300),
-      );
-
-      var chatMessage = _parseMessageToChatMessage(
-          parsedMessage, animationControllerForIncommingMessages);
-
-      setState(() {
-        _messages.insert(0, chatMessage);
-      });
-
-      animationControllerForIncommingMessages.forward();
+      if (isDeleteMessage) {
+        handleIncommingDeleteMessageFromWebsocket(jsonObject);
+      } else {
+        handleIncommingMessageFromWebsocket(jsonObject);
+      }
     });
   }
 
-  ChatMessage _parseMessageToChatMessage(Message message,
-      AnimationController animationController) {
+  void handleIncommingMessageFromWebsocket(jsonObject) {
+    var parsedMessage = Message.fromJson(jsonObject, chatId);
+
+    AnimationController animationControllerForIncommingMessages =
+        AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    var chatMessage = _parseMessageToChatMessage(
+        parsedMessage, animationControllerForIncommingMessages);
+
+    setState(() {
+      _messages.insert(0, chatMessage);
+    });
+
+    animationControllerForIncommingMessages.forward();
+  }
+
+  void handleIncommingDeleteMessageFromWebsocket(jsonObject) {
+    int id = jsonObject['id'];
+    setState(() {
+      _messages.removeWhere((element) => element.id == id);
+    });
+  }
+
+  ChatMessage _parseMessageToChatMessage(
+      Message message, AnimationController animationController) {
     return ChatMessage(
       id: message.id,
       fromUserName: message.fromUserName,
@@ -100,10 +118,10 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     //this.chatKey = chatKey;
     this.chatKey =
-    "Ekwp0wkd0PE2aasuEb1Z4oNKX1y36TCy3dRF47H+DCs="; //DUMMY DATA TODO DELETE FOR PRODUCTION
+        "Ekwp0wkd0PE2aasuEb1Z4oNKX1y36TCy3dRF47H+DCs="; //DUMMY DATA TODO DELETE FOR PRODUCTION
 
     AnimationController animationControllerForInitialLoading =
-    AnimationController(
+        AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
@@ -150,7 +168,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               },
               onSubmitted: _handleSubmitted,
               decoration:
-              const InputDecoration.collapsed(hintText: 'Send a message'),
+                  const InputDecoration.collapsed(hintText: 'Send a message'),
             ),
           ),
           Container(
@@ -160,9 +178,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               onPressed: _isComposing
                   ? () => _handleSubmitted(_textController.text)
                   : null,
-              color: Theme
-                  .of(context)
-                  .primaryColor,
+              color: Theme.of(context).primaryColor,
             ),
           ),
         ],
@@ -188,9 +204,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
           const Divider(height: 1.0),
           Container(
-            decoration: BoxDecoration(color: Theme
-                .of(context)
-                .cardColor),
+            decoration: BoxDecoration(color: Theme.of(context).cardColor),
             child: _buildTextComposer(),
           ),
         ],
@@ -207,13 +221,14 @@ class ChatMessage extends StatelessWidget {
   final AnimationController animationController;
   final Function deleteMessage;
 
-  const ChatMessage({Key? key,
-    required this.id,
-    required this.fromUserName,
-    required this.timestamp,
-    required this.text,
-    required this.animationController,
-    required this.deleteMessage})
+  const ChatMessage(
+      {Key? key,
+      required this.id,
+      required this.fromUserName,
+      required this.timestamp,
+      required this.text,
+      required this.animationController,
+      required this.deleteMessage})
       : super(key: key);
 
   @override
@@ -222,7 +237,7 @@ class ChatMessage extends StatelessWidget {
 
     return SizeTransition(
       sizeFactor:
-      CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+          CurvedAnimation(parent: animationController, curve: Curves.easeOut),
       axisAlignment: 0.0,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10.0),
@@ -243,17 +258,11 @@ class ChatMessage extends StatelessWidget {
                   Row(
                     children: <Widget>[
                       Text(fromUserName,
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .titleMedium),
+                          style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(width: 10),
                       Text(
                         timestamp.toString(),
-                        style: Theme
-                            .of(context)
-                            .textTheme
-                            .bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),

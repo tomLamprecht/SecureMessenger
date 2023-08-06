@@ -61,8 +61,11 @@ public class MessageController {
 
 
     @DeleteMapping( value = "/{messageId}" )
-    public ResponseEntity<Void> deleteMessage( @PathVariable() long messageId ) {
-        boolean succeeded = chatMessagesLogic.deleteMessageIfAllowed( currentAccount.getAccount(), messageId );
+    public ResponseEntity<Void> deleteMessage( @PathVariable() long messageId, @PathVariable() long chatId ) {
+        boolean succeeded = chatMessagesLogic.deleteMessageIfAllowed( currentAccount.getAccount(), messageId, chatId );
+
+        if(succeeded)
+            chatSubscriptionWebsocket.notifyAllSessionsOfDeletedMessage( messageId,  chatId);
 
         return succeeded ? ResponseEntity.status( HttpStatus.NO_CONTENT ).build() : ResponseEntity.status( HttpStatus.NOT_FOUND ).build();
     }

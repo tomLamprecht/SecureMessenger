@@ -6,6 +6,7 @@ import de.thws.securemessenger.features.authorization.model.MaxTimeDifference;
 import de.thws.securemessenger.features.messenging.logic.WebSocketSessionLogic;
 import de.thws.securemessenger.features.messenging.model.MessageToFrontend;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
+import de.thws.securemessenger.features.messenging.model.WebSocketMessage;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.Message;
@@ -67,7 +68,17 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
         sessions.stream()
                 .map( sessionToInfo::get )
                 .filter( SessionInfoWrapper::userCanStillReadMessages )
-                .forEach( s -> sendingMessagesThread.sendMessage( new MessageToFrontend( message ), s.session ) );
+                .forEach( s -> sendingMessagesThread.sendMessage( new WebSocketMessage( message ), s.session ) );
+    }
+
+    public void notifyAllSessionsOfDeletedMessage( long messageId, long chatId ) {
+        List<WebSocketSession> sessions = chatToSessions.get( chatId );
+        if ( sessions == null || sessions.isEmpty() )
+            return;
+
+        sessions.stream()
+                .map( sessionToInfo::get )
+                .forEach( s -> sendingMessagesThread.sendMessage( WebSocketMessage.createDeleteMessage( messageId ), s.session ) );
     }
 
     @Override
@@ -86,9 +97,9 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
             SessionInfoWrapper sessionInfoWrapper = new SessionInfoWrapper( session, getAccount( accountId ), chatId );
 
             populateSessionMaps( session, chatId, sessionInfoWrapper );
-            logger.info( "Subscribed accountId " + accountId +" to Chat " + chatId );
+            logger.info( "Subscribed accountId " + accountId + " to Chat " + chatId );
         } catch ( InvalidWebsocketDataException e ) {
-                logger.info( "Ended Websocket connection because: " + e.getMessage() );
+            logger.info( "Ended Websocket connection because: " + e.getMessage() );
             try {
                 session.close();
             } catch ( IOException ex ) { /*can be ignored */}
@@ -104,7 +115,7 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
     }
 
     private void addSessionToListOfSessionsForThisChat( long chatIdLong, WebSocketSession session ) {
-        chatToSessions.merge( chatIdLong, List.of( session ), ( l1, l2 ) -> Stream.of( l1, l2 ).flatMap( List::stream ).collect( Collectors.toList()) );
+        chatToSessions.merge( chatIdLong, List.of( session ), ( l1, l2 ) -> Stream.of( l1, l2 ).flatMap( List::stream ).collect( Collectors.toList() ) );
     }
 
     private void insertEmptyListIfChatIsNeverRegisteredBefore( long chatIdLong ) {
@@ -146,8 +157,8 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
         logger.info( "Session " + session.getId() + " terminated trying to find a subscription and remove it..." );
         if ( sessionInfoWrapper != null ) {
             chatToSessions.get( sessionInfoWrapper.chatId ).remove( session );
-            logger.info( "removed subscription for accountId " + sessionInfoWrapper.account.id() +" and chatId " + sessionInfoWrapper.chatId );
-        }else{
+            logger.info( "removed subscription for accountId " + sessionInfoWrapper.account.id() + " and chatId " + sessionInfoWrapper.chatId );
+        } else {
             logger.info( "No subscription found for session " + session.getId() );
         }
     }
@@ -173,16 +184,16 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
 
         Logger logger = LoggerFactory.getLogger( SendingMessagesThread.class );
 
-        private record MessageToSession(MessageToFrontend message, WebSocketSession session) {
+        private record MessageToSession(WebSocketMessage message, WebSocketSession session) {
         }
 
         private final BlockingQueue<MessageToSession> queue = new LinkedBlockingQueue<>();
 
-        public void sendMessage( MessageToFrontend message, WebSocketSession session ) {
+        public void sendMessage( WebSocketMessage message, WebSocketSession session ) {
             queue.add( new MessageToSession( message, session ) );
         }
 
-        private String convertToJson( MessageToFrontend message ) {
+        private String convertToJson( WebSocketMessage message ) {
 
             try {
                 return objectMapper.writeValueAsString( message );
