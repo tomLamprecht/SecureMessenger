@@ -7,7 +7,7 @@ import 'api/api_config.dart';
 
 Future<int?> sendMessage(int chatId, String message) async {
   log("send message");
-  final url = Uri.parse('${ApiConfig.baseUrl}/chats/$chatId/messages');
+  final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages');
   final headers = {'Content-Type': 'application/json'};
 
   final body = json.encode({'value': message});
@@ -22,7 +22,7 @@ Future<int?> sendMessage(int chatId, String message) async {
 }
 
 Future<List<Message>> readAllMessages(int chatId) async {
-  final url = Uri.parse('${ApiConfig.baseUrl}/chats/$chatId/messages');
+  final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages');
   final headers = {'Content-Type': 'application/json'};
 
   final response = await CustomHttpClient().get(url, headers: headers);
@@ -36,7 +36,7 @@ Future<List<Message>> readAllMessages(int chatId) async {
 
 Future<String?> getKeyOfChat(int chatId) async {
   log("Inside getKeyOfChat");
-  final url = Uri.parse('${ApiConfig.baseUrl}/chats/$chatId/symmetric-key');
+  final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/symmetric-key');
   final headers = {'Content-Type': 'application/json'};
 
   final response = await CustomHttpClient().get(url, headers: headers);
@@ -46,5 +46,19 @@ Future<String?> getKeyOfChat(int chatId) async {
     return response.body;
   } else {
     return null;
+  }
+}
+
+Future<String> getSessionKey(int chatId) async{
+  final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages/subscription');
+  final headers = {'Content-Type': 'application/json'};
+
+  final response = await CustomHttpClient().get(url, headers: headers);
+  log("response of get Session: ${response.body}");
+  if (response.statusCode == 200) {
+    log("sucessfully got Session for Websocket");
+    return json.decode(response.body)['session'];
+  } else {
+    throw Exception("Could not build up a constant reading Session");
   }
 }

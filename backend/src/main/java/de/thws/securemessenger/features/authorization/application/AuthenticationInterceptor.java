@@ -15,13 +15,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StreamUtils;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -30,7 +29,6 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
@@ -40,7 +38,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private static final String SIGNATURE_HEADER = "x-auth-signature";
     private static final String ERROR_MESSAGE = "";
     private static final MaxTimeDifference MAX_TIME_DIFFERENCE = new MaxTimeDifference(500000000);
-    private final Logger logger = LoggerFactory.getLogger(DeprecatedAuthenticationInterceptor.class);
+    private final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
     private final CurrentAccount currentAccount;
     private final AccountRepository accountRepository;
 

@@ -8,7 +8,7 @@ import 'api/api_config.dart';
 
 class ChatsService {
   Future<int?> createChat(String targetUserName) async {
-    final url = Uri.parse('${ApiConfig.baseUrl}/chats');
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
     final headers = {'Content-Type': 'application/json'};
     final body = json.encode({'targetUserName': targetUserName});
 
@@ -24,7 +24,7 @@ class ChatsService {
 
   Future<List<Chat>?> getChatsFromUser() async {
     print("get all chats");
-    final url = Uri.parse('${ApiConfig.baseUrl}/chats');
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
     print("use uri $url");
     final response = await CustomHttpClient().get(url);
     if (response.statusCode == 200) {

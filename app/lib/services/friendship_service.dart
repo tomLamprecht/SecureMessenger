@@ -7,7 +7,7 @@ import 'api/api_config.dart';
 
 class FriendshipServcie {
   Future<List<Friendship>?> getFriendshipRequests() async {
-    final url = Uri.parse('${ApiConfig.baseUrl}/friendships');
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/friendships');
 
     final response = await CustomHttpClient().get(url);
     if (response.statusCode == 200) {
@@ -22,7 +22,7 @@ class FriendshipServcie {
   }
 
   Future<int?> createFriendshipRequest(String targetUserName) async {
-    final url = Uri.parse('${ApiConfig.baseUrl}/friendships');
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/friendships');
     final headers = {'Content-Type': 'application/json'};
     final body = json.encode({'targetUserName': targetUserName});
 

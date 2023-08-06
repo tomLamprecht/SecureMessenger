@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:my_flutter_test/models/message.dart';
+import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/rsa_helper.dart';
+import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 
 import '../services/encryption_service.dart';
 import '../services/message_service.dart';
@@ -34,6 +37,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) { _textFieldFocus.requestFocus(); });
     getKeyOfChat(chatId).then((value) => _saveChatKeyAndGetAllMessages(value!));
+    getSessionKey(chatId).then((value) => createWebsocketConnection(value));
   }
 
   @override
@@ -42,6 +46,36 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       message.animationController.dispose();
     }
     super.dispose();
+  }
+
+  void createWebsocketConnection(String sessionKey) async{
+    String url = '${ApiConfig.websocketBaseUrl}/sub';
+    log("trying to get a connection to the websocket $url ...");
+    var session = WebSocketService();
+    await session.connect(url, sessionKey);
+    session.messages.listen((jsonMessage) {
+      log("incomming message from Websocket: $jsonMessage");
+      var parsedMessage = Message.fromJson(json.decode(jsonMessage), chatId);
+
+      AnimationController animationControllerForIncommingMessages = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 300),
+      );
+
+      var chatMessage = _parseMessageToChatMessage(parsedMessage, animationControllerForIncommingMessages);
+
+      setState(() {
+        _messages.insert(0, chatMessage);
+      });
+
+      animationControllerForIncommingMessages.forward();
+    });
+  }
+
+
+  ChatMessage _parseMessageToChatMessage(Message message, AnimationController animationController){
+    return ChatMessage(fromUserName: message.fromUserName, timestamp: message.timestamp, text: aesDecrypt(message.value, this.chatKey), animationController: animationController);
+
   }
 
   void _saveChatKeyAndGetAllMessages(String chatKey) async {
@@ -59,14 +93,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     var temp = await readAllMessages(chatId);
     Iterable<ChatMessage> chatMessages = [];
     setState(() {
-      chatMessages = temp.map((e) => ChatMessage(fromUserName: e.fromUserName, text: aesDecrypt(e.value, this.chatKey), timestamp: e.timestamp, animationController: animationControllerForInitialLoading));
+      chatMessages = temp.map((e) => _parseMessageToChatMessage(e, animationControllerForInitialLoading));
       _messages.addAll(chatMessages);
     });
 
     animationControllerForInitialLoading.forward();
-
-
-
   }
 
   void _sendMessageEncrypted(String message) {
@@ -80,22 +111,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     setState(() {
       _isComposing = false;
     });
-
-    ChatMessage message = ChatMessage(
-      fromUserName: "You",
-      text: text,
-      timestamp: DateTime.now(),
-      animationController: AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 300),
-      ),
-    );
-
-    setState(() {
-      _messages.insert(0, message);
-    });
-
-    message.animationController.forward();
 
     _textFieldFocus.requestFocus();
   }

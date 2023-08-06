@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Entity
 public class Chat {
@@ -17,17 +18,17 @@ public class Chat {
     private Instant createdAt;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
+    @OneToMany( mappedBy = "chat", fetch = FetchType.EAGER )
     private List<Message> messages;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
+    @OneToMany( mappedBy = "chat", fetch = FetchType.EAGER )
     private List<ChatToAccount> chatToAccounts;
 
     public Chat() {
     }
 
-    public Chat(long id, String name, String description, Instant createdAt) {
+    public Chat( long id, String name, String description, Instant createdAt ) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -35,21 +36,28 @@ public class Chat {
     }
 
     public List<Account> members() {
-        return chatToAccounts.stream().map(ChatToAccount::account).toList();
+        return chatToAccounts.stream().map( ChatToAccount::account ).toList();
     }
 
-    public List<Account> activeMembers(){
+    public List<Account> activeMembers() {
+        return activeMembersStream().toList();
+    }
+
+    private Stream<Account> activeMembersStream() {
         return chatToAccounts.stream()
                 .filter( a -> a.leftAt() == null || a.leftAt().isAfter( Instant.now() ) )
-                .map( ChatToAccount::account )
-                .toList();
+                .map( ChatToAccount::account );
+    }
+
+    public boolean isAccountActiveMember( Account account ) {
+        return activeMembersStream().map( Account::publicKey ).anyMatch( p -> p.equals( account.publicKey() ) );
     }
 
     public long id() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId( long id ) {
         this.id = id;
     }
 
@@ -57,7 +65,7 @@ public class Chat {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName( String name ) {
         this.name = name;
     }
 
@@ -65,7 +73,7 @@ public class Chat {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription( String description ) {
         this.description = description;
     }
 
@@ -73,7 +81,7 @@ public class Chat {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt( Instant createdAt ) {
         this.createdAt = createdAt;
     }
 
@@ -81,7 +89,7 @@ public class Chat {
         return messages;
     }
 
-    public void setMessages(List<Message> messages) {
+    public void setMessages( List<Message> messages ) {
         this.messages = messages;
     }
 
@@ -89,7 +97,7 @@ public class Chat {
         return chatToAccounts;
     }
 
-    public void setChatToAccounts(List<ChatToAccount> chatToAccounts) {
+    public void setChatToAccounts( List<ChatToAccount> chatToAccounts ) {
         this.chatToAccounts = chatToAccounts;
     }
 
