@@ -67,7 +67,7 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
         sessions.stream()
                 .map( sessionToInfo::get )
                 .filter( SessionInfoWrapper::userCanStillReadMessages )
-                .forEach( s -> sendingMessagesThread.addMessage( new MessageToFrontend( message ), s.session ) );
+                .forEach( s -> sendingMessagesThread.sendMessage( new MessageToFrontend( message ), s.session ) );
     }
 
     @Override
@@ -178,7 +178,7 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
 
         private final BlockingQueue<MessageToSession> queue = new LinkedBlockingQueue<>();
 
-        public void addMessage( MessageToFrontend message, WebSocketSession session ) {
+        public void sendMessage( MessageToFrontend message, WebSocketSession session ) {
             queue.add( new MessageToSession( message, session ) );
         }
 

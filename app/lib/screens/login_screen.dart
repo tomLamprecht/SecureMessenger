@@ -47,6 +47,7 @@ class LoginScreenState extends State<LoginScreen> {
       if (!success) {
         _showAlertDialog('File is not in the right format!');
       } else {
+        requestAndSaveWhoAmI();
         Navigator.push(
           context,
           MaterialPageRoute(

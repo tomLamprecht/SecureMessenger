@@ -1,10 +1,36 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:encrypt/encrypt.dart';
+import 'package:my_flutter_test/custom_http_client.dart';
+import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/cert_file_handler.dart';
 import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
+import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
+
+
+Future<void> requestAndSaveWhoAmI() async {
+
+  final url = Uri.parse('${ApiConfig.httpBaseUrl}/accounts/whoami');
+  final headers = {'Content-Type': 'application/json'};
+
+
+  final response = await CustomHttpClient().get(url, headers: headers);
+
+  if (response.statusCode == 200) {
+    var jsonbody = json.decode(response.body);
+
+    WhoAmIStore().accountId = jsonbody['accountId'];
+    WhoAmIStore().username = jsonbody['userName'];
+    WhoAmIStore().publicKey = jsonbody['publicKey'];
+    log("Successfully requested Account Information from backend (username = ${WhoAmIStore().username})");
+  }else{
+    throw Exception("Could not request Account Information from Backend");
+  }
+
+}
 
 bool signIn(Map<String, dynamic> data) {
   String keyPairPemEncrypted = data["keyPairPemEncrypted"];
