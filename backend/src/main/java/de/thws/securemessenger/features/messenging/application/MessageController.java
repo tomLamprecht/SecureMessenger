@@ -56,7 +56,6 @@ public class MessageController {
         if(maxSize <= 0)
             return ResponseEntity.ok().build();
        Optional<List<Message>> getMessages = chatMessagesLogic.getAllowedMessagesPaginated( currentAccount.getAccount(), chatId, latestMessageId, maxSize );
-        System.out.println("Potential Messages found: " + getMessages.get());
         List<MessageToFrontend> frontendMessages = getMessages
                 .map( l -> l.stream().map( MessageToFrontend::new ).collect( Collectors.toList() ) )
                 .orElse( new ArrayList<>() );
