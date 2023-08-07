@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -34,23 +35,46 @@ public class ChatMessagesLogic {
      * @param account the authenticated user
      * @param chatId  the chatId of the messages which should be loaded
      * @return the resulting messages or an empty optional
+     * @deprecated use {@link #getAllowedMessagesPaginated(Account, long, long, int)} instead. 
      */
+    @Deprecated
     public Optional<List<Message>> getAllowedMessages( Account account, long chatId ) {
         Optional<Chat> chat = chatRepository.findById( chatId );
         if ( chat.isEmpty() || notAMember( account, chat.get() ) ) {
             return Optional.empty();
         }
 
-        List<TimeSegment> accountAccessTimes = chat.get()
+        List<TimeSegment> accountAccessTimes = getAccountAccessTimes( chat.get(), account );
+
+        return Optional.of( chat.get().messages().stream().filter( isInAccessTimePredicate( accountAccessTimes ) ).toList() );
+    }
+
+    private Predicate<Message> isInAccessTimePredicate( List<TimeSegment> accountAccessTimes ) {
+        return message -> accountAccessTimes.stream().anyMatch( a -> a.contains( message.timeStamp() ) );
+    }
+
+    private List<TimeSegment> getAccountAccessTimes( Chat chat, Account account ) {
+        return chat
                 .chatToAccounts()
                 .stream()
                 .filter( chatToAccount -> chatToAccount.account().id() == account.id() )
                 .map( c -> new TimeSegment( c.joinedAt(), c.leftAt() == null ? Instant.MAX : c.leftAt() ) )
                 .toList();
+    }
 
-        Predicate<Message> isInAccessTimes = message -> accountAccessTimes.stream().anyMatch( a -> a.contains( message.timeStamp() ) );
+    public Optional<List<Message>> getAllowedMessagesPaginated( Account account, long chatId, long latestMessageId, int size ) {
+        Optional<Chat> chat = chatRepository.findById( chatId );
+        if ( chat.isEmpty() || notAMember( account, chat.get() ) ) {
+            return Optional.empty();
+        }
 
-        return Optional.of( chat.get().messages().stream().filter( isInAccessTimes ).toList() );
+        List<TimeSegment> accountAccessTimes = getAccountAccessTimes( chat.get(), account );
+
+        Optional<Message> latestMessage = latestMessageId == -1 ? Optional.empty() : messageRepository.findById( latestMessageId );
+
+        List<Message> messages = messageRepository.getNMessagesAfterTimestamp( chatId, latestMessage.map( Message::timeStamp ).orElse( null ), size );
+
+        return Optional.of( messages.stream().filter( isInAccessTimePredicate( accountAccessTimes ) ).toList() );
     }
 
     private static boolean notAMember( Account account, Chat chat ) {

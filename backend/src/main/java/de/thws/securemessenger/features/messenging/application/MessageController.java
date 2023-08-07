@@ -12,6 +12,7 @@ import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.ChatRepository;
 import de.thws.securemessenger.util.FileResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping( "/chats/{chatId}/messages" )
 public class MessageController {
+
+    private static final String DEFAULT_MAX_MESSAGES_SIZE = "100";
 
     @Autowired
     ChatRepository chatRepository;
@@ -49,8 +52,11 @@ public class MessageController {
 
 
     @GetMapping()
-    public ResponseEntity<List<MessageToFrontend>> getMessages( @PathVariable() long chatId ) {
-        Optional<List<Message>> getMessages = chatMessagesLogic.getAllowedMessages( currentAccount.getAccount(), chatId );
+    public ResponseEntity<List<MessageToFrontend>> getMessages( @PathVariable() long chatId, @RequestParam(defaultValue = "-1") long latestMessageId, @RequestParam(defaultValue = DEFAULT_MAX_MESSAGES_SIZE) int maxSize ) {
+        if(maxSize <= 0)
+            return ResponseEntity.ok().build();
+       Optional<List<Message>> getMessages = chatMessagesLogic.getAllowedMessagesPaginated( currentAccount.getAccount(), chatId, latestMessageId, maxSize );
+        System.out.println("Potential Messages found: " + getMessages.get());
         List<MessageToFrontend> frontendMessages = getMessages
                 .map( l -> l.stream().map( MessageToFrontend::new ).collect( Collectors.toList() ) )
                 .orElse( new ArrayList<>() );
@@ -58,6 +64,7 @@ public class MessageController {
         Collections.reverse( frontendMessages );
         return ResponseEntity.ok( frontendMessages );
     }
+
 
 
     @DeleteMapping( value = "/{messageId}" )

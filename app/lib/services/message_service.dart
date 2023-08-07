@@ -32,8 +32,8 @@ Future<void> deleteMessage(int chatId, int messageId) async {
 }
 
 
-Future<List<Message>> readAllMessages(int chatId) async {
-  final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages');
+Future<List<Message>> readAllMessages(int chatId, int amount, int latestMessageId) async {
+  final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages?maxSize=$amount&latestMessageId=$latestMessageId');
   final headers = {'Content-Type': 'application/json'};
 
   final response = await CustomHttpClient().get(url, headers: headers);

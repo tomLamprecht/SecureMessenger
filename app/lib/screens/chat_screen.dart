@@ -6,6 +6,7 @@ import 'package:my_flutter_test/models/message.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/rsa_helper.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../services/encryption_service.dart';
 import '../services/message_service.dart';
@@ -22,11 +23,17 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+  int REQUEST_SIZE_OF_MESSAGES = 3;
+
   final TextEditingController _textController = TextEditingController();
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener =
+      ItemPositionsListener.create();
   final List<ChatMessage> _messages = [];
   final FocusNode _textFieldFocus = FocusNode();
   final int chatId;
   late final String chatKey;
+  bool fullyFetched = false;
 
   bool _isComposing = false;
 
@@ -40,6 +47,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     });
     getKeyOfChat(chatId).then((value) => _saveChatKeyAndGetAllMessages(value!));
     getSessionKey(chatId).then((value) => createWebsocketConnection(value));
+    itemPositionsListener.itemPositions.addListener(_scrollingListener);
   }
 
   @override
@@ -48,6 +56,17 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       message.animationController.dispose();
     }
     super.dispose();
+  }
+
+  void _scrollingListener() {
+    if (fullyFetched) return;
+
+    var currentVisibleItems = itemPositionsListener.itemPositions.value;
+    if (currentVisibleItems.isNotEmpty &&
+        currentVisibleItems.last.index == _messages.length - 1) {
+      log("reached latest value of scrolling. Fetching new data...");
+      getAndDisplayMessagesFromBackend(_messages.last.id);
+    }
   }
 
   void createWebsocketConnection(String sessionKey) async {
@@ -106,7 +125,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _deleteMessage(ChatMessage message) {
+  Future<void> _deleteMessage(ChatMessage message) async {
     setState(() {
       _messages.remove(message);
     });
@@ -120,21 +139,30 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     this.chatKey =
         "Ekwp0wkd0PE2aasuEb1Z4oNKX1y36TCy3dRF47H+DCs="; //DUMMY DATA TODO DELETE FOR PRODUCTION
 
-    AnimationController animationControllerForInitialLoading =
-        AnimationController(
+    await getAndDisplayMessagesFromBackend(-1);
+  }
+
+  Future<void> getAndDisplayMessagesFromBackend(int latestMessageId) async {
+    AnimationController animation = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
 
-    var temp = await readAllMessages(chatId);
+    var temp = await readAllMessages(
+        chatId, REQUEST_SIZE_OF_MESSAGES, latestMessageId);
+    log("fetched ${temp.length} messages from backend");
+    if (temp.isEmpty) {
+      log("Fully fetched chat. No need to fetch any old messages anymore");
+      fullyFetched = true;
+      return;
+    }
     Iterable<ChatMessage> chatMessages = [];
     setState(() {
-      chatMessages = temp.map((e) =>
-          _parseMessageToChatMessage(e, animationControllerForInitialLoading));
+      chatMessages = temp.map((e) => _parseMessageToChatMessage(e, animation));
       _messages.addAll(chatMessages);
     });
 
-    animationControllerForInitialLoading.forward();
+    animation.forward();
   }
 
   void _sendMessageEncrypted(String message) {
@@ -195,11 +223,13 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       body: Column(
         children: <Widget>[
           Flexible(
-            child: ListView.builder(
+            child: ScrollablePositionedList.builder(
               padding: const EdgeInsets.all(8.0),
               reverse: true,
               itemCount: _messages.length,
               itemBuilder: (_, int index) => _messages[index],
+              itemScrollController: itemScrollController,
+              itemPositionsListener: itemPositionsListener,
             ),
           ),
           const Divider(height: 1.0),
@@ -276,7 +306,7 @@ class ChatMessage extends StatelessWidget {
             if (isCurrentUser)
               IconButton(
                 icon: const Icon(Icons.delete, size: 20.0),
-                onPressed: () {
+                onPressed: () async {
                   deleteMessage(this);
                 },
               ),
