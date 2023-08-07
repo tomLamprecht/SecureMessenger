@@ -1,10 +1,10 @@
 class Account {
-  int? accountId;
+  int accountId;
   String userName;
   String publicKey;
 
   Account({
-    this.accountId,
+    required this.accountId,
     required this.userName,
     required this.publicKey,
   });

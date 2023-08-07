@@ -5,7 +5,6 @@ import 'package:my_flutter_test/screens/friend_request_screen.dart';
 import 'package:my_flutter_test/services/chats_service.dart';
 import 'package:my_flutter_test/widgets/create_chat.dart';
 
-
 class ChatOverviewPage extends StatefulWidget {
   @override
   _ChatOverviewPageState createState() => _ChatOverviewPageState();
@@ -13,25 +12,30 @@ class ChatOverviewPage extends StatefulWidget {
 
 class _ChatOverviewPageState extends State<ChatOverviewPage> {
   ChatsService chatsService = ChatsService();
-  // List<Chat>? chats = [];
-  List<Chat> chats = [
-    Chat(1, "Chat Room 1", "This is chat room 1.", DateTime(2023, 7, 31, 10, 30)),
-    Chat(2, "Chat Room 2", "Welcome to chat room 2!", DateTime(2023, 8, 1, 15, 45)),
-    Chat(3, "General Chat", "A place for general discussions.", DateTime(2023, 8, 1, 9, 0)),
-    Chat(4, "Private Chat", "Private conversations here.", DateTime(2023, 7, 30, 18, 20)),
-    Chat(5, "Party Planning", "Organizing the upcoming party.", DateTime(2023, 7, 29, 20, 0)),
+  List<Chat>? chats = [
+    Chat(1, "Chat Room 1", "This is chat room 1.",
+        DateTime(2023, 7, 31, 10, 30)),
+    Chat(2, "Chat Room 2", "Welcome to chat room 2!",
+        DateTime(2023, 8, 1, 15, 45)),
+    Chat(3, "General Chat", "A place for general discussions.",
+        DateTime(2023, 8, 1, 9, 0)),
+    Chat(4, "Private Chat", "Private conversations here.",
+        DateTime(2023, 7, 30, 18, 20)),
+    Chat(5, "Party Planning", "Organizing the upcoming party.",
+        DateTime(2023, 7, 29, 20, 0)),
   ];
 
   bool _isHovering = false;
 
-  // @override
-  // void initState() {
-  //   initialize();
-  //   super.initState();
-  // }
-  // Future<void> initialize() async {
-  //   chats = await chatsService.getChatsFromUser();
-  // }
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+
+  Future<void> initialize() async {
+    chats = await chatsService.getChatsFromUser();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,47 +67,85 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: chats?.length,
-        itemBuilder: (context, index) {
-          Chat chat = chats![index]; // ToDo: schauen ob wir prüfen müssen, dass auch wirklich Werte da sind (eigentlich beim Laden schon getan)
-          return Dismissible(
-            key: UniqueKey(),
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.only(left: 16),
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            onDismissed: (direction) {
-              setState(() {
-                // ToDo: wollen wir hier chat löschen (also User aus Chat entfernen) oder chat archivieren machen? Oder des wegswipen als Funktion entfernen?
-                // chats?.removeAt(index);
-              });
-            },
-            child: Hero(
-              tag: 'chat-$chat',
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundImage:
-                  AssetImage('assets/images/avatar_placeholder.png'), //todo: wasch des?
-                ),
-                title: Text(chat.name),
-                // subtitle: Text('Last message...'), //ToDo: nicht im MVP
-                // trailing: Text('Time'), //ToDo: nicht im MVP
-                subtitle: Text(chat.description),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatScreen(chatTitle: chat.name, chatId: chat.id),
+      body: Column(
+        children: [
+          if (chats!.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              color: Colors.yellow,
+              child: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.black),
+                  SizedBox(width: 8.0),
+                  Text(
+                    'Keine Chats verfügbar.',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                itemCount: chats!.length,
+                itemBuilder: (context, index) {
+                  Chat chat = chats![index];
+                  return Dismissible(
+                    key: UniqueKey(),
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(left: 16),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    onDismissed: (direction) {
+                      setState(() async {
+                        // ToDo: wollen wir hier chat löschen (also User aus Chat entfernen) oder chat archivieren machen? Oder des wegswipen als Funktion entfernen?
+                        if(await chatsService.deleteChatFromUser(chat.id, 1)){ //TODO: accountId im backend über currentuser or what? Übergabe?
+                          chats?.removeAt(index);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Anfrage fehlgeschlagen.'),
+                            ),
+                          );
+                        }
+
+                      });
+                    },
+                    child: Hero(
+                      tag: 'chat-$chat',
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.blue, // Setze die gewünschte Hintergrundfarbe
+                          child: Icon(
+                            Icons.assist_walker_sharp, // Material Icon hinzufügen (kann beliebig angepasst werden)
+                            color: Colors.white, // Farbe des Icons anpassen
+                          ),
+                        ),
+                        title: Text(chat.name),
+                        // subtitle: Text('Last message...'), //ToDo: nicht im MVP
+                        // trailing: Text('Time'), //ToDo: nicht im MVP
+                        subtitle: Text(chat.description),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                  chatTitle: chat.name, chatId: chat.id),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
               ),
             ),
-          );
-        },
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -117,14 +159,12 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
       ),
     );
   }
-  List<String> getChatNames() {
-    List<String> chatNames = [];
-    chats?.forEach((chat) {chatNames.add(chat.name); });
-    return chatNames;
-  }
+// List<String> getChatNames() {
+//   List<String> chatNames = [];
+//   chats?.forEach((chat) {chatNames.add(chat.name); });
+//   return chatNames;
+// }
 }
-
-
 
 class ChatSearch extends SearchDelegate<String> {
   final List<Chat> chats;
@@ -147,11 +187,11 @@ class ChatSearch extends SearchDelegate<String> {
       query.isEmpty
           ? Container()
           : IconButton(
-        icon: Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
+              icon: Icon(Icons.clear),
+              onPressed: () {
+                query = '';
+              },
+            ),
     ];
   }
 
@@ -169,8 +209,10 @@ class ChatSearch extends SearchDelegate<String> {
   Widget buildSuggestions(BuildContext context) {
     final List<Chat> suggestions = query.isEmpty
         ? chats
-        : chats.where((chat) => chat.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+        : chats
+            .where(
+                (chat) => chat.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
 
     return ListView.builder(
       itemCount: suggestions.length,
@@ -188,7 +230,8 @@ class ChatSearch extends SearchDelegate<String> {
                   style: TextStyle(color: Colors.grey),
                 ),
                 TextSpan(
-                  text: chat.name.substring(startIndex, startIndex + query.length),
+                  text: chat.name
+                      .substring(startIndex, startIndex + query.length),
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -206,10 +249,10 @@ class ChatSearch extends SearchDelegate<String> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ChatScreen(chatTitle: chat.name, chatId: chat.id),
+                builder: (context) =>
+                    ChatScreen(chatTitle: chat.name, chatId: chat.id),
               ),
             );
-
           },
         );
       },

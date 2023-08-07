@@ -39,4 +39,17 @@ class ChatsService {
       return null;
     }
   }
+
+  Future<bool> deleteChatFromUser(int chatId, int accountId) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/chats/$chatId/accounts/$accountId"');
+    final headers = {'Content-Type': 'application/json'};
+
+    final response = await CustomHttpClient().delete(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

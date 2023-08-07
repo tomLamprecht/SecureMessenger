@@ -1,35 +1,34 @@
+import 'package:my_flutter_test/models/account.dart';
+
 class Friendship {
-  final int fromUserId;
-  final int toUserId;
-  final bool accepted;
+  final Account fromAccount;
+  final Account toAccount;
+
 
   Friendship({
-    required this.fromUserId,
-    required this.toUserId,
-    required this.accepted,
+    required this.fromAccount,
+    required this.toAccount
   });
 
-  Friendship copyWith({int? fromUserId, int? toUserId, bool? accepted}) {
-    return Friendship(
-      fromUserId: fromUserId ?? this.fromUserId,
-      toUserId: toUserId ?? this.toUserId,
-      accepted: accepted ?? this.accepted,
-    );
-  }
+  // Friendship copyWith({int? fromUserId, int? toUserId, bool? accepted}) {
+  //   return Friendship(
+  //     fromUserId: fromUserId ?? this.fromUserId,
+  //     toUserId: toUserId ?? this.toUserId,
+  //     accepted: accepted ?? this.accepted,
+  //   );
+  // }
 
   factory Friendship.fromJson(Map<String, dynamic> json) {
     return Friendship(
-      fromUserId: json['fromUserId'],
-      toUserId: json['toUserId'],
-      accepted: json['accepted'],
+      fromAccount: json['fromAccount'],
+      toAccount: json['toAccount']
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'fromUserId': fromUserId,
-      'toUserId': toUserId,
-      'accepted': accepted,
+      'fromAccount': fromAccount,
+      'toAccount': toAccount
     };
   }
 }
