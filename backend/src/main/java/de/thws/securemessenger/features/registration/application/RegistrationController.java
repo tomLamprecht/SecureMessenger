@@ -4,6 +4,7 @@ import de.thws.securemessenger.features.registration.logic.CaptchaValidator;
 import de.thws.securemessenger.features.registration.logic.RegisterUser;
 import de.thws.securemessenger.features.registration.logic.UserNameValidator;
 import de.thws.securemessenger.features.registration.models.UserPayload;
+import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -34,7 +35,7 @@ public class RegistrationController {
     }
 
     @PostMapping( produces = MediaType.TEXT_PLAIN_VALUE )
-    public ResponseEntity<String> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
+    public ResponseEntity<Long> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
 
         Optional<Boolean> captchaValidationResult = captchaValidator.isCaptchaValid( userPayload.captchaTry( ) );
         if ( captchaValidationResult.isEmpty( ) ) {
@@ -44,19 +45,14 @@ public class RegistrationController {
             return ResponseEntity.badRequest( ).body( null );
         }
         if  ( !userNameValidator.isValidUserName( userPayload.userName( ) ) ) {
-            return ResponseEntity.badRequest().body( "Invalid Username was given." );
+            throw new BadRequestException("Invalid username was given.");
         }
 
-        Optional<Integer> result = registerUser.registerUser( userPayload );
+        long result = registerUser.registerUser( userPayload );
 
-        if ( result.isPresent( ) ) {
-            return ResponseEntity
-                    .created( new URI( request.getRequestURI( ) + "/" + result.get( ) ) )
-                    .contentType( MediaType.TEXT_PLAIN )
-                    .body( result.get().toString() );
-        }
-
-        return ResponseEntity.internalServerError().body( null );
+        return ResponseEntity
+                .created( new URI( request.getRequestURI( ) + "/" + result ) )
+                .body( result );
     }
 
 }

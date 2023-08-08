@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/widgets/basic.dart' as flutter_widgets;
@@ -61,8 +62,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future _generateKeys() async {
     var rsaHelper = RSAHelper();
-    _keyPair = await rsaHelper.getRSAKeyPair(rsaHelper.getSecureRandom());
-    var encodedPublicKey = rsaHelper.encodePublicKeyToString(_keyPair!.publicKey as RSAPublicKey);
+    final response = ReceivePort();
+    await Isolate.spawn(rsaHelper.getRSAKeyPair, response.sendPort);
+    var keyPair = await response.first as AsymmetricKeyPair<PublicKey, PrivateKey>;
+    var encodedPublicKey = rsaHelper.encodePublicKeyToString(keyPair.publicKey as RSAPublicKey);
     _publicKey = encodedPublicKey;
   }
 

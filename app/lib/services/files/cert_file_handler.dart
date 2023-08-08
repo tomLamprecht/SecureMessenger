@@ -46,12 +46,6 @@ class CertFileHandler {
     return encrypt.Encrypter(encrypt.AES(key));
   }
 
-
-  Future<AsymmetricKeyPair<PublicKey, PrivateKey>> generateRSAKeyPair() async {
-    var certificate = RSAHelper();
-    return certificate.getRSAKeyPair(certificate.getSecureRandom());
-  }
-
   Future<void> downloadFile(String value, String filename) async {
     DownloadService downloadService = kIsWeb ? WebDownloadService() : MobileDownloadService();
 
@@ -73,26 +67,6 @@ class CertFileHandler {
     var encryptedValue = encryptFileContentByPassword(value, password);
 
     await downloadFile(encryptedValue, fileName);
-  }
-
-  ///  Generates a private and public key and encrypts it using the given password. It will provide a download for the encrypted Certificate including
-  ///  private and public key and returning the non-encrypted public key.
-  Future<String> generateAndDownloadEncryptedCert(String password) async {
-    var keyPair = await generateRSAKeyPair();
-
-    var publicKeyPEM = RSAHelper()
-        .encodePublicKeyToPemPKCS1(keyPair.publicKey as RSAPublicKey);
-
-    var privateKeyPEM = RSAHelper().encodePrivateKeyToPemPKCS1(
-        keyPair.privateKey as RSAPrivateKey);
-
-    String keyPairPEM = "$publicKeyPEM\n$privateKeyPEM";
-
-    String encryptedKeyPairPEM = encryptFileContentByPassword(keyPairPEM, password);
-
-    downloadFile(encryptedKeyPairPEM, "privateKey.pem");
-
-    return publicKeyPEM;
   }
 
 

@@ -1,23 +1,26 @@
 package de.thws.securemessenger.features.registration.logic;
 
 import de.thws.securemessenger.features.registration.models.UserPayload;
-import de.thws.securemessenger.repositories.IRegistrationDbHandler;
+import de.thws.securemessenger.model.Account;
+import de.thws.securemessenger.repositories.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 public class RegisterUser {
-    final IRegistrationDbHandler registrationDbHandler;
+    final AccountRepository accountRepository;
 
     @Autowired
-    public RegisterUser(IRegistrationDbHandler registrationDbHandler) {
-        this.registrationDbHandler = registrationDbHandler;
+    public RegisterUser(AccountRepository userRepository) {
+        this.accountRepository = userRepository;
     }
 
 
-    public Optional<Integer> registerUser (final UserPayload userPayload ) {
-         return registrationDbHandler.createUser( userPayload.userName(), userPayload.publicKey());
+    public long registerUser (final UserPayload userPayload ) {
+        Account newUser = new Account(0, userPayload.userName(), userPayload.publicKey(), LocalDateTime.now());
+        newUser = accountRepository.save(newUser);
+        return newUser.id();
     }
 }

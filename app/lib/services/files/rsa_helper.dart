@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui';
 
@@ -15,9 +16,10 @@ class RSAHelper {
 
   RSAHelper();
 
-  Future<AsymmetricKeyPair<PublicKey, PrivateKey>> getRSAKeyPair(
-      SecureRandom secureRandom) async {
-    return await compute(computeRSAKeyPair, secureRandom);
+  Future<AsymmetricKeyPair<PublicKey, PrivateKey>?> getRSAKeyPair(SendPort sendPort) async {
+    var keyPair = computeRSAKeyPair(getSecureRandom());
+    sendPort.send(keyPair);
+    return null;
   }
 
   SecureRandom getSecureRandom() {

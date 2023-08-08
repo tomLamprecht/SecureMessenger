@@ -7,8 +7,6 @@ import de.thws.securemessenger.model.ApiExceptions.UnauthorizedException;
 import de.thws.securemessenger.repositories.AccountRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Base64;
@@ -143,38 +141,21 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         return publicSignature.verify(signatureBytes);
     }
 
-    private PublicKey getPublicKey(String publicKeyContent) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-        publicKeyContent = sanitizePublicKeyContent(publicKeyContent);
+    private static PublicKey getPublicKey(String base64EncodedHex) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] keyBytes = Base64.getDecoder().decode(base64EncodedHex);
+        KeyFactory keyFactory = KeyFactory.getInstance("EC");
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(keyBytes);
 
-        ASN1Primitive primitive = getPrimitiveFromPublicKey(publicKeyContent);
-        org.bouncycastle.asn1.pkcs.RSAPublicKey rsaPublicKey = org.bouncycastle.asn1.pkcs.RSAPublicKey.getInstance(primitive);
-        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(rsaPublicKey.getModulus(), rsaPublicKey.getPublicExponent());
-
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePublic(publicKeySpec);
     }
 
-    private String sanitizePublicKeyContent(String publicKeyContent) {
-        return publicKeyContent.replaceAll("\\n", "")
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "");
-    }
-
-    private ASN1Primitive getPrimitiveFromPublicKey(String publicKeyContent) throws IOException {
-        byte[] decoded = Base64.getDecoder().decode(publicKeyContent);
-        ASN1InputStream inputStream = new ASN1InputStream(decoded);
-        ASN1Primitive primitive = inputStream.readObject();
-        inputStream.close();
-        return primitive;
-    }
-
     private Signature getSignatureInstance(PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException {
-        Signature publicSignature = Signature.getInstance("SHA256withRSA", BouncyCastleProvider.PROVIDER_NAME);
+        Signature publicSignature = Signature.getInstance("SHA256withECDSA", BouncyCastleProvider.PROVIDER_NAME);
         publicSignature.initVerify(publicKey);
         return publicSignature;
     }
 
-    private String getBody(HttpServletRequest request) throws UnsupportedEncodingException {
+    private String getBody(HttpServletRequest request) {
         if (!(request instanceof CustomCachingRequestWrapper contentWrapper)) {
             logger.error("request could not be parsed to CustomCachingRequestWrapper. Maybe the filterChain is broken?");
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);

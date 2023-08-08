@@ -16,7 +16,7 @@ public class CaptchaGenerator {
     private static final int WIDTH = 200;
     private static final int HEIGHT = 50;
     private static final int CAPTCHA_LENGTH = 7;
-    private static final String CHARACTERS = "ABCDEFGHIJKMNOPQRSTUVWYZabcdefghjklmnopqrstuvwyz0123456789";
+    private static final String CHARACTERS = "ABCDEFGHJKMNOPQRSTUVWYZabcdefghkmnopqrstwyz023456789";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private final ICaptchaDatabaseHandler captchaDatabaseHandler;
 
