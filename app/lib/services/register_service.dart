@@ -8,7 +8,7 @@ class RegistrationService {
 
   RegistrationService({String baseUrl = 'http://localhost:8080'}) : _baseUrl = baseUrl;
 
-  Future<int> registerUser({
+  Future<void> registerUser({
     required String captchaId,
     required String captchaTry,
     required String publicKey,
@@ -30,10 +30,9 @@ class RegistrationService {
       }),
     );
 
-    if (response.statusCode == 201) {
-      return int.parse(response.body);
-    } else {
+    if (response.statusCode != 201) {
       throw Exception('Failed to register user.');
     }
+
   }
 }

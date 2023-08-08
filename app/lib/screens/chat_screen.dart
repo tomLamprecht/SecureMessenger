@@ -22,7 +22,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  int REQUEST_SIZE_OF_MESSAGES = 30;
+  int REQUEST_SIZE_OF_MESSAGES = 1;
 
   final TextEditingController _textController = TextEditingController();
   final ItemScrollController itemScrollController = ItemScrollController();

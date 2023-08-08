@@ -78,16 +78,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     try {
-      final response = await _registrationService.registerUser(
+       await _registrationService.registerUser(
           captchaId: _captchaId,
           captchaTry: _captchaController.text,
           publicKey: _publicKey,
           userName: userName);
-      if (response == 0) {
-        throw Exception('Failed to register user.');
-      }
 
-      await _certFileHandler.downloadCertificate(_keyPair!, "certificate.pem", _certPasswordController.text);
+      await _certFileHandler.downloadCertificate(_keyPair!, "private_key.cert", _certPasswordController.text);
 
       EccKeyStore().publicKey = _keyPair!.publicKey;
       EccKeyStore().privateKey = _keyPair!.privateKey;

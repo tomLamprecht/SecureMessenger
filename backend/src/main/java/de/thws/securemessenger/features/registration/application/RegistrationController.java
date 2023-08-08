@@ -5,6 +5,7 @@ import de.thws.securemessenger.features.registration.logic.RegisterUser;
 import de.thws.securemessenger.features.registration.logic.UserNameValidator;
 import de.thws.securemessenger.features.registration.models.UserPayload;
 import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
+import de.thws.securemessenger.model.ApiExceptions.InternalServerErrorException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -35,7 +36,7 @@ public class RegistrationController {
     }
 
     @PostMapping( produces = MediaType.TEXT_PLAIN_VALUE )
-    public ResponseEntity<Long> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
+    public ResponseEntity<Void> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
 
         Optional<Boolean> captchaValidationResult = captchaValidator.isCaptchaValid( userPayload.captchaTry( ) );
         if ( captchaValidationResult.isEmpty( ) ) {
@@ -50,9 +51,13 @@ public class RegistrationController {
 
         long result = registerUser.registerUser( userPayload );
 
+        if(result == 0)
+            throw new InternalServerErrorException( "Error at saving the user in the database" );
+
+
         return ResponseEntity
                 .created( new URI( request.getRequestURI( ) + "/" + result ) )
-                .body( result );
+                .build();
     }
 
 }
