@@ -34,7 +34,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private static final String TIMESTAMP_HEADER = "x-auth-timestamp";
     private static final String PUBLIC_KEY_HEADER = "x-public-key";
     private static final String SIGNATURE_HEADER = "x-auth-signature";
-    private static final String ERROR_MESSAGE = "";
+    private static final String ERROR_MESSAGE = "Your given signature is invalid!";
     private static final MaxTimeDifference MAX_TIME_DIFFERENCE = new MaxTimeDifference(500000000);
     private final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
     private final CurrentAccount currentAccount;
@@ -172,5 +172,3 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         return bodyAsString == null || bodyAsString.isEmpty() ? "{}" : bodyAsString;
     }
 }
-
-
