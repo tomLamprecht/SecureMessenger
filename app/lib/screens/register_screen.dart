@@ -1,17 +1,16 @@
 import 'dart:async';
-import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/widgets/basic.dart' as flutter_widgets;
+import 'package:my_flutter_test/models/keypair.dart';
+import 'package:my_flutter_test/services/files/ecc_helper.dart';
 import 'package:my_flutter_test/services/register_service.dart';
 import 'package:my_flutter_test/services/captcha_service.dart';
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
-import 'package:pointycastle/api.dart';
+import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
 import '../services/files/cert_file_handler.dart';
-import '../services/files/rsa_helper.dart';
 import 'chat_overview_screen.dart';
 
 
@@ -30,7 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late CaptchaService _captchaService;
   late RegistrationService _registrationService;
   late String _publicKey;
-  AsymmetricKeyPair<PublicKey, PrivateKey>? _keyPair;
+  Keypair? _keyPair;
   final _certFileHandler = CertFileHandler();
 
   final ValueNotifier<bool> _isDownloadButtonEnabled = ValueNotifier(false);
@@ -61,12 +60,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future _generateKeys() async {
-    var rsaHelper = RSAHelper();
-    final response = ReceivePort();
-    await Isolate.spawn(rsaHelper.getRSAKeyPair, response.sendPort);
-    var keyPair = await response.first as AsymmetricKeyPair<PublicKey, PrivateKey>;
-    var encodedPublicKey = rsaHelper.encodePublicKeyToString(keyPair.publicKey as RSAPublicKey);
-    _publicKey = encodedPublicKey;
+    var eccHelper = ECCHelper();
+    _keyPair = eccHelper.generateKeyPair();
+    _publicKey = eccHelper.encodePubKeyForBackend(_keyPair!.publicKey);
   }
 
   Future<ImageProvider> _loadCaptchaImage() async {
@@ -93,8 +89,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       await _certFileHandler.downloadCertificate(_keyPair!, "certificate.pem", _certPasswordController.text);
 
-      RsaKeyStore().publicKey = _keyPair!.publicKey as RSAPublicKey;
-      RsaKeyStore().privateKey = _keyPair!.privateKey as RSAPrivateKey;
+      EccKeyStore().publicKey = _keyPair!.publicKey;
+      EccKeyStore().privateKey = _keyPair!.privateKey;
       _redirectToChatOverview();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

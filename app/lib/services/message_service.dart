@@ -24,7 +24,6 @@ Future<int?> sendMessage(int chatId, String message) async {
 Future<void> deleteMessage(int chatId, int messageId) async {
   log("delete message $messageId");
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages/$messageId');
-
   final response = await CustomHttpClient().delete(url);
   if (response.statusCode == 404) {
     throw Exception("Message could not get deleted");

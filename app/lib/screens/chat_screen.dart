@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/message.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
-import 'package:my_flutter_test/services/files/rsa_helper.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -23,7 +22,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  int REQUEST_SIZE_OF_MESSAGES = 3;
+  int REQUEST_SIZE_OF_MESSAGES = 30;
 
   final TextEditingController _textController = TextEditingController();
   final ItemScrollController itemScrollController = ItemScrollController();
@@ -151,10 +150,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     var temp = await readAllMessages(
         chatId, REQUEST_SIZE_OF_MESSAGES, latestMessageId);
     log("fetched ${temp.length} messages from backend");
-    if (temp.isEmpty) {
+    if (temp.length < REQUEST_SIZE_OF_MESSAGES) {
       log("Fully fetched chat. No need to fetch any old messages anymore");
       fullyFetched = true;
-      return;
     }
     Iterable<ChatMessage> chatMessages = [];
     setState(() {
@@ -307,7 +305,7 @@ class ChatMessage extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.delete, size: 20.0),
                 onPressed: () async {
-                  deleteMessage(this);
+                   deleteMessage(this);
                 },
               ),
           ],

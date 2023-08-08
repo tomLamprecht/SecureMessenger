@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 
-import '../deprecated_custom_http_client.dart';
 import '../custom_http_client.dart';
 
 class CaptchaService {

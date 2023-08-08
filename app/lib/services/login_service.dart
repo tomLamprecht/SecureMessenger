@@ -5,7 +5,8 @@ import 'package:encrypt/encrypt.dart';
 import 'package:my_flutter_test/custom_http_client.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/cert_file_handler.dart';
-import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
+import 'package:my_flutter_test/services/files/ecc_helper.dart';
+import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
 import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
@@ -37,8 +38,8 @@ bool signIn(Map<String, dynamic> data) {
   String password = data["password"];
   String keyPairPem = CertFileHandler().decryptFileContentByPassword(keyPairPemEncrypted, password);
 
-  RsaKeyStore().publicKey = parsePublicKey(keyPairPem);
-  RsaKeyStore().privateKey = parsePrivateKey(keyPairPem);
+  EccKeyStore().privateKey = ECCHelper().parsePrivateKeyFromHexString(keyPairPem);
+  EccKeyStore().publicKey = EccKeyStore().privateKey!.publicKey;
   return true;
 }
 

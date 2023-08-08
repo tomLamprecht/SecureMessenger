@@ -1,22 +1,20 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import 'package:my_flutter_test/services/files/rsa_helper.dart';
-import 'package:my_flutter_test/services/stores/rsa_key_store.dart';
-import 'package:encrypt/encrypt.dart' as enc;
+import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
+
+import 'services/files/ecc_helper.dart';
 
 class CustomHttpClient extends http.BaseClient {
   static final CustomHttpClient _instance = CustomHttpClient._();
   factory CustomHttpClient() => _instance;
 
   final http.Client _client = http.Client();
-  final rsaHelper = RSAHelper();
+  final eccHelper = ECCHelper();
 
   CustomHttpClient._();
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    if (RsaKeyStore().publicKey == null) {
+    if (EccKeyStore().publicKey == null) {
       return _client.send(request);
     }
 
@@ -34,7 +32,7 @@ class CustomHttpClient extends http.BaseClient {
 
     final payload = '$method#$path#$timestamp#$body';
 
-    final publicKeyHeader = rsaHelper.encodePublicKeyToString(RsaKeyStore().publicKey!);
+    final publicKeyHeader = eccHelper.encodePubKeyForBackend(EccKeyStore().publicKey!);
     final signature = _generateSignature(payload);
 
 
@@ -48,9 +46,6 @@ class CustomHttpClient extends http.BaseClient {
   }
 
   String _generateSignature(String payload) {
-    final input = Uint8List.fromList(utf8.encode(payload));
-    final signer = enc.RSASigner(enc.RSASignDigest.SHA256, privateKey: RsaKeyStore().privateKey);
-    final signedMessage = signer.sign(input);
-    return base64Encode(signedMessage.bytes);
+    return eccHelper.sign(EccKeyStore().privateKey!, payload);
   }
 }
