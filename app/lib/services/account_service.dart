@@ -6,18 +6,22 @@ import '../models/account.dart';
 import 'api/api_config.dart';
 
 class AccountService {
-  Future<Account?> getAccountbyUsername(String username) async {
-    final url = Uri.parse('${ApiConfig.baseUrl}/accounts/by-username/$username');
-    final headers = {'Content-Type': 'application/json'};
-    final response = await CustomHttpClient().get(url, headers: headers);
+  Future<Account?> getAccountByUsername(String username) async {
+    try {
+      final url = Uri.parse('${ApiConfig.httpBaseUrl}/accounts/by-username/$username');
+      final response = await CustomHttpClient().get(url);
+      if (response.statusCode == 200) {
+        final dynamic jsonAcc = json.decode(response.body);
+        return Account.fromJson(jsonAcc);
 
-    if (response.statusCode == 200) {
-      final dynamic jsonAcc = json.decode(response.body);
-      return Account.fromJson(jsonAcc);
-
-    } else {
-      log("Keinen Account gefunden bei GET-Request");
-      return null;
+      } else {
+        log("Keinen Account gefunden bei GET-Request");
+        return null;
+      }
     }
+    catch (e) {
+      print("Exption: $e");
+    }
+
   }
 }

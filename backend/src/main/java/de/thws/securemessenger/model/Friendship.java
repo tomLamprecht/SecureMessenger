@@ -6,17 +6,17 @@ import jakarta.persistence.*;
 public class Friendship {
     @Id
     @GeneratedValue
-    private long id;
+    public long id;
 
     @ManyToOne
     @JoinColumn(name = "FromAccountId")
-    private Account fromAccount;
+    public Account fromAccount;
 
     @ManyToOne
     @JoinColumn(name = "ToAccountId")
-    private Account toAccount;
+    public Account toAccount;
 
-    private boolean accepted;
+    public boolean accepted;
 
     public Friendship() {
     }

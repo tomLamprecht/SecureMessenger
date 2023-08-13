@@ -1,11 +1,13 @@
 import 'package:my_flutter_test/models/account.dart';
 
 class Friendship {
+  final int id;
   final Account fromAccount;
   final Account toAccount;
 
 
   Friendship({
+    required this.id,
     required this.fromAccount,
     required this.toAccount
   });
@@ -20,13 +22,15 @@ class Friendship {
 
   factory Friendship.fromJson(Map<String, dynamic> json) {
     return Friendship(
-      fromAccount: json['fromAccount'],
-      toAccount: json['toAccount']
+      id: json["id"],
+      fromAccount: Account.fromJson(json['fromAccount']),
+      toAccount: Account.fromJson(json['toAccount'])
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'fromAccount': fromAccount,
       'toAccount': toAccount
     };

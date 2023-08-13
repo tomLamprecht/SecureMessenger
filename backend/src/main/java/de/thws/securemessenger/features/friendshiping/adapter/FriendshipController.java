@@ -3,6 +3,7 @@ package de.thws.securemessenger.features.friendshiping.adapter;
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.features.friendshiping.logic.FriendshipService;
 import de.thws.securemessenger.model.Friendship;
+import de.thws.securemessenger.model.response.FriendshipResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class FriendshipController {
         this.currentAccount = currentAccount;
     }
 
-    @PostMapping("/{toAccountId:[0-9+]}")
+    @PostMapping("/{toAccountId}")
     public ResponseEntity<Void> createFriendship(@PathVariable long toAccountId) throws URISyntaxException {
         Optional<Long> friendshipId = friendshipRequestService.handleFriendshipRequest(currentAccount.getAccount(), toAccountId);
 
@@ -37,7 +38,7 @@ public class FriendshipController {
         }
 
         return ResponseEntity
-                .created(new URI("/friendships/" + friendshipId))
+                .created(new URI("/friendships/" + friendshipId.get()))
                 .build();
     }
 
@@ -63,8 +64,9 @@ public class FriendshipController {
     }
 
     @GetMapping("/incoming")
-    public ResponseEntity<List<Friendship>> getIncomingFriendshipRequests(@RequestParam(defaultValue = "false") boolean showOnlyPending){
-        return ResponseEntity.ok(friendshipRequestService.getAllIncomingFriendshipRequests(currentAccount.getAccount(), showOnlyPending));
+    public ResponseEntity<List<FriendshipResponse>> getIncomingFriendshipRequests(@RequestParam(defaultValue = "false") boolean showOnlyPending){
+        var result = friendshipRequestService.getAllIncomingFriendshipRequests(currentAccount.getAccount(), showOnlyPending).stream().toList();
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/outgoing")

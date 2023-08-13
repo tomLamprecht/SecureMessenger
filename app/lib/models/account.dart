@@ -11,9 +11,10 @@ class Account {
 
   factory Account.fromJson(Map<String, dynamic> json) {
     return Account(
-      accountId: json['accountId'],
+      accountId: json['id'],
       userName: json['userName'],
       publicKey: json['publicKey']
     );
+    // todo: add joinedAt
   }
 }

@@ -2,6 +2,7 @@ package de.thws.securemessenger.features.friendshiping.logic;
 
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Friendship;
+import de.thws.securemessenger.model.response.FriendshipResponse;
 import de.thws.securemessenger.repositories.AccountRepository;
 import de.thws.securemessenger.repositories.FriendshipRepository;
 import jakarta.persistence.EntityManager;
@@ -59,11 +60,11 @@ public class FriendshipService {
                 .toList();
     }
 
-    public List<Friendship> getAllIncomingFriendshipRequests(Account currentAccount, boolean showOnlyPending){
+    public List<FriendshipResponse> getAllIncomingFriendshipRequests(Account currentAccount, boolean showOnlyPending){
         if (showOnlyPending){
-            return friendshipRepository.findAllByToAccountIdAndAcceptedEquals(currentAccount.id(), false);
+            return friendshipRepository.findAllByToAccountIdAndAcceptedEquals(currentAccount.id(), false).stream().map(FriendshipResponse::new).toList();
         }
-        return friendshipRepository.findAllByToAccountId(currentAccount.id());
+        return friendshipRepository.findAllByToAccountId(currentAccount.id()).stream().map(FriendshipResponse::new).toList();
     }
 
     public List<Friendship> getAllOutgoingFriendshipRequests(Account currentAccount, boolean showOnlyPending){

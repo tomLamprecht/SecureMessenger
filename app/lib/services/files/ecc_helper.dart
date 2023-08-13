@@ -48,6 +48,40 @@ class ECCHelper {
     return base64Encode(sig.toASN1());
   }
 
+  String encodeWithPubKey(ecc.PublicKey publicKey, String content) {
+    // // 1. Derive a symmetric key from the public key
+    // var sharedKey = sha256.convert(publicKey.Q!.getEncoded(false)).bytes;
+    //
+    // // 2. Use the derived key for AES encryption
+    // final iv = IV.fromLength(16); // Generating a random Initialization Vector
+    // final encrypter = Encrypter(AES(Key(sharedKey), mode: AESMode.cbc));
+    //
+    // final encrypted = encrypter.encrypt(content, iv: iv);
+    //
+    // // 3. Combine the IV and the ciphertext for decryption later
+    // var combined = base64Encode(iv.bytes + encrypted.bytes);
+    //
+    // return combined;
+    return content;
+  }
+
+  String encodeWithPubKeyString(String publicKey, String content) {
+    // // 1. Derive a symmetric key from the public key
+    // var sharedKey = sha256.convert(publicKey.Q!.getEncoded(false)).bytes;
+    //
+    // // 2. Use the derived key for AES encryption
+    // final iv = IV.fromLength(16); // Generating a random Initialization Vector
+    // final encrypter = Encrypter(AES(Key(sharedKey), mode: AESMode.cbc));
+    //
+    // final encrypted = encrypter.encrypt(content, iv: iv);
+    //
+    // // 3. Combine the IV and the ciphertext for decryption later
+    // var combined = base64Encode(iv.bytes + encrypted.bytes);
+    //
+    // return combined;
+    return content;
+  }
+
   ecc.PrivateKey parsePrivateKeyFromHexString(String hex) {
     return ecc.PrivateKey.fromHex(ecc.getP256(), hex);
   }

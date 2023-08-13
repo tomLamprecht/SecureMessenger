@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:my_flutter_test/models/account_id_to_encrypted_sym_key.dart';
+import 'package:my_flutter_test/services/chats_service.dart';
+import 'package:my_flutter_test/services/files/aes_helper.dart';
+import 'package:my_flutter_test/services/files/ecc_helper.dart';
+import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 
 import '../screens/friend_request_screen.dart';
+import '../services/stores/ecc_key_store.dart';
 
 class CreateChatWidget extends StatefulWidget {
   const CreateChatWidget({super.key});
@@ -13,20 +19,21 @@ class CreateChatWidget extends StatefulWidget {
 }
 
 class Account {
+  final int id;
   final String username;
   final String publicKey;
   bool isSelected;
 
-  Account(this.username, this.publicKey, this.isSelected);
+  Account(this.id, this.username, this.publicKey, this.isSelected);
 }
 
 class _CreateChatWidgetState extends State<CreateChatWidget> {
   List<Account> accounts = [
-    Account('user1', 'public_key_1', false),
-    Account('user2', 'public_key_2', false),
-    Account('user3', 'public_key_3', false),
-    Account('user4', 'public_key_4', false),
-    Account('user5', 'public_key_5', false),
+    Account(1, 'user1', 'public_key_1', false),
+    Account(2, 'user2', 'public_key_2', false),
+    Account(3, 'user3', 'public_key_3', false),
+    Account(4, 'user4', 'public_key_4', false),
+    Account(15, 'user5', 'public_key_5', false),
   ];
   List<Account> chatAccounts = [];
 
@@ -34,6 +41,33 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
   void initState() {
     super.initState();
     fetchFriends(); // Fetch "Freunde" vom Backend
+  }
+
+  Future<void> createChat() async {
+    var chatName = "";
+    var chatDescription = "";
+
+    if (EccKeyStore().publicKey == null || WhoAmIStore().accountId == null) {
+      throw Error(); // todo: add message
+    }
+    var eccHelper = ECCHelper();
+    // 1. create sym Key
+    var symKey = AesHelper.createRandomBase64Key();
+
+    // 2. get Accounts for chat
+    var accountsInChat = accounts.where((element) => element.isSelected);
+
+    // 3. create encrypted sym keys
+    List<AccountIdToEncryptedSymKey> encryptedSymKeys = [];
+    var ownEncryptedSymKey = eccHelper.encodeWithPubKey(EccKeyStore().publicKey!, symKey);
+    encryptedSymKeys.add(AccountIdToEncryptedSymKey(accountId: WhoAmIStore().accountId!, encryptedSymmetricKey: ownEncryptedSymKey));
+    for (var account in accountsInChat) {
+      var encodedSymKey = eccHelper.encodeWithPubKeyString(account.publicKey, symKey);
+      encryptedSymKeys.add(AccountIdToEncryptedSymKey(accountId: account.id, encryptedSymmetricKey: encodedSymKey));
+    }
+
+    // 4. Create chat
+    await ChatsService().createChatNew(chatName, chatDescription, encryptedSymKeys);
   }
 
   Future<void> fetchFriends() async {
@@ -44,7 +78,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
 
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
-        List<Account> fetchedAccounts = data.map((item) => Account(item['username'], item['publicKey'], false)).toList();
+        List<Account> fetchedAccounts = data.map((item) => Account(item['id'], item['username'], item['publicKey'], false)).toList();
 
         setState(() {
           accounts = fetchedAccounts;
@@ -58,6 +92,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
   }
 
   Future<void> sendChatAccountsToBackend(List<Account> chatAccounts) async {
+    await createChat();
     final url = Uri.parse("https://DEIN_BACKEND_URL/sendchataccounts"); // Hier die URL zum Backend-Endpunkt einsetzen
 
     try {
@@ -124,7 +159,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await sendChatAccountsToBackend(chatAccounts);
+          await createChat();
         },
         child: Icon(Icons.arrow_circle_right_outlined),
       ),

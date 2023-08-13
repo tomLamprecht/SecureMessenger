@@ -20,6 +20,7 @@ public class PublicAccountInformationHelper {
 
     public Optional<PublicAccountInformation> getAccountById(long accountId) {
         Optional<Account> account = accountRepository.findAccountById(accountId);
+        System.out.println(account);
         return account.map(value -> new PublicAccountInformation(value.id(), value.username(), value.publicKey()));
     }
 
