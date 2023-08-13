@@ -8,17 +8,17 @@ public class Friendship {
     @Id
     @GeneratedValue(generator = "randomLong")
     @GenericGenerator(name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier")
-    private long id;
+    public long id;
 
     @ManyToOne
     @JoinColumn(name = "FromAccountId")
-    private Account fromAccount;
+    public Account fromAccount;
 
     @ManyToOne
     @JoinColumn(name = "ToAccountId")
-    private Account toAccount;
+    public Account toAccount;
 
-    private boolean accepted;
+    public boolean accepted;
 
     public Friendship() {
     }

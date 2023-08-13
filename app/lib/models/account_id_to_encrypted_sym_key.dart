@@ -9,7 +9,7 @@ class AccountIdToEncryptedSymKey {
 
   factory AccountIdToEncryptedSymKey.fromJson(Map<String, dynamic> json) {
     return AccountIdToEncryptedSymKey(
-      accountId: json['accountId'],
+      accountId: json['id'],
       encryptedSymmetricKey: json['encryptedSymmetricKey'],
     );
   }

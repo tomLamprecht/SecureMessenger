@@ -1,51 +1,51 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:my_flutter_test/models/account_id_to_encrypted_sym_key.dart';
-import 'package:my_flutter_test/screens/chat_screen.dart';
-import 'package:my_flutter_test/services/account_service.dart';
 import 'package:my_flutter_test/services/chats_service.dart';
 import 'package:my_flutter_test/services/files/aes_helper.dart';
 import 'package:my_flutter_test/services/files/ecc_helper.dart';
-import 'package:my_flutter_test/services/friendship_service.dart';
-import 'package:my_flutter_test/services/login_service.dart';
 import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 
-import '../models/account.dart';
 import '../screens/friend_request_screen.dart';
 import '../services/stores/ecc_key_store.dart';
 
 class CreateChatWidget extends StatefulWidget {
   const CreateChatWidget({super.key});
 
+
   @override
   State<CreateChatWidget> createState() => _CreateChatWidgetState();
 }
 
+class Account {
+  final int id;
+  final String username;
+  final String publicKey;
+  bool isSelected;
+
+  Account(this.id, this.username, this.publicKey, this.isSelected);
+}
+
 class _CreateChatWidgetState extends State<CreateChatWidget> {
-  FriendshipService friendshipService = FriendshipService();
-  List<Account>? accounts;
-
-  TextEditingController _chatNameController = TextEditingController();
-  FocusNode _chatNameFocusNode = FocusNode();
-
-  TextEditingController _chatDescriptionController = TextEditingController();
-  FocusNode _chatDescriptionFocusNode = FocusNode();
+  List<Account> accounts = [
+    Account(1, 'user1', 'public_key_1', false),
+    Account(2, 'user2', 'public_key_2', false),
+    Account(3, 'user3', 'public_key_3', false),
+    Account(4, 'user4', 'public_key_4', false),
+    Account(15, 'user5', 'public_key_5', false),
+  ];
+  List<Account> chatAccounts = [];
 
   @override
   void initState() {
     super.initState();
-    fetchFriends();
+    fetchFriends(); // Fetch "Freunde" vom Backend
   }
 
   Future<void> createChat() async {
-    var chatName = _chatNameController.text.trim();
-    var chatDescription = _chatDescriptionController.text.trim();
-
-    print("chatName: $chatName & chatDescription: $chatDescription");
-    print("ecc: ${EccKeyStore().publicKey} & whoAmIAccId: ${WhoAmIStore().accountId}");
-
-    if(WhoAmIStore().accountId == null) {
-      await requestAndSaveWhoAmI();
-    }
+    var chatName = "";
+    var chatDescription = "";
 
     if (EccKeyStore().publicKey == null || WhoAmIStore().accountId == null) {
       throw Error(); // todo: add message
@@ -55,187 +55,119 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
     var symKey = AesHelper.createRandomBase64Key();
 
     // 2. get Accounts for chat
-    if(accounts == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Data has not been loaded yet. Please be patient for a moment.'),
-        ),
-      );
-      return;
-    }
-    var accountsInChat = accounts!.where((element) => element.isSelected);
+    var accountsInChat = accounts.where((element) => element.isSelected);
 
     // 3. create encrypted sym keys
     List<AccountIdToEncryptedSymKey> encryptedSymKeys = [];
-    var ownEncryptedSymKey =
-        eccHelper.encodeWithPubKey(EccKeyStore().publicKey!, symKey);
-    encryptedSymKeys.add(AccountIdToEncryptedSymKey(
-        accountId: WhoAmIStore().accountId!,
-        encryptedSymmetricKey: ownEncryptedSymKey));
+    var ownEncryptedSymKey = eccHelper.encodeWithPubKey(EccKeyStore().publicKey!, symKey);
+    encryptedSymKeys.add(AccountIdToEncryptedSymKey(accountId: WhoAmIStore().accountId!, encryptedSymmetricKey: ownEncryptedSymKey));
     for (var account in accountsInChat) {
-      var encodedSymKey =
-          eccHelper.encodeWithPubKeyString(account.publicKey, symKey);
-      encryptedSymKeys.add(AccountIdToEncryptedSymKey(
-          accountId: account.accountId, encryptedSymmetricKey: encodedSymKey));
+      var encodedSymKey = eccHelper.encodeWithPubKeyString(account.publicKey, symKey);
+      encryptedSymKeys.add(AccountIdToEncryptedSymKey(accountId: account.id, encryptedSymmetricKey: encodedSymKey));
     }
 
     // 4. Create chat
-    var chatId = await ChatsService()
-        .createNewChat(chatName, chatDescription, encryptedSymKeys);
-    if(chatId == null) {
-      return;
-    }
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ChatScreen(chatId: chatId, chatTitle: chatName)),
-    );
+    await ChatsService().createChatNew(chatName, chatDescription, encryptedSymKeys);
   }
 
   Future<void> fetchFriends() async {
-    var result = await friendshipService.getAcceptedFriendships();
-    setState(() {
-      accounts = result;
-    });
-    print("got Friends in createChat");
+    final url = Uri.parse("https://DEIN_BACKEND_URL/getfriends"); // Hier die URL zum Backend-Endpunkt einsetzen
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<Account> fetchedAccounts = data.map((item) => Account(item['id'], item['username'], item['publicKey'], false)).toList();
+
+        setState(() {
+          accounts = fetchedAccounts;
+        });
+      } else {
+        print("Anfrage fehlgeschlagen. Statuscode: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Fehler bei der Anfrage: $e");
+    }
+  }
+
+  Future<void> sendChatAccountsToBackend(List<Account> chatAccounts) async {
+    await createChat();
+    final url = Uri.parse("https://DEIN_BACKEND_URL/sendchataccounts"); // Hier die URL zum Backend-Endpunkt einsetzen
+
+    try {
+      final List<String> selectedAccounts = chatAccounts.map((account) => account.username).toList();
+      final response = await http.post(
+        url,
+        body: jsonEncode({"accounts": selectedAccounts}),
+        headers: {"Content-Type": "application/json"},
+      );
+
+      if (response.statusCode == 200) {
+        // Erfolgreiche Anfrage
+        print("Chat-Accounts erfolgreich an das Backend gesendet.");
+      } else {
+        // Anfrage fehlgeschlagen
+        print("Anfrage fehlgeschlagen. Statuscode: ${response.statusCode}");
+      }
+    } catch (e) {
+      // Fehler beim Anfrageversuch
+      print("Fehler bei der Anfrage: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (accounts == null) {
-      return const Center(child: CircularProgressIndicator());
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Create Chat'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.person_add_alt_1),
-              onPressed: () async {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FriendRequestPage()),
-                );
-              },
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _chatNameController,
-                        focusNode: _chatNameFocusNode,
-                        decoration: const InputDecoration(
-                          labelText: 'Chat Name',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.blue,
-                              width: 2.0,
-                            ),
-                          ),
-                        ),
-                        // onChanged: (value) {
-                        //   setState(() {
-                        //     chatName = value;
-                        //   });
-                        // },
-                      ),
-                    ),
-                    SizedBox(width: 8.0),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _chatDescriptionController,
-                        focusNode: _chatDescriptionFocusNode,
-                        decoration: const InputDecoration(
-                          labelText: 'Chat Description',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.blue,
-                              width: 2.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8.0),
-                  ],
-                ),
-              ),
-              if (accounts!.isEmpty)
-                Container(
-                  color: Colors.yellow, // Hintergrundfarbe des Banners
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.info, color: Colors.black),
-                      SizedBox(width: 8.0),
-                      Text(
-                        'You have no friends to write with.',
-                        // No friends could be loaded.
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: accounts!.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: Checkbox(
-                          value: accounts![index].isSelected,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              accounts![index].isSelected =
-                              !accounts![index].isSelected;
-                              // accounts[index].isSelected = value ?? false;
-                              // if (value ?? false) {
-                              //   chatAccounts.add(accounts[index]);
-                              // } else {
-                              //   chatAccounts.remove(accounts[index]);
-                              // }
-                            });
-                          },
-                        ),
-                        title: Text(accounts![index].userName),
-                        subtitle: Text(accounts![index].publicKey),
-                      );
-                    },
-                  ),
-                ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Create Chat'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person_add_alt_1),
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FriendRequestPage()),
+              );
+            },
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            await createChat();
+        ],
+      ),
+      body: Center(
+        child: ListView.builder(
+          itemCount: accounts.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: Checkbox(
+                value: accounts[index].isSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    accounts[index].isSelected = value ?? false;
+                    if (value ?? false) {
+                      chatAccounts.add(accounts[index]);
+                    } else {
+                      chatAccounts.remove(accounts[index]);
+                    }
+                  });
+                },
+              ),
+              title: Text(accounts[index].username),
+              subtitle: Text(accounts[index].publicKey),
+            );
           },
-          child: const Icon(Icons.arrow_circle_right_outlined),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      );
-    }
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await createChat();
+        },
+        child: Icon(Icons.arrow_circle_right_outlined),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
   }
 }
+
 
 // class _CreateChatWidgetState extends State<CreateChatWidget> {
 //   late TextEditingController _controller;

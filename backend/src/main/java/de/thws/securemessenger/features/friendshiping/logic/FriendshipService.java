@@ -3,6 +3,7 @@ package de.thws.securemessenger.features.friendshiping.logic;
 import de.thws.securemessenger.features.friendshiping.model.FriendshipResponse;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Friendship;
+import de.thws.securemessenger.model.response.FriendshipResponse;
 import de.thws.securemessenger.repositories.AccountRepository;
 import de.thws.securemessenger.repositories.FriendshipRepository;
 import jakarta.persistence.EntityManager;

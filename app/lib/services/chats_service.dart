@@ -26,24 +26,23 @@ class ChatsService {
     }
   }
 
-  Future<int?> createNewChat(String chatName, String description, List<AccountIdToEncryptedSymKey> accountIdToEncryptedSymKeys) async {
+  Future<int?> createChatNew(String chatName, String description, List<AccountIdToEncryptedSymKey> accountIdToEncryptedSymKeys) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
     final headers = {'Content-Type': 'application/json'};
     List<Map<String, dynamic>> symKeys = accountIdToEncryptedSymKeys.map((e) => e.toJson()).toList();
-    final body = json.encode({"chatName": chatName, "description": description, "accountIdToEncryptedSymKeys": symKeys});
-    print("creatBody: $body");
+    final body = json.encode({"chatName": chatName, "description": description, accountIdToEncryptedSymKeys: symKeys});
 
     final response = await CustomHttpClient().post(url, headers: headers, body: body);
     log("response: $response");
     if (response.statusCode == 201) {
-      final chatId = int.parse(response.body);
+      final chatId = json.decode(response.body)['chatId'];
       return chatId;
     } else {
       return null;
     }
   }
 
-  Future<List<Chat>> getChatsFromUser() async {
+  Future<List<Chat>?> getChatsFromUser() async {
     print("get all chats");
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
     print("use uri $url");
@@ -54,7 +53,7 @@ class ChatsService {
       return chatList;
     } else {
       log("Keine Liste bei GET-Request erhalten!");
-      return [];
+      return null;
     }
   }
 
@@ -64,7 +63,7 @@ class ChatsService {
 
     final response = await CustomHttpClient().delete(url, headers: headers);
 
-    if (response.statusCode == 204) {
+    if (response.statusCode == 200) {
       return true;
     } else {
       return false;

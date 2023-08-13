@@ -11,8 +11,6 @@ class AccountService {
       final url = Uri.parse('${ApiConfig.httpBaseUrl}/accounts/by-username/$username');
       final response = await CustomHttpClient().get(url);
       if (response.statusCode == 200) {
-        print("Im accService if 200");
-        print(response.body);
         final dynamic jsonAcc = json.decode(response.body);
         return Account.fromJson(jsonAcc);
 
