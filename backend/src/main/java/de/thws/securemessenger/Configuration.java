@@ -26,7 +26,7 @@ public class Configuration implements WebMvcConfigurer {
                         "/register/**",
                         "/captcha",
                         "/captcha/**",
-                        "/swagger",
+                        "/swagger-ui/index.html",
                         "/api-docs"
                 );
     }

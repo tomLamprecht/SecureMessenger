@@ -25,6 +25,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  basic_utils:
+    dependency: "direct main"
+    description:
+      name: basic_utils
+      sha256: "8815477fcf58499e42326bd858e391442425fa57db9a45e48e15224c62049262"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.5.4"
   boolean_selector:
     dependency: transitive
     description:
@@ -74,7 +82,7 @@ packages:
     source: hosted
     version: "3.1.1"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       sha256: aa274aa7774f8964e4f4f38cc994db7b6158dd36e9187aaceaddc994b35c6c67
@@ -97,6 +105,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  ecdsa:
+    dependency: "direct main"
+    description:
+      name: ecdsa
+      sha256: dd1efbaf6c18bfde9347dddcfe10dce3dd044e5a1b237457a49b5c24850dfb95
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.4"
+  elliptic:
+    dependency: "direct main"
+    description:
+      name: elliptic
+      sha256: "8c7396126c81c574fe970ac4afe9ba919b1ca754da20b509664be2345ffb2845"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.8"
   encrypt:
     dependency: "direct main"
     description:
@@ -192,6 +216,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.7"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      sha256: b10a7b2ff83d83c777edba3c6a0f97045ddadd56c944e1a23a3fdf43a1bf4467
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.8.1"
   lints:
     dependency: transitive
     description:
@@ -200,6 +232,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   matcher:
     dependency: transitive
     description:
@@ -232,6 +272,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  ninja_asn1:
+    dependency: transitive
+    description:
+      name: ninja_asn1
+      sha256: b0f04877243fda51c475ec2bcaadb55a92759baee9f02888124c60775760ccf7
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   path:
     dependency: transitive
     description:
@@ -264,6 +312,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.5"
+  scrollable_positioned_list:
+    dependency: "direct main"
+    description:
+      name: scrollable_positioned_list
+      sha256: "1b54d5f1329a1e263269abc9e2543d90806131aa14fe7c6062a8054d57249287"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.8"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -349,6 +405,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  web_socket_channel:
+    dependency: "direct main"
+    description:
+      name: web_socket_channel
+      sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.0"
   win32:
     dependency: transitive
     description:
