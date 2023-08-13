@@ -36,6 +36,10 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
     _isCheckButtonHoveringList = List.generate(_accountList.length, (_) => false);
   }
 
+  void _initializeHoverStates() {
+
+  }
+
   void _removeFriend(int index) {
     setState(() {
       _accountList.removeAt(index);
@@ -62,11 +66,11 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _getFriendshipRequests(), // todo: durch den FutureBuilder wird beim hovern immer der Request geschickt
+      future: _getFriendshipRequests(),
       builder: (context, snapshot) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Friend Requests'),
+            title: Text('Friend Requests'),
           ),
           body: Column(
             children: [
@@ -80,7 +84,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                       Icon(Icons.info, color: Colors.black),
                       SizedBox(width: 8.0),
                       Text(
-                        'No one wants to be friends with you.',
+                        'Keiner will mit dir befreundet sein.',
                         style: TextStyle(
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
@@ -126,7 +130,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text('Anfrage fehlgeschlagen.'),
                                       ),
                                     );
@@ -158,7 +162,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text('Anfrage fehlgeschlagen.'),
                                       ),
                                     );
@@ -180,7 +184,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                       child: TextField(
                         controller: _usernameController,
                         focusNode: _usernameFocusNode,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: "Benutzername eingeben",
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
@@ -190,14 +194,10 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                             ),
                           ),
                         ),
-                        // onChanged: (value) {
-                        //   setState(() {
-                        //     // Hier können weitere Aktionen ausgeführt werden, z.B. Validierung des Benutzernamens
-                        //   });
-                        // },
-                        onSubmitted: (_) {
-                          String username = _usernameController.text.trim();
-                          sendFriendshipRequest(context, username);
+                        onChanged: (value) {
+                          setState(() {
+                            // Hier können weitere Aktionen ausgeführt werden, z.B. Validierung des Benutzernamens
+                          });
                         },
                       ),
                     ),
@@ -215,48 +215,45 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                       },
                       child: IconButton(
                         icon: Icon(Icons.add_circle),
-                        color: _isAddButtonHovering ? Colors.green : Colors.black, // || _usernameFocusNode.hasFocus
+                        color: _isAddButtonHovering || _usernameFocusNode.hasFocus ? Colors.green : Colors.black,
                         onPressed: () async {
                           String username = _usernameController.text.trim();
                           print(username);
-                          sendFriendshipRequest(context, username);
+                          if (username.isNotEmpty) {
+                            Account? account = await accountService.getAccountByUsername(username);
+                            print(account);
+                            if(account != null){
+                              if(await friendshipService.postFriendshipRequest(account.accountId)){
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Freundschaftsanfrage erfolgreich ${account.userName} gesendet.'), //TODO: Benutzername evtl entfernen
+                                  ),
+                                );
+                                setState(() {
+                                  _usernameController.text = "";
+                                });
+                              }else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Anfrage fehlgeschlagen.'),
+                                  ),
+                                );
+                              }
 
-                          // if (username.isNotEmpty) {
-                          //   Account? account = await accountService.getAccountByUsername(username);
-                          //   print("Account: $account");
-                          //   if(account != null){
-                          //     print("Account_Id: ${account.accountId}");
-                          //     if(await friendshipService.postFriendshipRequest(account.accountId)){
-                          //       ScaffoldMessenger.of(context).showSnackBar(
-                          //         SnackBar(
-                          //           content: Text('Freundschaftsanfrage erfolgreich ${account.userName} gesendet.'), //TODO: Benutzername evtl entfernen
-                          //         ),
-                          //       );
-                          //       setState(() {
-                          //         _usernameController.text = "";
-                          //       });
-                          //     }else {
-                          //       ScaffoldMessenger.of(context).showSnackBar(
-                          //         const SnackBar(
-                          //           content: Text('Anfrage fehlgeschlagen.'),
-                          //         ),
-                          //       );
-                          //     }
-                          //
-                          //   } else {
-                          //     ScaffoldMessenger.of(context).showSnackBar(
-                          //       const SnackBar(
-                          //         content: Text('Anfrage fehlgeschlagen.'), // TODO: Maybe Alternative, um Benutzernamen zu benutzen
-                          //       ),
-                          //     );
-                          //   }
-                          // } else {
-                          //   ScaffoldMessenger.of(context).showSnackBar(
-                          //     const SnackBar(
-                          //       content: Text('Benutzername ist Leer.'),
-                          //     ),
-                          //   );
-                          // }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Freundschaftsanfrage erfolgreich gesendet.'), // TODO: Maybe Alternative, um Benutzernamen zu benutzen
+                                ),
+                              );
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Benutzername ist Leer.'),
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
@@ -268,43 +265,5 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
         );
       }
     );
-  }
-
-  void sendFriendshipRequest(BuildContext context, String username) async {
-    username = username.trim();
-
-    if (username.isNotEmpty) {
-      Account? account = await accountService.getAccountByUsername(username);
-
-      if (account != null) {
-
-        if (await friendshipService.postFriendshipRequest(account.accountId)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Freundschaftsanfrage erfolgreich ${account.userName} gesendet.'),
-            ),
-          );
-          _usernameController.text = "";
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Anfrage fehlgeschlagen.'),
-            ),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Anfrage fehlgeschlagen.'),
-          ),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Benutzername ist Leer.'),
-        ),
-      );
-    }
   }
 }
