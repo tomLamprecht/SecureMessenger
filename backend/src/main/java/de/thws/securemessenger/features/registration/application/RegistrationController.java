@@ -46,7 +46,7 @@ public class RegistrationController {
             return ResponseEntity.badRequest( ).body( null );
         }
         if  ( !userNameValidator.isValidUserName( userPayload.userName( ) ) ) {
-            throw new BadRequestException("Invalid username was given.");
+            throw new BadRequestException("Invalid userName was given.");
         }
 
         long result = registerUser.registerUser( userPayload );

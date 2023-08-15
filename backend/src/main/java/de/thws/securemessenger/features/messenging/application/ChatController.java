@@ -7,6 +7,7 @@ import de.thws.securemessenger.features.messenging.model.AccountToChat;
 import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
+import feign.Body;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.WebServerException;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class ChatController {
     }
 
     @PostMapping
-    public ResponseEntity<Long> createChat(CreateNewChatRequest request) throws URISyntaxException {
+    public ResponseEntity<Long> createChat(@RequestBody CreateNewChatRequest request) throws URISyntaxException {
         long newChatId = chatLogic.createNewChat(request, currentAccount.getAccount());
         return ResponseEntity.created(new URI("/chats/" + newChatId)).body(newChatId);
     }
