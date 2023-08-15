@@ -1,4 +1,4 @@
 package de.thws.securemessenger.features.accounts.modules;
 
-public record PublicAccountInformation(long accountId, String userName, String publicKey) {
+public record PublicAccountInformation(long id, String userName, String publicKey) {
 }

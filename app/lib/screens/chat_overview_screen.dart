@@ -12,20 +12,20 @@ class ChatOverviewPage extends StatefulWidget {
 
 class _ChatOverviewPageState extends State<ChatOverviewPage> {
   ChatsService chatsService = ChatsService();
-  List<Chat>? chats = [
-    Chat(1, "Chat Room 1", "This is chat room 1.",
-        DateTime(2023, 7, 31, 10, 30)),
-    Chat(2, "Chat Room 2", "Welcome to chat room 2!",
-        DateTime(2023, 8, 1, 15, 45)),
-    Chat(3, "General Chat", "A place for general discussions.",
-        DateTime(2023, 8, 1, 9, 0)),
-    Chat(4, "Private Chat", "Private conversations here.",
-        DateTime(2023, 7, 30, 18, 20)),
-    Chat(5, "Party Planning", "Organizing the upcoming party.",
-        DateTime(2023, 7, 29, 20, 0)),
+  List<Chat> chats = [
+    // Chat(1, "Chat Room 1", "This is chat room 1.",
+    //     DateTime(2023, 7, 31, 10, 30)),
+    // Chat(2, "Chat Room 2", "Welcome to chat room 2!",
+    //     DateTime(2023, 8, 1, 15, 45)),
+    // Chat(3, "General Chat", "A place for general discussions.",
+    //     DateTime(2023, 8, 1, 9, 0)),
+    // Chat(4, "Private Chat", "Private conversations here.",
+    //     DateTime(2023, 7, 30, 18, 20)),
+    // Chat(5, "Party Planning", "Organizing the upcoming party.",
+    //     DateTime(2023, 7, 29, 20, 0)),
   ];
 
-  bool _isHovering = false;
+  // bool _isHovering = false;
 
   @override
   void initState() {
@@ -35,6 +35,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
 
   Future<void> initialize() async {
     chats = await chatsService.getChatsFromUser();
+    print("Chats: $chats");
   }
 
   @override
@@ -48,7 +49,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             onPressed: () async {
               String? result = await showSearch<String>(
                 context: context,
-                delegate: ChatSearch(chats: chats!),
+                delegate: ChatSearch(chats: chats),
               );
 
               if (result != null) {
@@ -69,16 +70,16 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
       ),
       body: Column(
         children: [
-          if (chats!.isEmpty)
+          if (chats.isEmpty)
             Container(
               padding: const EdgeInsets.all(16.0),
               color: Colors.yellow,
               child: Row(
-                children: [
+                children: const [
                   Icon(Icons.info, color: Colors.black),
                   SizedBox(width: 8.0),
                   Text(
-                    'Keine Chats verfügbar.',
+                    'No chats available.',
                     style: TextStyle(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
@@ -90,9 +91,9 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
           else
             Expanded(
               child: ListView.builder(
-                itemCount: chats!.length,
+                itemCount: chats.length,
                 itemBuilder: (context, index) {
-                  Chat chat = chats![index];
+                  Chat chat = chats[index];
                   return Dismissible(
                     key: UniqueKey(),
                     background: Container(
@@ -105,10 +106,10 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                       setState(() async {
                         // ToDo: wollen wir hier chat löschen (also User aus Chat entfernen) oder chat archivieren machen? Oder des wegswipen als Funktion entfernen?
                         if(await chatsService.deleteChatFromUser(chat.id, 1)){ //TODO: accountId im backend über currentuser or what? Übergabe?
-                          chats?.removeAt(index);
+                          chats.removeAt(index);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('Anfrage fehlgeschlagen.'),
                             ),
                           );
@@ -119,7 +120,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                     child: Hero(
                       tag: 'chat-$chat',
                       child: ListTile(
-                        leading: CircleAvatar(
+                        leading: const CircleAvatar(
                           backgroundColor: Colors.blue, // Setze die gewünschte Hintergrundfarbe
                           child: Icon(
                             Icons.assist_walker_sharp, // Material Icon hinzufügen (kann beliebig angepasst werden)
@@ -152,10 +153,10 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
           // Implement new chat creation here
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CreateChatWidget()),
+            MaterialPageRoute(builder: (context) => const CreateChatWidget()),
           );
         },
-        child: Icon(Icons.chat),
+        child: const Icon(Icons.chat),
       ),
     );
   }
@@ -175,9 +176,9 @@ class ChatSearch extends SearchDelegate<String> {
   ThemeData appBarTheme(BuildContext context) {
     return Theme.of(context).copyWith(
       primaryColor: Colors.green,
-      primaryIconTheme: IconThemeData(color: Colors.white),
+      primaryIconTheme: const IconThemeData(color: Colors.white),
       primaryColorBrightness: Brightness.dark,
-      textTheme: TextTheme(headline6: TextStyle(color: Colors.white)),
+      textTheme: const TextTheme(headline6: TextStyle(color: Colors.white)),
     );
   }
 
@@ -187,7 +188,7 @@ class ChatSearch extends SearchDelegate<String> {
       query.isEmpty
           ? Container()
           : IconButton(
-              icon: Icon(Icons.clear),
+              icon: const Icon(Icons.clear),
               onPressed: () {
                 query = '';
               },
@@ -221,25 +222,25 @@ class ChatSearch extends SearchDelegate<String> {
         int startIndex = chat.name.toLowerCase().indexOf(query.toLowerCase());
 
         return ListTile(
-          leading: Icon(Icons.chat),
+          leading: const Icon(Icons.chat),
           title: RichText(
             text: TextSpan(
               children: [
                 TextSpan(
                   text: chat.name.substring(0, startIndex),
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 TextSpan(
                   text: chat.name
                       .substring(startIndex, startIndex + query.length),
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 TextSpan(
                   text: chat.name.substring(startIndex + query.length),
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ],
             ),

@@ -1,10 +1,10 @@
 class Chat {
   final int id;
   final String name;
-  final String description; // todo: eigentlich wäre ja eine Gruppenbeschreibung valid, welche Anfangs leer ist und dann befüllt werden könnte
+  final String description;
   final DateTime createdAt;
 
-  const Chat(
+  const Chat( // todo: hier const und oben final oder nicht?
       this.id,
       this.name,
       this.description,

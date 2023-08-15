@@ -2,11 +2,12 @@ class Account {
   int accountId;
   String userName;
   String publicKey;
+  bool isSelected = false;
 
   Account({
     required this.accountId,
     required this.userName,
-    required this.publicKey,
+    required this.publicKey
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
