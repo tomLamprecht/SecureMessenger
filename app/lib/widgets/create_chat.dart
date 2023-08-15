@@ -92,7 +92,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
   }
 
   Future<void> fetchFriends() async {
-    var result = await friendshipService.getFriendships();
+    var result = await friendshipService.getAcceptedFriendships();
     setState(() {
       accounts = result;
     });
