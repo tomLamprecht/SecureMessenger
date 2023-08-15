@@ -42,7 +42,7 @@ class ChatsService {
     }
   }
 
-  Future<List<Chat>?> getChatsFromUser() async {
+  Future<List<Chat>> getChatsFromUser() async {
     print("get all chats");
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
     print("use uri $url");
@@ -53,7 +53,7 @@ class ChatsService {
       return chatList;
     } else {
       log("Keine Liste bei GET-Request erhalten!");
-      return null;
+      return [];
     }
   }
 
@@ -63,7 +63,7 @@ class ChatsService {
 
     final response = await CustomHttpClient().delete(url, headers: headers);
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 204) {
       return true;
     } else {
       return false;
