@@ -80,49 +80,54 @@ class LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Column(
-        children: [
-          TextField(
-            controller: _passwordController,
-            obscureText: true,
-            decoration: InputDecoration(
-              labelText: 'Password',
-            ),
-          ),
-          ElevatedButton(
-            child: Text('Pick a file'),
-            onPressed: _pickFile,
-          ),
-          Text(_selectedFile != null
-              ? 'Selected file: ${_selectedFile!.name}'
-              : 'No file selected'),
-          ElevatedButton(
-            child: Text('Sign In'),
-            onPressed: isLoading ? null : _signIn,
-          ),
-          if (isLoading)
-            SizedBox(
-              height: 36,
-              width: 36,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              ),
-            ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const RegisterScreen(),
+    return Scaffold(
+        appBar: AppBar(
+        title: Text("Login"),
+        ),
+        body:  Material(
+          child: Column(
+            children: [
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
                 ),
-              );
-            },
-            child: Text("Register"),
+              ),
+              ElevatedButton(
+                onPressed: _pickFile,
+                child: const Text('Pick a file'),
+              ),
+              Text(_selectedFile != null
+                  ? 'Selected file: ${_selectedFile!.name}'
+                  : 'No file selected'),
+              ElevatedButton(
+                onPressed: isLoading ? null : _signIn,
+                child: const Text('Sign In'),
+              ),
+              if (isLoading)
+                const SizedBox(
+                  height: 36,
+                  width: 36,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterScreen(),
+                    ),
+                  );
+                },
+                child: const Text("Register"),
+              ),
+            ],
           ),
-        ],
-      ),
+        )
     );
   }
 }

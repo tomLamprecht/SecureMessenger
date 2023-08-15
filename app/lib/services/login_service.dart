@@ -21,11 +21,11 @@ Future<void> requestAndSaveWhoAmI() async {
   final response = await CustomHttpClient().get(url, headers: headers);
 
   if (response.statusCode == 200) {
-    var jsonbody = json.decode(response.body);
+    var jsonBody = json.decode(response.body);
 
-    WhoAmIStore().accountId = jsonbody['id'];
-    WhoAmIStore().username = jsonbody['userName'];
-    WhoAmIStore().publicKey = jsonbody['publicKey'];
+    WhoAmIStore().accountId = jsonBody['accountId'];
+    WhoAmIStore().username = jsonBody['userName'];
+    WhoAmIStore().publicKey = jsonBody['publicKey'];
     log("Successfully requested Account Information from backend (username = ${WhoAmIStore().username})");
   }else{
     throw Exception("Could not request Account Information from Backend");

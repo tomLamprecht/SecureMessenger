@@ -8,7 +8,6 @@ import 'package:my_flutter_test/services/register_service.dart';
 import 'package:my_flutter_test/services/captcha_service.dart';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
-import 'package:pointycastle/asymmetric/api.dart';
 
 import '../services/files/cert_file_handler.dart';
 import 'chat_overview_screen.dart';
@@ -84,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           publicKey: _publicKey,
           userName: userName);
 
-      await _certFileHandler.downloadCertificate(_keyPair!, "private_key.cert", _certPasswordController.text);
+      await _certFileHandler.downloadCertificate(_keyPair!, "$userName.cert", _certPasswordController.text);
 
       EccKeyStore().publicKey = _keyPair!.publicKey;
       EccKeyStore().privateKey = _keyPair!.privateKey;
@@ -110,86 +109,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: flutter_widgets.Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _userNameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-              ),
-              keyboardType: TextInputType.name,
-              textCapitalization: TextCapitalization.words,
-              maxLength: 50,
-              maxLengthEnforcement: MaxLengthEnforcement.enforced,
-            ),
-            TextField(
-              controller: _certPasswordController,
-              decoration: const InputDecoration(
-                labelText: 'Certificate Password',
-              ),
-              keyboardType: TextInputType.visiblePassword,
-              textCapitalization: TextCapitalization.words,
-              maxLength: 50,
-              maxLengthEnforcement: MaxLengthEnforcement.enforced,
-            ),
-            const SizedBox(height: 32),
-            FutureBuilder<ImageProvider>(
-              future: _loadCaptchaImage(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return const Text('Failed to load captcha image');
-                }
-                return Stack(
-                  children: [
-                    SizedBox(
-                      height: 120,
-                      child: Image(
-                        image: snapshot.data!,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: FloatingActionButton(
-                        onPressed: () {
-                          setState(() {
-                            _captchaId = '';
-                          });
-                        },
-                        tooltip: 'Neu laden',
-                        child: Icon(Icons.refresh),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+        appBar: AppBar(title: Text("Register")),
+        body: Scaffold(
+          body: flutter_widgets.Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _userNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                  ),
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
+                  maxLength: 50,
+                  maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                ),
+                TextField(
+                  controller: _certPasswordController,
+                  decoration: const InputDecoration(
+                    labelText: 'Certificate Password',
+                  ),
+                  keyboardType: TextInputType.visiblePassword,
+                  textCapitalization: TextCapitalization.words,
+                  maxLength: 50,
+                  maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                ),
+                const SizedBox(height: 32),
+                FutureBuilder<ImageProvider>(
+                  future: _loadCaptchaImage(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return const Text('Failed to load captcha image');
+                    }
+                    return Stack(
+                      children: [
+                        SizedBox(
+                          height: 120,
+                          child: Image(
+                            image: snapshot.data!,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: FloatingActionButton(
+                            onPressed: () {
+                              setState(() {
+                                _captchaId = '';
+                              });
+                            },
+                            tooltip: 'Neu laden',
+                            child: Icon(Icons.refresh),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
 
-            const SizedBox(height: 16),
-              TextField(
-              controller: _captchaController,
-              decoration: const InputDecoration(
-                labelText: 'Captcha',
-              ),
-              maxLength: 7,
-              maxLengthEnforcement: MaxLengthEnforcement.enforced
+                const SizedBox(height: 16),
+                  TextField(
+                  controller: _captchaController,
+                  decoration: const InputDecoration(
+                    labelText: 'Captcha',
+                  ),
+                  maxLength: 7,
+                  maxLengthEnforcement: MaxLengthEnforcement.enforced
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: _registerUser,
+                  child: const Text('Nutzer erstellen'),
+                ),
+              ],
             ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _registerUser,
-              child: const Text('Nutzer erstellen'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        )
     );
   }
 }

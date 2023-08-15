@@ -2,6 +2,7 @@ package de.thws.securemessenger.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,7 +12,8 @@ import java.util.Optional;
 @Entity
 public class Account {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "randomLong")
+    @GenericGenerator(name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier")
     private Long id;
 
     @Column(unique = true, nullable = false)
@@ -36,6 +38,13 @@ public class Account {
 
     public Account(long id, String username, String publicKey, LocalDateTime joinedAt) {
         this.id = id;
+        this.username = username;
+        this.publicKey = publicKey;
+        this.joinedAt = joinedAt;
+    }
+
+    public Account(String username, String publicKey, LocalDateTime joinedAt) {
+        this.id = 0L;
         this.username = username;
         this.publicKey = publicKey;
         this.joinedAt = joinedAt;

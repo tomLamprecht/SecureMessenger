@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ServerErrorException;
 
 import java.util.Optional;
 
@@ -27,13 +26,8 @@ public class AccountsController {
 
     @GetMapping(value = "/{accountId:[0-9]+}")
     public ResponseEntity<PublicAccountInformation> getPublicUserInformation(@PathVariable long accountId){
-        Optional<PublicAccountInformation> publicAccountInformation = publicAccountInformationHelper.getAccountById(accountId);
-        return publicAccountInformation.map(accountInformation -> ResponseEntity
-                .ok()
-                .body(accountInformation)
-        ).orElseGet(() -> ResponseEntity
-                .notFound()
-                .build());
+        PublicAccountInformation accountInfos = publicAccountInformationHelper.getPublicAccountInformation(accountId);
+        return ResponseEntity.ok(accountInfos);
     }
 
     @GetMapping("/by-username/{username}")
@@ -47,7 +41,7 @@ public class AccountsController {
 
     @GetMapping("/whoami")
     public ResponseEntity<PublicAccountInformation> getWhoAmI(){
-        Optional<PublicAccountInformation> publicAccountInformation = publicAccountInformationHelper.getAccountById( currentAccount.getAccount().id() );
-        return publicAccountInformation.map( ResponseEntity::ok ).orElseThrow(() -> new InternalServerErrorException( "Successfully authenticated but user couldn't get found. There is some internal issues with the Server. Sorry!" ) );
+        PublicAccountInformation publicAccountInformation = publicAccountInformationHelper.getPublicAccountInformation( currentAccount.getAccount() );
+        return ResponseEntity.ok(publicAccountInformation);
     }
 }

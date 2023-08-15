@@ -17,10 +17,11 @@ public class RegisterUser {
         this.accountRepository = userRepository;
     }
 
-
     public long registerUser (final UserPayload userPayload ) {
-        Account newUser = new Account(0, userPayload.userName(), userPayload.publicKey(), LocalDateTime.now());
+        Account newUser = new Account(userPayload.userName(), userPayload.publicKey(), LocalDateTime.now());
         newUser = accountRepository.save(newUser);
         return newUser.id();
     }
+
+
 }

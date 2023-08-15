@@ -1,22 +1,24 @@
 package de.thws.securemessenger.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 public class Friendship {
     @Id
-    @GeneratedValue
-    public long id;
+    @GeneratedValue(generator = "randomLong")
+    @GenericGenerator(name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier")
+    private long id;
 
     @ManyToOne
     @JoinColumn(name = "FromAccountId")
-    public Account fromAccount;
+    private Account fromAccount;
 
     @ManyToOne
     @JoinColumn(name = "ToAccountId")
-    public Account toAccount;
+    private Account toAccount;
 
-    public boolean accepted;
+    private boolean accepted;
 
     public Friendship() {
     }

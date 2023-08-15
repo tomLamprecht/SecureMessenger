@@ -2,6 +2,7 @@ package de.thws.securemessenger.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.Instant;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.stream.Stream;
 @Entity
 public class Chat {
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "randomLong")
+    @GenericGenerator(name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier")
     private long id;
 
     private String name;

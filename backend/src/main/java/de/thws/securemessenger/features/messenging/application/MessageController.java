@@ -79,7 +79,7 @@ public class MessageController {
     @PostMapping()
     public ResponseEntity<Void> postMessage( @PathVariable() long chatId, @RequestBody MessageFromFrontend messageFromFrontend ) {
         Optional<Chat> chat = chatRepository.findById( chatId );
-        Optional<Message> message = chat.map( c -> new Message( 0, currentAccount.getAccount(), c, messageFromFrontend.getValue(), Instant.now() ) );
+        Optional<Message> message = chat.map( c -> new Message(0, currentAccount.getAccount(), c, messageFromFrontend.getValue(), Instant.now() ) );
 
         boolean succeeded = message.map( m -> chatMessagesLogic.saveMessageToChatIfAllowed( currentAccount.getAccount(), chatId, m ) ).orElse( false );
 

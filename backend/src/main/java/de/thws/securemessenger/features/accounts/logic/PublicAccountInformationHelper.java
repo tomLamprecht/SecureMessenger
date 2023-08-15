@@ -1,7 +1,9 @@
 package de.thws.securemessenger.features.accounts.logic;
 
 import de.thws.securemessenger.features.accounts.modules.PublicAccountInformation;
+import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.model.Account;
+import de.thws.securemessenger.model.ApiExceptions.NotFoundException;
 import de.thws.securemessenger.repositories.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,16 @@ public class PublicAccountInformationHelper {
         this.accountRepository = accountRepository;
     }
 
-    public Optional<PublicAccountInformation> getAccountById(long accountId) {
-        Optional<Account> account = accountRepository.findAccountById(accountId);
-        System.out.println(account);
-        return account.map(value -> new PublicAccountInformation(value.id(), value.username(), value.publicKey()));
+    public PublicAccountInformation getPublicAccountInformation(Account currentAccount) {
+        return new PublicAccountInformation(currentAccount);
+    }
+
+    public PublicAccountInformation getPublicAccountInformation(long accountId) {
+        Optional<Account> currentAccount = accountRepository.findAccountById(accountId);
+        if (currentAccount.isEmpty()) {
+            throw new NotFoundException("Account with id " + accountId + " do not exist");
+        }
+        return new PublicAccountInformation(currentAccount.get());
     }
 
     public Optional<PublicAccountInformation> getAccountByUsername(String username) {

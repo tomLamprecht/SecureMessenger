@@ -45,6 +45,7 @@ class ECCHelper {
         (i) => int.parse(hashHex.substring(i * 2, i * 2 + 2), radix: 16));
 
     var sig = signature(privateKey, hash);
+    
     return base64Encode(sig.toASN1());
   }
 

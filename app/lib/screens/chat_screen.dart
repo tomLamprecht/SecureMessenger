@@ -135,9 +135,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     //TODO Key is still RSA encrypted at this point. So we first gotta decrypt the key! However i assume Tim and Valerie gonna do this in their branch. So i first wait...
 
     //this.chatKey = chatKey;
-    this.chatKey =
-        "Ekwp0wkd0PE2aasuEb1Z4oNKX1y36TCy3dRF47H+DCs="; //DUMMY DATA TODO DELETE FOR PRODUCTION
-
+    this.chatKey = chatKey;
     await getAndDisplayMessagesFromBackend(-1);
   }
 

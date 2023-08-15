@@ -37,6 +37,10 @@ public class FriendshipService {
         Optional<Friendship> existingFriendshipRequest = friendshipRepository.findFriendshipByFromAccountAndToAccount(toAccount.get(), currentAccount);
 
         if (existingFriendshipRequest.isEmpty()) {
+            friendshipRepository.findFriendshipByFromAccountAndToAccount(currentAccount, toAccount.get());
+        }
+
+        if (existingFriendshipRequest.isEmpty()) {
             Friendship newFriendship = new Friendship(0, currentAccount, toAccount.get(), false);
             friendshipRepository.save(newFriendship);
             return Optional.of(newFriendship.id());

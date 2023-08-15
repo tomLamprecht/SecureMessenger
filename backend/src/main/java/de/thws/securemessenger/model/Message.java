@@ -1,13 +1,14 @@
 package de.thws.securemessenger.model;
-
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.Instant;
 
 @Entity
 public class Message {
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "randomLong")
+    @GenericGenerator(name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier")
     private long id;
 
     @ManyToOne
