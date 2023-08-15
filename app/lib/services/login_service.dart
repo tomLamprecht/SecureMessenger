@@ -23,7 +23,7 @@ Future<void> requestAndSaveWhoAmI() async {
   if (response.statusCode == 200) {
     var jsonBody = json.decode(response.body);
 
-    WhoAmIStore().accountId = jsonBody['accountId'];
+    WhoAmIStore().accountId = jsonBody['id'];
     WhoAmIStore().username = jsonBody['userName'];
     WhoAmIStore().publicKey = jsonBody['publicKey'];
     log("Successfully requested Account Information from backend (username = ${WhoAmIStore().username})");

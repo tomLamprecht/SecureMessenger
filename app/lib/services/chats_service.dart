@@ -26,16 +26,17 @@ class ChatsService {
     }
   }
 
-  Future<int?> createChatNew(String chatName, String description, List<AccountIdToEncryptedSymKey> accountIdToEncryptedSymKeys) async {
+  Future<int?> createNewChat(String chatName, String description, List<AccountIdToEncryptedSymKey> accountIdToEncryptedSymKeys) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
     final headers = {'Content-Type': 'application/json'};
     List<Map<String, dynamic>> symKeys = accountIdToEncryptedSymKeys.map((e) => e.toJson()).toList();
-    final body = json.encode({"chatName": chatName, "description": description, accountIdToEncryptedSymKeys: symKeys});
+    final body = json.encode({"chatName": chatName, "description": description, "accountIdToEncryptedSymKeys": symKeys});
+    print("creatBody: $body");
 
     final response = await CustomHttpClient().post(url, headers: headers, body: body);
     log("response: $response");
     if (response.statusCode == 201) {
-      final chatId = json.decode(response.body)['chatId'];
+      final chatId = int.parse(response.body);
       return chatId;
     } else {
       return null;
