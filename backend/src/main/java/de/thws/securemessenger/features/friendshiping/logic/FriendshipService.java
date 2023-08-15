@@ -1,8 +1,8 @@
 package de.thws.securemessenger.features.friendshiping.logic;
 
+import de.thws.securemessenger.features.friendshiping.model.FriendshipResponse;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Friendship;
-import de.thws.securemessenger.model.response.FriendshipResponse;
 import de.thws.securemessenger.repositories.AccountRepository;
 import de.thws.securemessenger.repositories.FriendshipRepository;
 import jakarta.persistence.EntityManager;
@@ -52,11 +52,12 @@ public class FriendshipService {
         return toAccount.flatMap(currentAccount::friendshipWith);
     }
 
-    public List<Friendship> getAllAcceptedFriendships(Account currentAccount) {
+    public List<FriendshipResponse> getAllAcceptedFriendships(Account currentAccount) {
         return currentAccount
                 .friendships()
                 .stream()
                 .filter(Friendship::accepted)
+                .map(FriendshipResponse::new)
                 .toList();
     }
 
