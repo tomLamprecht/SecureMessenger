@@ -2,6 +2,8 @@ package de.thws.securemessenger.features.friendshiping.adapter;
 
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.features.friendshiping.logic.FriendshipService;
+import de.thws.securemessenger.features.friendshiping.model.FriendshipResponse;
+import de.thws.securemessenger.features.friendshiping.model.FriendshipWithResponse;
 import de.thws.securemessenger.model.Friendship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +52,7 @@ public class FriendshipController {
     }
 
     @DeleteMapping("/{toAccountId:[0-9+]}")
-    public ResponseEntity<Void> deleteFriendship(@PathVariable long toAccountId){
+    public ResponseEntity<Void> deleteFriendship(@PathVariable long toAccountId) {
         if (friendshipRequestService.deleteFriendshipRequest(currentAccount.getAccount(), toAccountId)){
             return ResponseEntity.noContent().build();
         }
@@ -58,8 +60,19 @@ public class FriendshipController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<Friendship>> getAllFriendships(){
+    public ResponseEntity<List<FriendshipResponse>> getAllFriendships() {
         return ResponseEntity.ok(friendshipRequestService.getAllAcceptedFriendships(currentAccount.getAccount()));
+    }
+
+    @GetMapping("/with")
+    public ResponseEntity<List<FriendshipWithResponse>> getAllFriendshipsWithoutOwnAccountInformation() {
+        var result = friendshipRequestService
+                .getAllAcceptedFriendships(currentAccount.getAccount())
+                .stream()
+                .map(friendship -> new FriendshipWithResponse(friendship, currentAccount.getAccount().id()))
+                .toList();
+
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/incoming")
