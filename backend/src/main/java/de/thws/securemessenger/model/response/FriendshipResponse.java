@@ -7,10 +7,10 @@ public record FriendshipResponse(long id, AccountResponse fromAccount, AccountRe
     public FriendshipResponse(Friendship friendship) {
 
         this(
-                friendship.id,
-                new AccountResponse(friendship.fromAccount),
-                new AccountResponse(friendship.toAccount),
-                friendship.accepted
+                friendship.id(),
+                new AccountResponse(friendship.fromAccount()),
+                new AccountResponse(friendship.toAccount()),
+                friendship.accepted()
         );
 
     }
