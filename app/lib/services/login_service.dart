@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:encrypt/encrypt.dart';
+import 'package:flutter/material.dart';
 import 'package:my_flutter_test/custom_http_client.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/cert_file_handler.dart';
@@ -12,12 +14,10 @@ import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
 
 
-Future<void> requestAndSaveWhoAmI() async {
+Future<bool> requestAndSaveWhoAmI() async {
 
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/accounts/whoami');
   final headers = {'Content-Type': 'application/json'};
-
-
   final response = await CustomHttpClient().get(url, headers: headers);
 
   if (response.statusCode == 200) {
@@ -26,21 +26,21 @@ Future<void> requestAndSaveWhoAmI() async {
     WhoAmIStore().accountId = jsonBody['id'];
     WhoAmIStore().username = jsonBody['userName'];
     WhoAmIStore().publicKey = jsonBody['publicKey'];
-    log("Successfully requested Account Information from backend (username = ${WhoAmIStore().username})");
-  }else{
-    throw Exception("Could not request Account Information from Backend");
+    return true;
   }
+  return false;
 
 }
 
-bool signIn(Map<String, dynamic> data) {
+Future<bool> signIn(Map<String, dynamic> data) async {
   String keyPairPemEncrypted = data["keyPairPemEncrypted"];
   String password = data["password"];
   String keyPairPem = CertFileHandler().decryptFileContentByPassword(keyPairPemEncrypted, password);
 
   EccKeyStore().privateKey = ECCHelper().parsePrivateKeyFromHexString(keyPairPem);
   EccKeyStore().publicKey = EccKeyStore().privateKey!.publicKey;
-  return true;
+
+  return await requestAndSaveWhoAmI();
 }
 
 String? _extract(String content, String from, String to) {

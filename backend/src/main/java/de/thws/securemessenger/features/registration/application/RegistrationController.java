@@ -4,8 +4,6 @@ import de.thws.securemessenger.features.registration.logic.CaptchaValidator;
 import de.thws.securemessenger.features.registration.logic.RegisterUser;
 import de.thws.securemessenger.features.registration.logic.UserNameValidator;
 import de.thws.securemessenger.features.registration.models.UserPayload;
-import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
-import de.thws.securemessenger.model.ApiExceptions.InternalServerErrorException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/users/register")
@@ -36,23 +33,20 @@ public class RegistrationController {
     }
 
     @PostMapping( produces = MediaType.TEXT_PLAIN_VALUE )
-    public ResponseEntity<Void> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws ExecutionException, InterruptedException, URISyntaxException {
+    public ResponseEntity<String> registerUser( HttpServletRequest request, @RequestBody UserPayload userPayload ) throws URISyntaxException {
 
         Optional<Boolean> captchaValidationResult = captchaValidator.isCaptchaValid( userPayload.captchaTry( ) );
-        if ( captchaValidationResult.isEmpty( ) ) {
-            return ResponseEntity.notFound( ).build( );
-        }
-        if ( !captchaValidationResult.get( ) ) {
-            return ResponseEntity.badRequest( ).body( null );
+        if ( captchaValidationResult.isEmpty( ) || !captchaValidationResult.get() ) {
+            return ResponseEntity.badRequest().body("Captcha was not correct. Please retry with a new one.");
         }
         if  ( !userNameValidator.isValidUserName( userPayload.userName( ) ) ) {
-            throw new BadRequestException("Invalid userName was given.");
+            return ResponseEntity.badRequest().body("Invalid userName was given. Only letters and numbers are allowed!");
         }
 
         long result = registerUser.registerUser( userPayload );
 
         if(result == 0)
-            throw new InternalServerErrorException( "Error at saving the user in the database" );
+            return ResponseEntity.internalServerError().build();
 
 
         return ResponseEntity

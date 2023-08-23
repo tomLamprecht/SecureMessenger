@@ -2,15 +2,14 @@ package de.thws.securemessenger.features.messenging.logic;
 
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
+import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
 import de.thws.securemessenger.model.Chat;
-import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -115,6 +114,20 @@ public class ChatMessagesLogic {
 
         messageRepository.save( message );
         return true;
+    }
+
+    public Message updateMessage( Account account, long chatId, long messageId, String newContent ) {
+        Optional<Message> message = messageRepository.findById(messageId).map( m -> {
+            m.setValue( newContent );
+            m.setLastTimeUpdated( Instant.now( ) );
+            return m;
+        });
+
+        if ( message.isEmpty() || message.get().fromUser().id() != account.id() || !accountIsActiveMember( account, chatId ) ) {
+            throw new BadRequestException("You cannot modify not existing messages or those sent by other members!");
+        }
+
+        return messageRepository.save( message.get() );
     }
 
     private boolean accountIsActiveMember( Account account, long chatId ) {

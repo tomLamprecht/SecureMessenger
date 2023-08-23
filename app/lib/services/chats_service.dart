@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:flutter/cupertino.dart';
+import 'package:my_flutter_test/models/account.dart';
+
 import '../custom_http_client.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';
 import '../models/chat.dart';
+import '../models/chat_to_account.dart';
 import 'api/api_config.dart';
 
 class ChatsService {
@@ -17,7 +21,6 @@ class ChatsService {
     final body = json.encode({'targetUserName': targetUserName});
 
     final response = await CustomHttpClient().post(url, headers: headers, body: body);
-    log("response: $response");
     if (response.statusCode == 201) {
       final chatId = json.decode(response.body)['chatId'];
       return chatId;
@@ -31,10 +34,8 @@ class ChatsService {
     final headers = {'Content-Type': 'application/json'};
     List<Map<String, dynamic>> symKeys = accountIdToEncryptedSymKeys.map((e) => e.toJson()).toList();
     final body = json.encode({"chatName": chatName, "description": description, "accountIdToEncryptedSymKeys": symKeys});
-    print("creatBody: $body");
 
     final response = await CustomHttpClient().post(url, headers: headers, body: body);
-    log("response: $response");
     if (response.statusCode == 201) {
       final chatId = int.parse(response.body);
       return chatId;
@@ -44,9 +45,7 @@ class ChatsService {
   }
 
   Future<List<Chat>> getChatsFromUser() async {
-    print("get all chats");
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
-    print("use uri $url");
     final response = await CustomHttpClient().get(url);
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
@@ -55,6 +54,28 @@ class ChatsService {
     } else {
       log("Keine Liste bei GET-Request erhalten!");
       return [];
+    }
+  }
+
+  Future<ChatToAccount?> getChatToUser(int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId');
+
+    final response = await CustomHttpClient().get(url);
+    if (response.statusCode == 200) {
+      return ChatToAccount.fromJson(json.decode(response.body));
+    } else {
+      return null;
+    }
+  }
+
+  Future<String?> getOwnSymmetricKeyOfChat(int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/symmetric-key');
+
+    final response = await CustomHttpClient().get(url);
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      return null;
     }
   }
 
@@ -69,5 +90,71 @@ class ChatsService {
     } else {
       return false;
     }
+  }
+
+  Future<bool> addAccountsToGroup(int chatId, List<AccountIdToEncryptedSymKey> accounts) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/accounts');
+    final headers = {'Content-Type': 'application/json'};
+    final body = json.encode(accounts.map((e) => e.toJson()).toList());
+
+    final response = await CustomHttpClient().post(url, headers: headers, body: body);
+
+    return response.statusCode == 201;
+  }
+
+  Future<List<ChatToAccount>> getAllChatToAccountsInChat(int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/chat-to-accounts');
+
+    final response = await CustomHttpClient().get(url);
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = json.decode(response.body);
+      return jsonList.map((json) => ChatToAccount.fromJson(json)).toList();
+    } else {
+      return [];
+    }
+  }
+
+  Future<List<Account>> getAllAccountsInChat(int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/accounts');
+
+    final response = await CustomHttpClient().get(url);
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = json.decode(response.body);
+      return jsonList.map((json) => Account.fromJson(json)).toList();
+    } else {
+      return [];
+    }
+  }
+
+  Future<String> leaveChat(int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/leave');
+    final response = await CustomHttpClient().post(url);
+
+    if (response.statusCode == 400) {
+      return jsonDecode(response.body)['message'];
+    }
+
+    return "";
+  }
+
+  Future<bool> deleteChat(int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId');
+    final response = await CustomHttpClient().delete(url);
+
+    return response.statusCode == 204;
+  }
+
+  Future<bool> removeAccountFromChat(int chatId, int accountId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/accounts/$accountId');
+    final response = await CustomHttpClient().delete(url);
+
+    return response.statusCode == 204;
+  }
+
+  Future<bool> updateAdminRoleSettingOfAccount(int chatId, int accountId, bool isAdmin) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/accounts/$accountId/admin?isAdmin=$isAdmin');
+    final response = await CustomHttpClient().put(url);
+
+    return response.statusCode == 204;
   }
 }

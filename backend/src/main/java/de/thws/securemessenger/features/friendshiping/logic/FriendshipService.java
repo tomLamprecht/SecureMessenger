@@ -2,8 +2,8 @@ package de.thws.securemessenger.features.friendshiping.logic;
 
 import de.thws.securemessenger.features.friendshiping.model.FriendshipResponse;
 import de.thws.securemessenger.model.Account;
+import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
 import de.thws.securemessenger.model.Friendship;
-import de.thws.securemessenger.model.response.FriendshipResponse;
 import de.thws.securemessenger.repositories.AccountRepository;
 import de.thws.securemessenger.repositories.FriendshipRepository;
 import jakarta.persistence.EntityManager;
@@ -35,11 +35,11 @@ public class FriendshipService {
             return Optional.empty();
         }
 
-        Optional<Friendship> existingFriendshipRequest = friendshipRepository.findFriendshipByFromAccountAndToAccount(toAccount.get(), currentAccount);
+        validateUserHasNotPerformedInvitationBefore(currentAccount, toAccount.get());
 
-        if (existingFriendshipRequest.isEmpty()) {
-            friendshipRepository.findFriendshipByFromAccountAndToAccount(currentAccount, toAccount.get());
-        }
+        Optional<Friendship> existingFriendshipRequest;
+
+        existingFriendshipRequest = friendshipRepository.findFriendshipByFromAccountAndToAccount(toAccount.get(), currentAccount);
 
         if (existingFriendshipRequest.isEmpty()) {
             Friendship newFriendship = new Friendship(0, currentAccount, toAccount.get(), false);
@@ -50,6 +50,14 @@ public class FriendshipService {
         existingFriendshipRequest.get().setAccepted(true);
         friendshipRepository.save(existingFriendshipRequest.get());
         return Optional.of(existingFriendshipRequest.get().id());
+    }
+
+    private void validateUserHasNotPerformedInvitationBefore(Account currentAccount, Account toAccount) {
+        Optional<Friendship> existingFriendshipRequest = friendshipRepository.findFriendshipByFromAccountAndToAccount(currentAccount, toAccount);
+
+        if (existingFriendshipRequest.isPresent()) {
+            throw new BadRequestException("Friendship request already exists");
+        }
     }
 
     public Optional<Friendship> getFriendshipWith(Account currentAccount, long toAccountId) {

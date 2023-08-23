@@ -13,12 +13,25 @@ void main() => runApp(
 class MyApp extends StatelessWidget {
   const MyApp() : super();
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return EccKeyStore().publicKey == null
+  //       ? LoginScreen()
+  //       : ChatOverviewPage();
+  //   // return ChatOverviewPage();
+  // }
+
   @override
   Widget build(BuildContext context) {
-    return EccKeyStore().publicKey == null
-        ? LoginScreen()
-        : ChatOverviewPage();
-    // return ChatOverviewPage();
+    return MaterialApp(
+      title: 'Chat',
+
+      theme: ThemeData.light(useMaterial3: false),
+
+      home: EccKeyStore().publicKey == null
+          ? const LoginScreen()
+          : ChatOverviewPage(),
+    );
   }
 }
 

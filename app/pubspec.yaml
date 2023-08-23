@@ -30,7 +30,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.13.3
   provider: ^6.0.1
   pointycastle: ^3.3.2
   encrypt: ^5.0.1
@@ -42,6 +41,7 @@ dependencies:
   ecdsa: ^0.0.4
   crypto: ^3.0.1
   basic_utils: ^5.5.4
+  path_provider: ^2.0.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

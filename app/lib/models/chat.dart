@@ -4,7 +4,7 @@ class Chat {
   final String description;
   final DateTime createdAt;
 
-  const Chat( // todo: hier const und oben final oder nicht?
+  const Chat(
       this.id,
       this.name,
       this.description,

@@ -5,6 +5,7 @@ import 'package:my_flutter_test/models/account.dart';
 import 'package:my_flutter_test/services/account_service.dart';
 
 import '../services/friendship_service.dart';
+import '../widgets/hoverable_button.dart';
 
 
 
@@ -22,15 +23,11 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
   List<bool> _isClearButtonHoveringList = [];
   List<bool> _isCheckButtonHoveringList = [];
 
-  TextEditingController _usernameController = TextEditingController();
-  FocusNode _usernameFocusNode = FocusNode();
-  // Weitere Zustände, um den Hover-Zustand für den Button zu verfolgen
-  bool _isAddButtonHovering = false;
+  final TextEditingController _usernameController = TextEditingController();
+  final FocusNode _usernameFocusNode = FocusNode();
 
   Future<void> _getFriendshipRequests() async {
-    print("Friendshiprequests");
     _accountList = await friendshipService.getFriendshipRequests();
-    print("AccountList: $_accountList");
 
     _isClearButtonHoveringList = List.generate(_accountList.length, (_) => false);
     _isCheckButtonHoveringList = List.generate(_accountList.length, (_) => false);
@@ -44,39 +41,25 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
     });
   }
 
-  Future<void> _sendFriendRequest(int accountId) async {
-    bool friendshipResponse = await friendshipService.postFriendshipRequest(accountId);
-
-  }
-
-  Future<void> _acceptedFriendRequest(int accountId) async {
-    bool friendshipResponse = await friendshipService.postFriendshipRequest(accountId);
-
-    if(friendshipResponse){
-      _accountList = await friendshipService.getFriendshipRequests();
-    } else {
-      //Todo: Banner oder so.
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _getFriendshipRequests(), // todo: durch den FutureBuilder wird beim hovern immer der Request geschickt
+      future: _getFriendshipRequests(),
       builder: (context, snapshot) {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Friend Requests'),
+            backgroundColor: Colors.blue,
           ),
           body: Column(
             children: [
               if (_accountList.isEmpty)
                 Container(
                   color: Colors.yellow, // Hintergrundfarbe des Banners
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(Icons.info, color: Colors.black),
                       SizedBox(width: 8.0),
                       Text(
@@ -102,69 +85,45 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            MouseRegion(
-                              onEnter: (_) {
-                                setState(() {
-                                  _isClearButtonHoveringList[index] = true;
-                                });
-                              },
-                              onExit: (_) {
-                                setState(() {
-                                  _isClearButtonHoveringList[index] = false;
-                                });
-                              },
-                              child: IconButton(
-                                icon: Icon(Icons.clear),
-                                color: _isClearButtonHoveringList[index] ? Colors.red : Colors.black,
-                                onPressed: () async {
-                                  if(await friendshipService.deleteFriendshipRequest(account.accountId)){
-                                    _removeFriend(index);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('${account.userName} erfolgreich abgelehnt.'),
-                                      ),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Anfrage fehlgeschlagen.'),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
+                            HoverableIconButton(
+                              icon: Icons.clear,
+                              hoverColor: Colors.redAccent,
+                              onPressed: () async {
+                                if (await friendshipService
+                                    .deleteFriendshipRequest(
+                                    account.accountId)) {
+                                  _removeFriend(index);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('${account
+                                          .userName} erfolgreich abgelehnt.'),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Anfrage fehlgeschlagen.'),
+                                    ),
+                                  );
+                                }
+                              }
                             ),
-                            MouseRegion(
-                              onEnter: (_) {
-                                setState(() {
-                                  _isCheckButtonHoveringList[index] = true;
-                                });
-                              },
-                              onExit: (_) {
-                                setState(() {
-                                  _isCheckButtonHoveringList[index] = false;
-                                });
-                              },
-                              child: IconButton(
-                                icon: const Icon(Icons.check),
-                                color: _isCheckButtonHoveringList[index] ? Colors.green : Colors.black,
-                                onPressed: () async {
-                                  if(await friendshipService.postFriendshipRequest(account.accountId)){
-                                    _removeFriend(index);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('${account.userName} erfolgreich hinzugefuegt.'),
-                                      ),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Anfrage fehlgeschlagen.'),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
+                            HoverableIconButton(icon: Icons.check, hoverColor: Colors.greenAccent, onPressed: () async {
+                              if(await friendshipService.postFriendshipRequest(account.accountId)){
+                                _removeFriend(index);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${account.userName} erfolgreich hinzugefuegt.'),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Anfrage fehlgeschlagen.'),
+                                  ),
+                                );
+                              }
+                            },
                             ),
                           ],
                         ),
@@ -178,6 +137,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                   children: [
                     Expanded(
                       child: TextField(
+                        autofocus: true,
                         controller: _usernameController,
                         focusNode: _usernameFocusNode,
                         decoration: const InputDecoration(
@@ -201,64 +161,11 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                         },
                       ),
                     ),
-                    SizedBox(width: 8.0),
-                    MouseRegion(
-                      onEnter: (_) {
-                        setState(() {
-                          _isAddButtonHovering = true;
-                        });
-                      },
-                      onExit: (_) {
-                        setState(() {
-                          _isAddButtonHovering = false;
-                        });
-                      },
-                      child: IconButton(
-                        icon: Icon(Icons.add_circle),
-                        color: _isAddButtonHovering ? Colors.green : Colors.black, // || _usernameFocusNode.hasFocus
-                        onPressed: () async {
-                          String username = _usernameController.text.trim();
-                          print(username);
-                          sendFriendshipRequest(context, username);
-
-                          // if (username.isNotEmpty) {
-                          //   Account? account = await accountService.getAccountByUsername(username);
-                          //   print("Account: $account");
-                          //   if(account != null){
-                          //     print("Account_Id: ${account.accountId}");
-                          //     if(await friendshipService.postFriendshipRequest(account.accountId)){
-                          //       ScaffoldMessenger.of(context).showSnackBar(
-                          //         SnackBar(
-                          //           content: Text('Freundschaftsanfrage erfolgreich ${account.userName} gesendet.'), //TODO: Benutzername evtl entfernen
-                          //         ),
-                          //       );
-                          //       setState(() {
-                          //         _usernameController.text = "";
-                          //       });
-                          //     }else {
-                          //       ScaffoldMessenger.of(context).showSnackBar(
-                          //         const SnackBar(
-                          //           content: Text('Anfrage fehlgeschlagen.'),
-                          //         ),
-                          //       );
-                          //     }
-                          //
-                          //   } else {
-                          //     ScaffoldMessenger.of(context).showSnackBar(
-                          //       const SnackBar(
-                          //         content: Text('Anfrage fehlgeschlagen.'), // TODO: Maybe Alternative, um Benutzernamen zu benutzen
-                          //       ),
-                          //     );
-                          //   }
-                          // } else {
-                          //   ScaffoldMessenger.of(context).showSnackBar(
-                          //     const SnackBar(
-                          //       content: Text('Benutzername ist Leer.'),
-                          //     ),
-                          //   );
-                          // }
-                        },
-                      ),
+                    const SizedBox(width: 8.0),
+                    HoverableIconButton(icon: Icons.add_circle, hoverColor: Colors.greenAccent, onPressed: () async {
+                      String username = _usernameController.text.trim();
+                      sendFriendshipRequest(context, username);
+                    }
                     ),
                   ],
                 ),

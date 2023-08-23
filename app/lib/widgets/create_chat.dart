@@ -40,9 +40,6 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
     var chatName = _chatNameController.text.trim();
     var chatDescription = _chatDescriptionController.text.trim();
 
-    print("chatName: $chatName & chatDescription: $chatDescription");
-    print("ecc: ${EccKeyStore().publicKey} & whoAmIAccId: ${WhoAmIStore().accountId}");
-
     if(WhoAmIStore().accountId == null) {
       await requestAndSaveWhoAmI();
     }
@@ -101,15 +98,18 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
 
   @override
   Widget build(BuildContext context) {
+    bool isChatNameValid = _chatNameController.text.trim().isNotEmpty;
+    bool areAccountsSelected = accounts != null && accounts!.any((account) => account.isSelected);
+
     if (accounts == null) {
       return const Center(child: CircularProgressIndicator());
     } else {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Create Chat'),
+          title: const Text('Create Chat'),
           actions: [
             IconButton(
-              icon: Icon(Icons.person_add_alt_1),
+              icon: const Icon(Icons.person_add_alt_1),
               onPressed: () async {
                 Navigator.push(
                   context,
@@ -130,24 +130,25 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
                       child: TextField(
                         controller: _chatNameController,
                         focusNode: _chatNameFocusNode,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Chat Name',
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
+                          errorText: isChatNameValid ? null : "Chat name is required.",
+                          border: const OutlineInputBorder(),
+                          focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(
                               color: Colors.blue,
                               width: 2.0,
                             ),
                           ),
                         ),
-                        // onChanged: (value) {
-                        //   setState(() {
-                        //     chatName = value;
-                        //   });
-                        // },
+                        onChanged: (value) {
+                          setState(() {
+                            // Trigger a rebuild to update the UI.
+                          });
+                        },
                       ),
                     ),
-                    SizedBox(width: 8.0),
+                    const SizedBox(width: 8.0),
                   ],
                 ),
               ),
@@ -171,17 +172,17 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 8.0),
+                    const SizedBox(width: 8.0),
                   ],
                 ),
               ),
               if (accounts!.isEmpty)
                 Container(
                   color: Colors.yellow, // Hintergrundfarbe des Banners
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(Icons.info, color: Colors.black),
                       SizedBox(width: 8.0),
                       Text(
@@ -205,14 +206,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
                           value: accounts![index].isSelected,
                           onChanged: (bool? value) {
                             setState(() {
-                              accounts![index].isSelected =
-                              !accounts![index].isSelected;
-                              // accounts[index].isSelected = value ?? false;
-                              // if (value ?? false) {
-                              //   chatAccounts.add(accounts[index]);
-                              // } else {
-                              //   chatAccounts.remove(accounts[index]);
-                              // }
+                              accounts![index].isSelected = !accounts![index].isSelected;
                             });
                           },
                         ),
@@ -226,9 +220,10 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () async {
+          onPressed: isChatNameValid ? () async {
             await createChat();
-          },
+          } : null,
+          backgroundColor: isChatNameValid ? Theme.of(context).primaryColor : Colors.grey,
           child: const Icon(Icons.arrow_circle_right_outlined),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

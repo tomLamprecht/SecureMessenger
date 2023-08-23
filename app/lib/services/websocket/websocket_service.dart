@@ -1,15 +1,16 @@
 import 'dart:async';
 
-import 'package:web_socket_channel/html.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
 
 class WebSocketService {
-  late HtmlWebSocketChannel _webSocketChannel;
+  late WebSocketChannel _webSocketChannel;
   final _streamController = StreamController<String>();
 
   Stream<String> get messages => _streamController.stream;
 
   Future<void> connect(String url, String sessionKey) async {
-    _webSocketChannel = HtmlWebSocketChannel.connect(url);
+    _webSocketChannel = WebSocketChannel.connect(Uri.parse(url));
 
     _webSocketChannel.sink.add(sessionKey);
 

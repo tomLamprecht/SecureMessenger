@@ -1,12 +1,13 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/message.dart';
+import 'package:my_flutter_test/screens/chat_details_screen.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+import '../models/webserver_message_type.dart';
 import '../services/encryption_service.dart';
 import '../services/message_service.dart';
 import '../services/stores/who_am_i_store.dart';
@@ -22,7 +23,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  int REQUEST_SIZE_OF_MESSAGES = 1;
+  int REQUEST_SIZE_OF_MESSAGES = 20;
 
   final TextEditingController _textController = TextEditingController();
   final ItemScrollController itemScrollController = ItemScrollController();
@@ -52,7 +53,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     for (ChatMessage message in _messages) {
-      message.animationController.dispose();
+      // message.animationController.dispose();
     }
     super.dispose();
   }
@@ -63,25 +64,24 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     var currentVisibleItems = itemPositionsListener.itemPositions.value;
     if (currentVisibleItems.isNotEmpty &&
         currentVisibleItems.last.index == _messages.length - 1) {
-      log("reached latest value of scrolling. Fetching new data...");
       getAndDisplayMessagesFromBackend(_messages.last.id);
     }
   }
 
   void createWebsocketConnection(String sessionKey) async {
     String url = '${ApiConfig.websocketBaseUrl}/sub';
-    log("trying to get a connection to the websocket $url ...");
     var session = WebSocketService();
     await session.connect(url, sessionKey);
     session.messages.listen((jsonMessage) {
-      log("incomming message from Websocket: $jsonMessage");
       var jsonObject = json.decode(jsonMessage);
-      bool isDeleteMessage = jsonObject['deleteMessage'];
-
-      if (isDeleteMessage) {
+      WebsocketMessageType messageType =
+          WebsocketMessageTypeExtension.fromString(jsonObject['messageType']);
+      if (messageType == WebsocketMessageType.DELETE) {
         handleIncommingDeleteMessageFromWebsocket(jsonObject);
-      } else {
+      } else if (messageType == WebsocketMessageType.CREATE) {
         handleIncommingMessageFromWebsocket(jsonObject);
+      } else if (messageType == WebsocketMessageType.UPDATE) {
+        handleIncommingUpdateMessageFromWebsocket(jsonObject);
       }
     });
   }
@@ -112,6 +112,26 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     });
   }
 
+  void handleIncommingUpdateMessageFromWebsocket(jsonObject) {
+    var parsedMessage = Message.fromJson(jsonObject, chatId);
+    int index =
+        _messages.indexWhere((element) => element.id == parsedMessage.id);
+    var oldMessage = _messages[index];
+    var newMessage = ChatMessage(
+      id: oldMessage.id,
+      fromUserName: oldMessage.fromUserName,
+      timestamp: oldMessage.timestamp,
+      text: aesDecrypt(parsedMessage.value, chatKey),
+      animationController: oldMessage.animationController,
+      deleteMessage: _deleteMessage,
+      updateMessage: _updateMessage,
+      lastTimeUpdated: parsedMessage.lastTimeUpdated,
+    );
+    setState(() {
+      _messages[index] = newMessage;
+    });
+  }
+
   ChatMessage _parseMessageToChatMessage(
       Message message, AnimationController animationController) {
     return ChatMessage(
@@ -121,6 +141,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       text: aesDecrypt(message.value, chatKey),
       animationController: animationController,
       deleteMessage: _deleteMessage,
+      updateMessage: _updateMessage,
+      lastTimeUpdated: null,
     );
   }
 
@@ -128,7 +150,25 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     setState(() {
       _messages.remove(message);
     });
-    deleteMessage(chatId, message.id);
+    await deleteMessage(chatId, message.id);
+  }
+
+  Future<void> _updateMessage(ChatMessage message, String newContent) async {
+    int index = _messages.indexWhere((element) => element.id == message.id);
+    var encryptedMessage = aesEncrypt(newContent, chatKey);
+    var newMessage = ChatMessage(
+        id: message.id,
+        fromUserName: message.fromUserName,
+        timestamp: message.timestamp,
+        text: newContent,
+        animationController: message.animationController,
+        deleteMessage: _deleteMessage,
+        updateMessage: _updateMessage,
+        lastTimeUpdated: DateTime.now());
+    setState(() {
+      _messages[index] = newMessage;
+    });
+    await updateMessage(message.id, chatId, encryptedMessage);
   }
 
   void _saveChatKeyAndGetAllMessages(String chatKey) async {
@@ -147,9 +187,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     var temp = await readAllMessages(
         chatId, REQUEST_SIZE_OF_MESSAGES, latestMessageId);
-    log("fetched ${temp.length} messages from backend");
     if (temp.length < REQUEST_SIZE_OF_MESSAGES) {
-      log("Fully fetched chat. No need to fetch any old messages anymore");
       fullyFetched = true;
     }
     Iterable<ChatMessage> chatMessages = [];
@@ -214,7 +252,15 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.chatTitle),
+        title: GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => ChatDetailsScreen(chatId: chatId),
+            ));
+          },
+          child: Text(widget.chatTitle),
+        ),
+        backgroundColor: Colors.blue,
       ),
       body: Column(
         children: <Widget>[
@@ -239,13 +285,15 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 }
 
-class ChatMessage extends StatelessWidget {
+class ChatMessage extends StatefulWidget {
   final int id;
   final String fromUserName;
   final String text;
   final DateTime timestamp;
+  final DateTime? lastTimeUpdated;
   final AnimationController animationController;
   final Function deleteMessage;
+  final Function updateMessage;
 
   const ChatMessage(
       {Key? key,
@@ -254,16 +302,39 @@ class ChatMessage extends StatelessWidget {
       required this.timestamp,
       required this.text,
       required this.animationController,
-      required this.deleteMessage})
+      required this.deleteMessage,
+      required this.updateMessage,
+      required this.lastTimeUpdated})
       : super(key: key);
 
   @override
+  _ChatMessageState createState() => _ChatMessageState();
+}
+
+class _ChatMessageState extends State<ChatMessage> {
+  bool isEditing = false;
+  late TextEditingController editingController;
+
+  @override
+  void initState() {
+    super.initState();
+    editingController = TextEditingController(text: widget.text);
+  }
+
+  Color _getColorFromUserName(String userName) {
+    final int hash = userName.hashCode.abs();
+    final double hue = (hash % 360).toDouble();
+    return HSVColor.fromAHSV(1.0, hue, 0.7, 0.9).toColor();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    bool isCurrentUser = fromUserName == WhoAmIStore().username!;
+    bool isCurrentUser = widget.fromUserName == WhoAmIStore().username!;
 
     return SizeTransition(
       sizeFactor:
-          CurvedAnimation(parent: animationController, curve: Curves.easeOut),
+      CurvedAnimation(
+          parent: widget.animationController, curve: Curves.easeOut),
       axisAlignment: 0.0,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10.0),
@@ -273,8 +344,9 @@ class ChatMessage extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(left: 8.0, right: 16.0),
               child: CircleAvatar(
-                backgroundColor: _getColorFromUserName(fromUserName),
+                backgroundColor: _getColorFromUserName(widget.fromUserName),
                 foregroundColor: Colors.white,
+                child: Text(widget.fromUserName[0].toUpperCase()),
               ),
             ),
             Expanded(
@@ -283,38 +355,93 @@ class ChatMessage extends StatelessWidget {
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      Text(fromUserName,
-                          style: Theme.of(context).textTheme.titleMedium),
+                      Text(widget.fromUserName,
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .titleMedium),
                       const SizedBox(width: 10),
                       Text(
-                        timestamp.toString(),
-                        style: Theme.of(context).textTheme.bodySmall,
+                        widget.lastTimeUpdated == null ? widget.timestamp.toString() : widget.lastTimeUpdated.toString() + " (edited)",
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .bodySmall,
                       ),
                     ],
                   ),
                   Container(
                     margin: const EdgeInsets.only(top: 5.0),
-                    child: Text(text),
+                    child: isEditing ?
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: editingController,
+                            autofocus: true,
+                            onSubmitted: (value) async {
+                              setState(() {
+                                isEditing = false;
+                              });
+                              await widget.updateMessage(widget, editingController.text);
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              isEditing = false;
+                              editingController.text = widget.text;
+                            });
+                          },
+                          icon: const Icon(Icons.close, color: Colors.red),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            setState(() {
+                              isEditing = false;
+                            });
+                            await widget.updateMessage(widget, editingController.text);
+                          },
+                          icon: const Icon(Icons.check, color: Colors.green),
+                        ),
+                      ],
+                    )
+                        : Text(widget.text),
                   ),
                 ],
               ),
             ),
-            if (isCurrentUser)
-              IconButton(
-                icon: const Icon(Icons.delete, size: 20.0),
-                onPressed: () async {
-                   deleteMessage(this);
+            if (isCurrentUser && !isEditing)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, size: 20.0),
+                onSelected: (value) async {
+                  switch (value.toLowerCase()) {
+                    case 'delete':
+                      await widget.deleteMessage(widget);
+                      break;
+                    case 'edit':
+                      setState(() {
+                        isEditing = true;
+                      });
+                      break;
+                  }
                 },
+                itemBuilder: (BuildContext context) =>
+                [
+                  const PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Text('Edit'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Text('Delete'),
+                  ),
+                ],
               ),
           ],
         ),
       ),
     );
-  }
-
-  Color _getColorFromUserName(String userName) {
-    final int hash = userName.hashCode.abs();
-    final double hue = (hash % 360).toDouble();
-    return HSVColor.fromAHSV(1.0, hue, 0.7, 0.9).toColor();
   }
 }

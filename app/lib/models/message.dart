@@ -5,6 +5,7 @@ class Message {
   int chatId;
   String value;
   DateTime timestamp;
+  DateTime? lastTimeUpdated;
 
   Message({
     required this.id,
@@ -13,6 +14,7 @@ class Message {
     required this.chatId,
     required this.value,
     required this.timestamp,
+    required this.lastTimeUpdated
   });
 
   factory Message.fromJson(Map<String, dynamic> json, int providedChatId) {
@@ -23,6 +25,7 @@ class Message {
       chatId: providedChatId,
       value: json['value'],
       timestamp: DateTime.parse(json['timestamp']),
+      lastTimeUpdated: json['lastTimeUpdated'] != null ? DateTime.parse(json['lastTimeUpdated']) : null
     );
   }
 }

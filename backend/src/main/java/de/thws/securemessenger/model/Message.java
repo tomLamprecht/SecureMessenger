@@ -21,8 +21,22 @@ public class Message {
 
     private String value;
     private Instant timeStamp;
+    private Instant lastTimeUpdated;
 
-    public Message() {
+    public Instant getLastTimeUpdated() {
+        return lastTimeUpdated;
+    }
+
+    public Instant getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setLastTimeUpdated(Instant lastTimeEdited) {
+        this.lastTimeUpdated = lastTimeEdited;
+    }
+
+    public Message(){
+
     }
 
     public Message(long id, Account fromUser, Chat chat, String value, Instant timeStamp) {
@@ -31,6 +45,16 @@ public class Message {
         this.chat = chat;
         this.value = value;
         this.timeStamp = timeStamp;
+        this.lastTimeUpdated = null;
+    }
+
+    public Message(long id, Account fromUser, Chat chat, String value, Instant timeStamp, Instant lastTimeUpdated) {
+        this.id = id;
+        this.fromUser = fromUser;
+        this.chat = chat;
+        this.value = value;
+        this.timeStamp = timeStamp;
+        this.lastTimeUpdated = lastTimeUpdated;
     }
 
     public long id() {

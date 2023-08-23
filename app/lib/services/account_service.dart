@@ -24,6 +24,7 @@ class AccountService {
     catch (e) {
       print("Exption: $e");
     }
+    return null;
 
   }
 }

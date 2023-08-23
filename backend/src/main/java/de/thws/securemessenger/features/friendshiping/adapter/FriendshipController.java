@@ -5,7 +5,6 @@ import de.thws.securemessenger.features.friendshiping.logic.FriendshipService;
 import de.thws.securemessenger.features.friendshiping.model.FriendshipResponse;
 import de.thws.securemessenger.features.friendshiping.model.FriendshipWithResponse;
 import de.thws.securemessenger.model.Friendship;
-import de.thws.securemessenger.model.response.FriendshipResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

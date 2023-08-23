@@ -19,4 +19,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findAccountById(long accountId);
     Optional<Account> findAccountByUsername(String username);
 
+    @Query("SELECT a FROM Account a JOIN ChatToAccount cta ON a.id = cta.account.id WHERE cta.chat.id = :chatId")
+    List<Account> findAllByChatId(long chatId);
+
 }

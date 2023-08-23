@@ -7,6 +7,7 @@ import de.thws.securemessenger.features.messenging.logic.WebSocketSessionLogic;
 import de.thws.securemessenger.features.messenging.model.MessageToFrontend;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.features.messenging.model.WebSocketMessage;
+import de.thws.securemessenger.features.messenging.model.WebsocketMessageType;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.Message;
@@ -69,6 +70,16 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
                 .map( sessionToInfo::get )
                 .filter( SessionInfoWrapper::userCanStillReadMessages )
                 .forEach( s -> sendingMessagesThread.sendMessage( new WebSocketMessage( message ), s.session ) );
+    }
+
+    public void notifyAllSessionsOfUpdatedMessage( Message message, long chatId ) {
+        List<WebSocketSession> sessions = chatToSessions.get( chatId );
+        if ( sessions == null || sessions.isEmpty() )
+            return;
+
+        sessions.stream()
+                .map( sessionToInfo::get )
+                .forEach( s -> sendingMessagesThread.sendMessage( new WebSocketMessage( message, WebsocketMessageType.UPDATE ), s.session ) );
     }
 
     public void notifyAllSessionsOfDeletedMessage( long messageId, long chatId ) {

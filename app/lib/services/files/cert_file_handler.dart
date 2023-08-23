@@ -1,17 +1,22 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:flutter/foundation.dart';
 import 'package:my_flutter_test/models/keypair.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:pointycastle/key_derivators/api.dart';
 import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
-
-import 'download_service.dart';
-
+import 'download_service/download_service.dart';
 
 class CertFileHandler {
+
+  late final DownloadService _downloadService;
+
+  CertFileHandler(){
+    _downloadService = DownloadService.instance;
+  }
+
 
   String encryptFileContentByPassword(String fileContent, String password) {
     final encrypter = _getEncrypter(password);
@@ -28,8 +33,8 @@ class CertFileHandler {
   }
 
   encrypt.Encrypter _getEncrypter(String password) {
-    final iterations = 10000;
-    final keyLength = 32; // 256-bit key
+    const iterations = 10000;
+    const keyLength = 32; // 256-bit key
     final kdf = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
       ..init(Pbkdf2Parameters(Uint8List(0), iterations, keyLength));
 
@@ -41,12 +46,7 @@ class CertFileHandler {
 
 
   Future<void> downloadFile(String value, String filename) async {
-    DownloadService downloadService = kIsWeb ? WebDownloadService() : MobileDownloadService();
-
-    // Encode the value string to UTF-8 bytes
-    List<int> valueBytes = utf8.encode(value);
-
-    await downloadService.download(
+    await _downloadService.download(
       text: value,
       filename: filename,
     );
@@ -60,7 +60,4 @@ class CertFileHandler {
 
     await downloadFile(encryptedValue, fileName);
   }
-
-
-
 }

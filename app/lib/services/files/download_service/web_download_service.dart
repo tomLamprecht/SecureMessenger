@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:universal_html/html.dart' as html;
 
-abstract class DownloadService {
-  Future<void> download({required String text, required String filename});
-}
+import 'package:my_flutter_test/services/files/download_service/download_service.dart';
+
+DownloadService getManager() =>
+    WebDownloadService();
 
 class WebDownloadService implements DownloadService {
   @override
@@ -25,12 +26,5 @@ class WebDownloadService implements DownloadService {
     // cleanup
     html.document.body?.children.remove(anchor);
     html.Url.revokeObjectUrl(url);
-  }
-}
-
-class MobileDownloadService implements DownloadService {
-  @override
-  Future<void> download({required String text, required String filename}) {
-    throw UnimplementedError();
   }
 }

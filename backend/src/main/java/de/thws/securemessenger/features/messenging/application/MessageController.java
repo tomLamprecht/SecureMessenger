@@ -5,6 +5,7 @@ import de.thws.securemessenger.features.messenging.logic.ChatMessagesLogic;
 import de.thws.securemessenger.features.messenging.logic.WebSocketSessionLogic;
 import de.thws.securemessenger.features.messenging.model.MessageFromFrontend;
 import de.thws.securemessenger.features.messenging.model.MessageToFrontend;
+import de.thws.securemessenger.features.messenging.model.UpdateMessageRequest;
 import de.thws.securemessenger.features.messenging.model.WebsocketSessionKey;
 import de.thws.securemessenger.model.ApiExceptions.UnauthorizedException;
 import de.thws.securemessenger.model.Chat;
@@ -12,7 +13,6 @@ import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.ChatRepository;
 import de.thws.securemessenger.util.FileResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +89,13 @@ public class MessageController {
         return succeeded ? ResponseEntity.status( HttpStatus.NO_CONTENT ).build() : ResponseEntity.status( HttpStatus.NOT_FOUND ).build();
     }
 
+    @PutMapping("/{messageId}")
+    public ResponseEntity<Void> updateMessage( @PathVariable() long chatId, @PathVariable() long messageId, @RequestBody UpdateMessageRequest request ) {
+        Message updatedMessage = chatMessagesLogic.updateMessage( currentAccount.getAccount(), chatId, messageId, request.value() );
+        this.chatSubscriptionWebsocket.notifyAllSessionsOfUpdatedMessage( updatedMessage, chatId );
+
+        return ResponseEntity.status( HttpStatus.NO_CONTENT ).build();
+    }
 
     @GetMapping( "/subscription" )
     public ResponseEntity<WebsocketSessionKey> getSubscriptionSessionKey( @PathVariable( "chatId" ) long chatId ) {

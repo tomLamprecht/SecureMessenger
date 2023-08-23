@@ -10,6 +10,6 @@ import java.security.SecureRandom;
 public class RandomLongIdentifier implements IdentifierGenerator {
     @Override
     public Serializable generate(SharedSessionContractImplementor session, Object object) throws HibernateException {
-        return new SecureRandom().nextLong();
+        return (long) new SecureRandom().nextInt();
     }
 }

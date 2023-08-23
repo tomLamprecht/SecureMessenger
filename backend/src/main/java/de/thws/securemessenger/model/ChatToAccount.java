@@ -6,6 +6,10 @@ import org.hibernate.annotations.GenericGenerator;
 import java.time.Instant;
 
 @Entity
+@Table(
+        uniqueConstraints =
+        @UniqueConstraint(columnNames = {"ChatId", "AccountId"})
+)
 public class ChatToAccount {
     @Id
     @GeneratedValue(generator = "randomLong")

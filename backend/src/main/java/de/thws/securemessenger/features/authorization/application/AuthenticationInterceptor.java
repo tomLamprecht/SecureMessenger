@@ -53,7 +53,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        logger.info("Intercepted " + request.getRequestURI());
+        logger.info("Intercepted " + request.getMethod() + " on " + request.getRequestURI());
 
         if (isOptionsMethod(request)) {
             return true;
@@ -73,11 +73,13 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         String payload = buildPayload(request, timestamp);
 
         if (MAX_TIME_DIFFERENCE.isMoreThanTimeBetween(timeDelta)){
+            logger.info("User with pubKey " + publicKeyString + " was denied because the timestamp is outdated.");
             response.sendError(HttpStatus.UNAUTHORIZED.value(), ERROR_MESSAGE);
             return false;
         }
 
         if (!isSignatureValid(publicKeyString, payload, authSignature)) {
+            logger.info("User with pubKey " + publicKeyString + " was denied because the signature was invalid.");
             response.sendError(HttpStatus.UNAUTHORIZED.value(), ERROR_MESSAGE);
             return false;
         }

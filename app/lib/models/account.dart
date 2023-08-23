@@ -16,6 +16,5 @@ class Account {
       userName: json['userName'],
       publicKey: json['publicKey']
     );
-    // todo: add joinedAt
   }
 }

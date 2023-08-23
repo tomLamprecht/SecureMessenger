@@ -5,9 +5,7 @@ import de.thws.securemessenger.model.Message;
 import java.time.Instant;
 
 public class WebSocketMessage {
-
-
-    boolean isDeleteMessage;
+    WebsocketMessageType messageType;
     private long id;
     private String value;
     private AccountToFrontend fromAccount;
@@ -19,7 +17,7 @@ public class WebSocketMessage {
     public static WebSocketMessage createDeleteMessage(long id){
         var temp = new WebSocketMessage();
         temp.setId( id );
-        temp.isDeleteMessage = true;
+        temp.messageType = WebsocketMessageType.DELETE;
         return temp;
     }
 
@@ -28,6 +26,12 @@ public class WebSocketMessage {
         this.value = message.value();
         this.fromAccount = new AccountToFrontend(message.getFromUser());
         this.timestamp = message.timeStamp();
+        this.messageType = WebsocketMessageType.CREATE;
+    }
+
+    public WebSocketMessage( Message message, WebsocketMessageType messageType ) {
+        this(message);
+        this.messageType = messageType;
     }
 
     public long getId() {
@@ -62,11 +66,11 @@ public class WebSocketMessage {
         this.timestamp = timestamp;
     }
 
-    public boolean isDeleteMessage() {
-        return isDeleteMessage;
+    public WebsocketMessageType getMessageType() {
+        return messageType;
     }
 
-    public void setDeleteMessage( boolean deleteMessage ) {
-        isDeleteMessage = deleteMessage;
+    public void setDeleteMessage( WebsocketMessageType messageType ) {
+        this.messageType = messageType;
     }
 }

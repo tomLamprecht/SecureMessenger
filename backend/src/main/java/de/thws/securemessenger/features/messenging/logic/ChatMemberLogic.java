@@ -1,6 +1,8 @@
 package de.thws.securemessenger.features.messenging.logic;
 
+import de.thws.securemessenger.features.messenging.model.AccountResponse;
 import de.thws.securemessenger.features.messenging.model.AccountToChat;
+import de.thws.securemessenger.features.messenging.model.ChatToAccountResponse;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
 import de.thws.securemessenger.model.ApiExceptions.NotFoundException;
@@ -30,6 +32,18 @@ public class ChatMemberLogic {
         this.accountRepository = accountRepository;
     }
 
+    public List<AccountResponse> getAllAccountsInChat(final long chatId, final Account currentAccount) {
+        validateChatAccess(chatId, currentAccount);
+        var accountsInChat = accountRepository.findAllByChatId(chatId);
+        return accountsInChat.stream().map(AccountResponse::new).toList();
+    }
+
+    public List<ChatToAccountResponse> getAllChatToAccountsInChat(final long chatId, final Account currentAccount) {
+        validateChatAccess(chatId, currentAccount);
+        var accountsInChat = chatToAccountRepository.findAllByChatId(chatId);
+        return accountsInChat.stream().map(ChatToAccountResponse::new).toList();
+    }
+
     public void deleteAccountFromChat(final long chatId, final long accountId, final Account currentAccount) {
         final String errorMessage = "Either the specified Chat or Account doesn't exist, or the Account is not part of the specified Chat.";
         chatRepository.findById(chatId).orElseThrow(() -> new NotFoundException(errorMessage));
@@ -44,6 +58,10 @@ public class ChatMemberLogic {
     public void addAccountsToChat(final long chatId, final List<AccountToChat> request, final Account currentAccount) {
         Chat chat = validateAndGetChat(chatId);
         validateChatAccessAndAdminRole(chatId, currentAccount);
+
+        if (request.stream().map(accountToChat -> chatToAccountRepository.findByChatIdAndAccount_Id(chatId, accountToChat.accountId())).anyMatch(Optional::isPresent)) {
+            throw new BadRequestException("Some requested accounts are already a member of the chat!");
+        }
 
         List<Long> requestedAccountIds = request.stream().map(AccountToChat::accountId).toList();
         List<Account> accountsToAdd = validateAndGetFriendAccounts(requestedAccountIds, currentAccount);
@@ -74,16 +92,36 @@ public class ChatMemberLogic {
         return accountsToAdd;
     }
 
+    private void validateChatAccess(final long chatId, final Account currentAccount) {
+        Optional<ChatToAccount> currentAccountToChat = chatToAccountRepository.findByChatIdAndAccount_Id(chatId, currentAccount.id());
+        if (currentAccountToChat.isEmpty()) {
+            throw new UnauthorizedException("You are not authorized to perform this action without being a member of this chat.");
+        }
+    }
+
     private void validateChatAccessAndAdminRole(final long chatId, final Account currentAccount) {
         String errorMessage = "You are not authorized to perform this action without the admin role!";
         Optional<Chat> chat = chatRepository.findById( chatId );
         if(chat.isEmpty())
             throw new UnauthorizedException( errorMessage );
 
+        validateChatAccess(chatId, currentAccount);
+    }
 
-        Optional<ChatToAccount> currentAccountToChat = chatToAccountRepository.findChatToAccountByChatAndAccount(chat.get(), currentAccount);
-        if (currentAccountToChat.isEmpty() || !currentAccountToChat.get().isAdmin()) {
-            throw new UnauthorizedException(errorMessage);
+    public void leaveChat(long chatId, Account currentAccount) {
+        Optional<ChatToAccount> chatToAccount = chatToAccountRepository.findChatToAccountByChatIdAndAccount(chatId, currentAccount);
+
+        if (chatToAccount.isEmpty()) {
+            throw new UnauthorizedException("Chat does not exists or you are not a member of it!");
+        }
+        if (!chatToAccount.get().isAdmin()) {
+            chatToAccountRepository.delete(chatToAccount.get());
+        } else {
+            var adminsInChat = chatToAccountRepository.findAllByChat_IdAndIsAdminEquals(chatId, true);
+            if (adminsInChat.size() <= 1) {
+                throw new BadRequestException("You are the only admin. You have to grant someone else to admin to leave this chat.");
+            }
+            chatToAccountRepository.delete(chatToAccount.get());
         }
     }
 }

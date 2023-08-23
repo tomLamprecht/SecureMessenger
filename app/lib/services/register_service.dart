@@ -30,9 +30,17 @@ class RegistrationService {
       }),
     );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to register user.');
+    if (response.statusCode == 400) {
+      switch (response.body) {
+        case "Captcha was not correct. Please retry with a new one.":
+          throw Exception("Invalid captcha text. Please try again.");
+        case "Invalid userName was given. Only letters and numbers are allowed!":
+          throw Exception("Invalid username. Only letters and numbers are allowed.");
+        default:
+          throw Exception("Something went wrong. Please try again later.");
+      }
+    } else if (response.statusCode == 500) {
+      throw Exception("Server error. Please try again later.");
     }
-
   }
 }

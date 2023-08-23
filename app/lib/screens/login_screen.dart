@@ -1,8 +1,10 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:my_flutter_test/screens/register_screen.dart';
+
 import '../services/login_service.dart';
 import 'chat_overview_screen.dart';
 
@@ -14,12 +16,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class LoginScreenState extends State<LoginScreen> {
-  TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   PlatformFile? _selectedFile;
   bool isLoading = false;
 
   void _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['cert']);
 
     if (result != null) {
       PlatformFile file = result.files.first;
@@ -32,10 +34,23 @@ class LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signIn() async {
-    if (_selectedFile != null) {
+    if (_selectedFile != null && _passwordController.text.isNotEmpty) {
       setState(() {
         isLoading = true;
       });
+
+      if (_selectedFile?.bytes == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.red,
+            content: Text("Error while loading cert file!"),
+          )
+        );
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
 
       String content = utf8.decode(_selectedFile!.bytes!);
       final success = await compute(signIn, {"keyPairPemEncrypted": content, "password": _passwordController.text});
@@ -44,16 +59,15 @@ class LoginScreenState extends State<LoginScreen> {
         isLoading = false;
       });
 
-      if (!success) {
-        _showAlertDialog('File is not in the right format!');
-      } else {
-        requestAndSaveWhoAmI();
+      if (success) {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ChatOverviewPage(),
           ),
         );
+      } else {
+        _showAlertDialog('Error during the login process: Either the certificate is invalid or the account does not exist.');
       }
     }
   }
@@ -63,14 +77,14 @@ class LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Fehler'),
+          title: const Text('Error'),
           content: Text(text),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Ok'),
+              child: const Text('Ok'),
             ),
           ],
         );
@@ -81,53 +95,84 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-        title: Text("Login"),
-        ),
-        body:  Material(
-          child: Column(
-            children: [
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
+      appBar: AppBar(
+        title: const Text("Login"),
+        backgroundColor: Colors.blue,
+        elevation: 0.0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Spacer(flex: 2),
+            ElevatedButton(
+              onPressed: _pickFile,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+              ),
+              child: const Text('Pick a .cert file', style: TextStyle(fontSize: 18)),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _selectedFile != null ? 'Selected file: ${_selectedFile!.name}' : 'No file selected',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              onChanged: (value) => setState(() {}),
+              style: const TextStyle(fontSize: 18),
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                labelStyle: TextStyle(fontSize: 18),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (_selectedFile == null || _passwordController.text.isEmpty)
+              Text(
+                _selectedFile == null ? 'Please select a .cert file.' : 'Please enter a password.',
+                style: const TextStyle(fontSize: 16, color: Colors.red),
+              ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: isLoading || _selectedFile == null || _passwordController.text.isEmpty ? null : _signIn,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 2,
                 ),
-              ),
-              ElevatedButton(
-                onPressed: _pickFile,
-                child: const Text('Pick a file'),
-              ),
-              Text(_selectedFile != null
-                  ? 'Selected file: ${_selectedFile!.name}'
-                  : 'No file selected'),
-              ElevatedButton(
-                onPressed: isLoading ? null : _signIn,
-                child: const Text('Sign In'),
-              ),
-              if (isLoading)
-                const SizedBox(
-                  height: 36,
-                  width: 36,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              )
+                  : const Text('Sign In', style: TextStyle(fontSize: 18)),
+            ),
+            const Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RegisterScreen(),
                   ),
-                ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RegisterScreen(),
-                    ),
-                  );
-                },
-                child: const Text("Register"),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20),
               ),
-            ],
-          ),
+              child: const Text("Register", style: TextStyle(fontSize: 18)),
+            ),
+            const Spacer(flex: 2),
+          ],
         )
+      ),
     );
   }
 }

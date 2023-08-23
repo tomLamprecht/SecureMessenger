@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/src/widgets/basic.dart' as flutter_widgets;
 import 'package:my_flutter_test/models/keypair.dart';
 import 'package:my_flutter_test/services/files/ecc_helper.dart';
 import 'package:my_flutter_test/services/register_service.dart';
@@ -30,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late String _publicKey;
   Keypair? _keyPair;
   final _certFileHandler = CertFileHandler();
+  final ValueNotifier<String?> _usernameValidationError = ValueNotifier<String?>(null);
 
   final ValueNotifier<bool> _isDownloadButtonEnabled = ValueNotifier(false);
 
@@ -38,12 +37,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.initState();
     _userNameController = TextEditingController();
     _captchaController = TextEditingController();
-    _captchaController = TextEditingController();
+    _certPasswordController = TextEditingController();
+    _certPasswordController.addListener(_onTextFieldChanged);
     _captchaId = '';
     _captchaService = CaptchaService();
     _registrationService = RegistrationService();
-    _certPasswordController = TextEditingController();
-    _certPasswordController.addListener(_onTextFieldChanged);
+    _userNameController.addListener(_validateUsernameOnChange);
   }
 
   @override
@@ -70,6 +69,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return image;
   }
 
+  void _validateUsernameOnChange() {
+    _usernameValidationError.value = _validateUsername(_userNameController.text);
+  }
+
+  String? _validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+    if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
+      return 'Invalid username. Only letters and numbers are allowed!';
+    }
+    return null;
+  }
+
+  void _refreshCaptcha() {
+    setState(() {
+      _captchaId = '';
+    });
+  }
+
   Future<void> _registerUser() async {
     final userName = _userNameController.text;
     if (_keyPair == null) {
@@ -90,9 +109,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _redirectToChatOverview();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to register user: $e'),
+        content: Text(e.toString().substring(11)),
         backgroundColor: Colors.red,
       ));
+      if (e.toString() == "Exception: Invalid captcha text. Please try again.") {
+        setState(() {
+
+        });
+        // todo: refresh the FutureBuilder<ImageProvider>
+      }
     }
   }
 
@@ -109,23 +134,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text("Register")),
-        body: Scaffold(
-          body: flutter_widgets.Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
+      appBar: AppBar(title: const Text("Register"), backgroundColor: Colors.blue),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ValueListenableBuilder<String?>(
+              valueListenable: _usernameValidationError,
+              builder: (context, errorMessage, child) {
+                return TextField(
                   controller: _userNameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Username',
+                    errorText: _validateUsername(_userNameController.text),
                   ),
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
                   maxLength: 50,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                ),
+                );
+              }
+              ),
                 TextField(
                   controller: _certPasswordController,
                   decoration: const InputDecoration(
@@ -166,7 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               });
                             },
                             tooltip: 'Neu laden',
-                            child: Icon(Icons.refresh),
+                            child: const Icon(Icons.refresh),
                           ),
                         ),
                       ],
@@ -191,7 +221,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
           ),
-        )
     );
   }
 }

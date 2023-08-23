@@ -23,11 +23,8 @@ public class CaptchaValidator {
     }
 
     private boolean checkCaptchaAndCleanup( String id, String content, String textTry ) {
-        if ( content.equals( textTry ) ) {
-            registrationDbHandler.deleteCaptchaById( id );
-            return true;
-        }
-        return false;
+        registrationDbHandler.deleteCaptchaById( id );
+        return content.equals(textTry);
     }
 
 }
