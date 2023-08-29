@@ -10,6 +10,7 @@ public class WebSocketMessage {
     private String value;
     private AccountToFrontend fromAccount;
     private Instant timestamp;
+    private Instant lastTimeUpdated;
 
     public WebSocketMessage() {
     }
@@ -27,6 +28,7 @@ public class WebSocketMessage {
         this.fromAccount = new AccountToFrontend(message.getFromUser());
         this.timestamp = message.timeStamp();
         this.messageType = WebsocketMessageType.CREATE;
+        this.lastTimeUpdated = message.getLastTimeUpdated();
     }
 
     public WebSocketMessage( Message message, WebsocketMessageType messageType ) {
@@ -73,4 +75,13 @@ public class WebSocketMessage {
     public void setDeleteMessage( WebsocketMessageType messageType ) {
         this.messageType = messageType;
     }
+
+    public Instant getLastTimeUpdated() {
+        return lastTimeUpdated;
+    }
+
+    public void setLastTimeUpdated(Instant lastTimeUpdated) {
+        this.lastTimeUpdated = lastTimeUpdated;
+    }
+
 }

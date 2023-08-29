@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/message.dart';
@@ -6,7 +7,8 @@ import 'package:my_flutter_test/screens/chat_details_screen.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/webserver_message_type.dart';
 import '../services/encryption_service.dart';
 import '../services/message_service.dart';
@@ -33,9 +35,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final FocusNode _textFieldFocus = FocusNode();
   final int chatId;
   late final String chatKey;
+  PlatformFile? _chosenFile;
   bool fullyFetched = false;
 
   bool _isComposing = false;
+  bool _isImage = false;
 
   ChatScreenState({required this.chatId});
 
@@ -66,6 +70,37 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         currentVisibleItems.last.index == _messages.length - 1) {
       getAndDisplayMessagesFromBackend(_messages.last.id);
     }
+  }
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      PlatformFile file = result.files.first;
+      setState(() {
+        _chosenFile = file;
+      });
+    } else {
+      // User canceled the picker
+    }
+
+    if (result?.files.first.extension != null) {
+      _isImage = ['jpg', 'jpeg', 'png', 'gif'].contains(result?.files.first.extension!.toLowerCase());
+    } else {
+      _isImage = false;
+    }
+
+    if (result != null) {
+      setState(() {
+
+      });
+    } else {
+      // User canceled the picker
+    }
+  }
+
+  Future<void> _captureImage() async {
+    // todo
   }
 
   void createWebsocketConnection(String sessionKey) async {
@@ -199,26 +234,56 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     animation.forward();
   }
 
-  void _sendMessageEncrypted(String message) {
-    sendMessage(chatId, aesEncrypt(message, chatKey));
-  }
-
   void _handleSubmitted(String text) {
-    _sendMessageEncrypted(text);
+    sendMessage(chatId, aesEncrypt(text, chatKey), _chosenFile);
 
     _textController.clear();
     setState(() {
       _isComposing = false;
+      _chosenFile = null;
     });
 
     _textFieldFocus.requestFocus();
   }
 
   Widget _buildTextComposer() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
+    return Column(
+      // margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      children:
+        <Widget>[
+        // Displaying the picked file or image
+        if (_chosenFile != null)
+    _isImage
+        ? Image.memory(_chosenFile!.bytes!)
+        : Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text('Selected File: ${_chosenFile!.name}'),
+    ),
+    Row(
         children: <Widget>[
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.add),
+            onSelected: (value) {
+              switch (value.toLowerCase()) {
+                case 'files':
+                  _pickFile();
+                  break;
+                case 'camera':
+                  _captureImage();
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'files',
+                child: Text('Files'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'camera',
+                child: Text('Camera'),
+              ),
+            ],
+          ),
           Flexible(
             child: TextField(
               controller: _textController,
@@ -230,7 +295,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               },
               onSubmitted: _handleSubmitted,
               decoration:
-                  const InputDecoration.collapsed(hintText: 'Send a message'),
+              const InputDecoration.collapsed(hintText: 'Send a message'),
             ),
           ),
           Container(
@@ -244,7 +309,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
           ),
         ],
-      ),
+      )
+    ]
     );
   }
 
