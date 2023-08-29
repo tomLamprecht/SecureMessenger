@@ -235,7 +235,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   void _handleSubmitted(String text) {
-    sendMessage(chatId, aesEncrypt(text, chatKey), _chosenFile);
+    sendMessage(chatId, aesEncrypt(text, chatKey));
 
     _textController.clear();
     setState(() {
