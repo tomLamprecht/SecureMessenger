@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/message.dart';
@@ -10,6 +11,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/webserver_message_type.dart';
+import '../services/chats_service.dart';
 import '../services/encryption_service.dart';
 import '../services/message_service.dart';
 import '../services/stores/who_am_i_store.dart';
@@ -314,6 +316,15 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
+  Future<String?> _getImageFromDatabase() async {
+    var chatToAcc = await ChatsService().getChatToUser(widget.chatId);
+    String? encodedPic = chatToAcc?.chat?.encodedGroupPic;
+    if (chatToAcc != null && chatToAcc.chat != null && encodedPic != null) {
+      return encodedPic;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -324,7 +335,41 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               builder: (context) => ChatDetailsScreen(chatId: chatId),
             ));
           },
-          child: Text(widget.chatTitle),
+          child: Row(
+            children: [
+              FutureBuilder<String?>(
+                future: _getImageFromDatabase(),
+                // Funktion zum Abrufen des Bildes aus der Datenbank
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    // Zeige das Bild aus der Datenbank
+                    final encodedPic = snapshot.data!;
+                    final imageData = Uint8List.fromList(base64Decode(encodedPic));
+                    return CircleAvatar(
+                      radius: 20,
+                      backgroundImage: MemoryImage(imageData),
+                    );
+                  } else {
+                    // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
+                    return CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.blue,
+                      child: Icon(
+                        Icons.supervised_user_circle,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                    );
+                  }
+                },
+              ),
+              SizedBox(width: 8), // Abstand zwischen Avatar und Chat-Titel
+              Text(widget.chatTitle),
+            ],
+          ),
         ),
         backgroundColor: Colors.blue,
       ),

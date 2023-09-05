@@ -33,6 +33,12 @@ public class Account {
     @OneToMany(mappedBy = "toAccount", fetch = FetchType.EAGER)
     private List<Friendship> outgoingFriendships;
 
+//    @Lob
+//    private byte[] encodedProfilePic;
+
+    @Column(columnDefinition = "TEXT")
+    private String encodedProfilePic;
+
     public Account() {
     }
 
@@ -41,6 +47,14 @@ public class Account {
         this.username = username;
         this.publicKey = publicKey;
         this.joinedAt = joinedAt;
+    }
+
+    public Account(long id, String username, String publicKey, LocalDateTime joinedAt, String encodedProfilePic) {
+        this.id = id;
+        this.username = username;
+        this.publicKey = publicKey;
+        this.joinedAt = joinedAt;
+        this.encodedProfilePic = encodedProfilePic;
     }
 
     public Account(String username, String publicKey, LocalDateTime joinedAt) {
@@ -128,5 +142,13 @@ public class Account {
         this.outgoingFriendships = outgoingFriendships;
     }
 
+    public String encodedProfilePic( )
+    {
+        return encodedProfilePic;
+    }
 
+    public void setEncodedProfilePic( String encodedProfilePic )
+    {
+        this.encodedProfilePic = encodedProfilePic;
+    }
 }

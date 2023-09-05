@@ -1,9 +1,7 @@
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:my_flutter_test/models/account.dart';
 import 'package:my_flutter_test/services/account_service.dart';
-
 import '../services/friendship_service.dart';
 import '../widgets/hoverable_button.dart';
 
@@ -57,9 +55,9 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                 Container(
                   color: Colors.yellow, // Hintergrundfarbe des Banners
                   padding: const EdgeInsets.all(8.0),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: const [
                       Icon(Icons.info, color: Colors.black),
                       SizedBox(width: 8.0),
                       Text(

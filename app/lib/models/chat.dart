@@ -1,22 +1,27 @@
+import 'dart:typed_data';
+
 class Chat {
   final int id;
   final String name;
   final String description;
   final DateTime createdAt;
+  String? encodedGroupPic;
 
-  const Chat(
-      this.id,
-      this.name,
-      this.description,
-      this.createdAt,
-      );
+  Chat({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.createdAt,
+    this.encodedGroupPic
+  });
 
   factory Chat.fromJson(Map<String, dynamic> json) {
     return Chat(
-      json['id'],
-      json['name'],
-      json['description'],
-      DateTime.parse(json['createdAt']),
+      id: json['id'],
+      name: json['name'],
+      description: json['description'],
+      createdAt: DateTime.parse(json['createdAt']),
+      encodedGroupPic: json['encodedGroupPic'],
     );
   }
 }

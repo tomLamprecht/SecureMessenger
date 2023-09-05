@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:my_flutter_test/models/account.dart';
 
 import '../custom_http_client.dart';
@@ -67,6 +67,7 @@ class ChatsService {
       return null;
     }
   }
+
 
   Future<String?> getOwnSymmetricKeyOfChat(int chatId) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/symmetric-key');
@@ -156,5 +157,29 @@ class ChatsService {
     final response = await CustomHttpClient().put(url);
 
     return response.statusCode == 204;
+  }
+
+  Future<bool> updateGroupPicFromChat(String encodedGroupPic, int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/update-group-pic');
+    final headers = {'Content-Type': 'application/json'};
+    final body = json.encode({"encodedGroupPic": encodedGroupPic});
+
+    final response = await CustomHttpClient().put(url, headers: headers, body: body);
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> deleteGroupPicFromChat(int chatId) async {
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/delete-group-pic');
+    final headers = {'Content-Type': 'application/json'};
+    final response = await CustomHttpClient().delete(url, headers: headers);
+    if (response.statusCode == 204) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

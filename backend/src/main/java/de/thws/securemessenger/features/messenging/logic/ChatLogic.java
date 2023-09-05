@@ -107,6 +107,16 @@ public class ChatLogic {
         chatRepository.delete(chat);
     }
 
+    public void deleteChatGroupPic(long chatId) {
+        Optional<Chat> chat = chatRepository.findById(chatId);
+        if (chat.isEmpty()) {
+            throw new NotFoundException("Chat with id " + chatId + " not found!");
+        }
+
+        chat.get().setEncodedGroupPic( null );
+        chatRepository.save( chat.get() );
+    }
+
     public void addAdminRights(final long chatId, final Account currentAccount, final long accountId, final boolean isAdmin) {
         Optional<ChatToAccount> currentUserToChat = chatToAccountRepository.findChatToAccountByChatIdAndAccount(chatId, currentAccount);
 
@@ -123,5 +133,15 @@ public class ChatLogic {
         targetToChat.get().setAdmin(isAdmin);
 
         chatToAccountRepository.save(targetToChat.get());
+    }
+
+    public void updateChatGroupPic( final long chatId, final Account currentAccount, final String encodedGroupPic )
+    {
+        Optional<ChatToAccount> currentUserToChat = chatToAccountRepository.findChatToAccountByChatIdAndAccount(chatId, currentAccount);
+        if (currentUserToChat.isEmpty()) {
+            throw new BadRequestException("You have to be within the Chat to perform this action.");
+        }
+        currentUserToChat.get().chat().setEncodedGroupPic( encodedGroupPic );
+        chatToAccountRepository.save( currentUserToChat.get() );
     }
 }

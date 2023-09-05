@@ -18,6 +18,11 @@ public class Chat {
     private String name;
     private String description;
     private Instant createdAt;
+//    @Lob
+//    private byte[] encodedGroupPic;
+
+    @Column(columnDefinition = "TEXT")
+    private String encodedGroupPic;
 
     @JsonIgnore
     @OneToMany( mappedBy = "chat", fetch = FetchType.EAGER )
@@ -30,11 +35,19 @@ public class Chat {
     public Chat() {
     }
 
-    public Chat( long id, String name, String description, Instant createdAt ) {
+    public Chat( long id, String name, String description, Instant createdAt) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.createdAt = createdAt;
+    }
+
+    public Chat( long id, String name, String description, Instant createdAt, String encodedGroupPic ) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.createdAt = createdAt;
+        this.encodedGroupPic = encodedGroupPic;
     }
 
     public List<Account> members() {
@@ -117,5 +130,15 @@ public class Chat {
 
     public long getId() {
         return id;
+    }
+
+    public String encodedGroupPic( )
+    {
+        return encodedGroupPic;
+    }
+
+    public void setEncodedGroupPic( String encodedGroupPic )
+    {
+        this.encodedGroupPic = encodedGroupPic;
     }
 }

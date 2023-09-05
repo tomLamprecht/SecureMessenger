@@ -7,6 +7,10 @@ class WhoAmIStore {
   int? accountId;
   String? username;
   String? publicKey;
+  String? encodedProfilePic;
 
   WhoAmIStore._();
 }
+
+
+// WhoAmIStore().accountId

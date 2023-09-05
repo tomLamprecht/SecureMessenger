@@ -180,7 +180,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
                 Container(
                   color: Colors.yellow, // Hintergrundfarbe des Banners
                   padding: const EdgeInsets.all(8.0),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.info, color: Colors.black),

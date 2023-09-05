@@ -4,10 +4,10 @@ import de.thws.securemessenger.model.Chat;
 
 import java.time.Instant;
 
-public record ChatResponse(long id, String name, String description, Instant createdAt) {
+public record ChatResponse(long id, String name, String description, Instant createdAt, String encodedGroupPic) {
 
     public ChatResponse(Chat chat) {
-        this(chat.id(), chat.name(), chat.description(), chat.createdAt());
+        this(chat.id(), chat.name(), chat.description(), chat.createdAt(), chat.encodedGroupPic( ) );
     }
 
 }

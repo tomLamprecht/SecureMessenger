@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/chat.dart';
@@ -8,6 +10,7 @@ import 'package:my_flutter_test/services/chats_service.dart';
 import 'package:my_flutter_test/widgets/create_chat.dart';
 
 import 'chat_overview_search.dart';
+import 'manage_profil_screen.dart';
 
 class ChatOverviewPage extends StatefulWidget {
   @override
@@ -35,6 +38,15 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
     setState(() {
       chats = result;
     });
+  }
+
+  Future<String?> _getImageFromDatabase(int chatId) async {
+    var chatToAcc = await ChatsService().getChatToUser(chatId);
+    String? encodedPic = chatToAcc?.chat?.encodedGroupPic;
+    if (chatToAcc != null && chatToAcc.chat != null && encodedPic != null) {
+      return encodedPic;
+    }
+    return null;
   }
 
   @override
@@ -76,6 +88,26 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                 }
               },
             ),
+            IconButton(
+              icon: const Icon(Icons.manage_accounts_sharp),
+              onPressed: () async {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => ManageProfilPage()),
+                // );
+
+                final bool? shouldRefresh = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(builder: (context) => ManageProfilPage()),
+                );
+                log(shouldRefresh.toString());
+                if (shouldRefresh ?? false) {
+                  setState(() {
+
+                  });
+                }
+              },
+            ),
           ],
         ),
         body: Column(
@@ -86,8 +118,8 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       color: Colors.yellow,
-                      child: const Row(
-                        children: [
+                      child: Row(
+                        children: const [
                           Icon(Icons.info, color: Colors.black),
                           SizedBox(width: 8.0),
                           Text(
@@ -143,14 +175,34 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                         });
                       },
                       child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.blue,
-                          // Setze die gewünschte Hintergrundfarbe
-                          child: Icon(
-                            Icons.assist_walker_sharp,
-                            // Material Icon hinzufügen (kann beliebig angepasst werden)
-                            color: Colors.white, // Farbe des Icons anpassen
-                          ),
+                        leading: FutureBuilder<String?>(
+                          future: _getImageFromDatabase(chat.id),
+                          // Funktion zum Abrufen des Bildes aus der Datenbank
+                          builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.hasData && snapshot.data != null) {
+                              // Zeige das Bild aus der Datenbank
+                              final encodedPic = snapshot.data!;
+                              final imageData = Uint8List.fromList(base64Decode(encodedPic));
+                              return CircleAvatar(
+                                radius: 20,
+                                backgroundImage: MemoryImage(imageData),
+                              );
+                            } else {
+                              // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
+                              return CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.blue,
+                                child: Icon(
+                                  Icons.supervised_user_circle,
+                                  size: 30,
+                                  color: Colors.white,
+                                ),
+                              );
+                            }
+                          },
                         ),
                         title: Text(chat.name),
                         // subtitle: Text('Last message...'), //ToDo: nicht im MVP

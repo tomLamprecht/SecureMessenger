@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:html';
+import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/screens/chat_overview_screen.dart';
 import 'package:my_flutter_test/services/friendship_service.dart';
@@ -7,6 +12,7 @@ import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 
 import '../models/account.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';
+import '../models/chat.dart';
 import '../models/chat_to_account.dart';
 import '../services/chats_service.dart';
 import '../services/files/ecc_helper.dart';
@@ -21,6 +27,7 @@ class Group {
   List<Account> members;
   List<Account> membersToShow = [];
   Account currentUser;
+  Uint8List? encodedGroupPic;
 
   Group({
     required this.chatId,
@@ -29,6 +36,7 @@ class Group {
     required this.creationDate,
     required this.members,
     required this.currentUser,
+    this.encodedGroupPic,
   });
 }
 
@@ -52,6 +60,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   late Future<Group?> _groupFuture;
   bool? isAdmin;
   String title = "Group Overview";
+
 
   @override
   void initState() {
@@ -134,10 +143,90 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 }
 
-class GroupHeader extends StatelessWidget {
+class GroupHeader extends StatefulWidget {
   final Group group;
 
-  const GroupHeader({required this.group});
+  GroupHeader({required this.group});
+
+  @override
+  _GroupHeaderState createState() => _GroupHeaderState();
+}
+
+class _GroupHeaderState extends State<GroupHeader> {
+  Uint8List? _chosenFile;
+  bool hasGroupPic = true;
+
+  // GroupHeader({required this.group});
+
+  Future<void> _pickFile(BuildContext context) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'gif'],
+    );
+
+    if (result != null) {
+      PlatformFile file = result.files.first;
+      if (['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase())) {
+        Uint8List imageBytes = file.bytes!;
+        // Blob imageBlob = Blob(imageBytes);
+
+        if(await ChatsService().updateGroupPicFromChat(base64Encode(imageBytes), widget.group.chatId))
+          {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Bild erfolgreich hochgeladen'),
+              ),
+            );
+            setState(() {
+              _chosenFile = imageBytes;
+            });
+          } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Fehler beim speichern des Bildes.'),
+            ),
+          );
+        }
+
+      } else {
+        // Datei ist kein Bild mit erlaubter Erweiterung
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ungültige Dateierweiterung. Wählen Sie ein Bild aus.'),
+          ),
+        );
+      }
+    } else {
+      // Der Benutzer hat die Auswahl abgebrochen
+    }
+
+  }
+
+  Future<String?> _getImageFromDatabase() async {
+    var chatToAcc = await ChatsService().getChatToUser(widget.group.chatId);
+    String? encodedPic = chatToAcc?.chat?.encodedGroupPic;
+    if (chatToAcc != null && chatToAcc.chat != null && encodedPic != null) {
+      return encodedPic;
+    }
+    return null;
+  }
+
+  Future<void> _deleteFile(BuildContext context) async {
+    if(await ChatsService().deleteGroupPicFromChat(widget.group.chatId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bild erfolgreich gelöscht'),
+        ),
+      );
+      hasGroupPic = false;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Fehler beim löschen des Bildes.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,13 +234,73 @@ class GroupHeader extends StatelessWidget {
         child: Column(
       children: [
         const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: () { //bearbeiten von Bild
+                _pickFile(context);
+              },
+              icon: Icon(Icons.edit),
+              color: Colors.blue,
+            ),
+                FutureBuilder<String?>(
+              future: _getImageFromDatabase(),
+              // Funktion zum Abrufen des Bildes aus der Datenbank
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
+                  return Text('Error: ${snapshot.error}');
+                } else if (snapshot.hasData && snapshot.data != null) {
+                  // Zeige das Bild aus der Datenbank
+                  final encodedPic = snapshot.data!;
+                  final imageData = Uint8List.fromList(base64Decode(encodedPic));
+                  return CircleAvatar(
+                    radius: 100,
+                    backgroundImage: MemoryImage(imageData),
+                  );
+                } else {
+                  // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
+                  return CircleAvatar(
+                    radius: 80,
+                    backgroundColor: Colors.blue,
+                    child: Icon(
+                      Icons.supervised_user_circle,
+                      size: 60,
+                      color: Colors.white,
+                    ),
+                  );
+                }
+              },
+            ),
+            // hasGroupPic
+            //     ? CircleAvatar(
+            //   radius: 80,
+            //   backgroundColor: Colors.blue,
+            //   child: Icon(
+            //     Icons.supervised_user_circle,
+            //     size: 60,
+            //     color: Colors.white,
+            //   ),
+            // )
+            //     : Container(),
+            IconButton(
+              onPressed: () {
+                _deleteFile(context);
+              },
+              icon: Icon(Icons.delete),
+              color: Colors.red,
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         Text(
-          group.description ?? "",
+          widget.group.description ?? "",
           style: const TextStyle(color: Colors.grey),
         ),
         const SizedBox(height: 8),
         Text(
-          'Created: ${group.creationDate.toLocal()}',
+          'Created: ${widget.group.creationDate.toLocal()}',
           style: const TextStyle(color: Colors.grey),
         ),
       ],

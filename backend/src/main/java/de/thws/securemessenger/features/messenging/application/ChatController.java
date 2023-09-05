@@ -3,10 +3,7 @@ package de.thws.securemessenger.features.messenging.application;
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.features.messenging.logic.ChatLogic;
 import de.thws.securemessenger.features.messenging.logic.ChatMemberLogic;
-import de.thws.securemessenger.features.messenging.model.AccountResponse;
-import de.thws.securemessenger.features.messenging.model.AccountToChat;
-import de.thws.securemessenger.features.messenging.model.ChatToAccountResponse;
-import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
+import de.thws.securemessenger.features.messenging.model.*;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +40,30 @@ public class ChatController {
     public ResponseEntity<Void> updateAdminRights(@PathVariable() long chatId, @PathVariable() long accountId, @RequestParam(defaultValue = "false") boolean isAdmin) {
         chatLogic.addAdminRights(chatId, currentAccount.getAccount(), accountId, isAdmin);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("{chatId}/update-group-pic")
+    public ResponseEntity<Void> updateChatGroupPic(@PathVariable() long chatId, @RequestBody String encodedGroupPic) {
+        chatLogic.updateChatGroupPic(chatId, currentAccount.getAccount(), extractTextAfterColon( encodedGroupPic ) );
+        return ResponseEntity.ok().build();
+    }
+
+    public static String extractTextAfterColon(String inputText) {
+        // Entferne geschweifte Klammern und Anführungsstriche
+        String cleanedText = inputText.replaceAll("[{}\"]", "");
+
+        // Teile den Text anhand des Doppelpunkts
+        String[] parts = cleanedText.split(":");
+
+        // Überprüfe, ob es mindestens zwei Teile gibt (vor und nach dem Doppelpunkt)
+        if (parts.length >= 2) {
+            // Extrahiere und trimme den Text nach dem Doppelpunkt
+            String extractedText = parts[1].trim();
+            return extractedText;
+        } else {
+            // Falls nicht genügend Teile gefunden wurden, gib einen leeren String zurück
+            return "";
+        }
     }
 
     @GetMapping
@@ -96,6 +117,12 @@ public class ChatController {
     @DeleteMapping("/{chatId}/accounts/{accountId}")
     public ResponseEntity<Void> removeAccountFromChat(@PathVariable long chatId, @PathVariable long accountId) {
         chatMemberLogic.deleteAccountFromChat(chatId, accountId, currentAccount.getAccount());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{chatId}/delete-group-pic")
+    public ResponseEntity<Void> deleteChatGroupPic(@PathVariable long chatId) {
+        chatLogic.deleteChatGroupPic(chatId);
         return ResponseEntity.noContent().build();
     }
 }
