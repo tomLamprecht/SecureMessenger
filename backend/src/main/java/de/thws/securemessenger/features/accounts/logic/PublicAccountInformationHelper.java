@@ -1,6 +1,5 @@
 package de.thws.securemessenger.features.accounts.logic;
 
-import de.thws.securemessenger.features.accounts.application.AccountsController;
 import de.thws.securemessenger.features.accounts.modules.PublicAccountInformation;
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
 import de.thws.securemessenger.features.messenging.model.AccountResponse;
