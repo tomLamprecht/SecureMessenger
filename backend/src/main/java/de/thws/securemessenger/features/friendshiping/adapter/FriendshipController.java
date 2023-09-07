@@ -30,6 +30,10 @@ public class FriendshipController {
 
     @PostMapping("/{toAccountId}")
     public ResponseEntity<Void> createFriendship(@PathVariable long toAccountId) throws URISyntaxException {
+        if (toAccountId == currentAccount.getAccount().id()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         Optional<Long> friendshipId = friendshipRequestService.handleFriendshipRequest(currentAccount.getAccount(), toAccountId);
 
         if (friendshipId.isEmpty()) {

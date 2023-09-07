@@ -37,9 +37,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final List<ChatMessage> _messages = [];
   final FocusNode _textFieldFocus = FocusNode();
   final int chatId;
+
   late final String chatKey;
   List<PlatformFile> _chosenFiles = [];
   bool fullyFetched = false;
+  String? encodedGroupPicture;
 
   bool _isComposing = false;
 
@@ -320,9 +322,13 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<String?> _getImageFromDatabase() async {
+    if (encodedGroupPicture != null) {
+      return encodedGroupPicture;
+    }
     var chatToAcc = await ChatsService().getChatToUser(widget.chatId);
-    String? encodedPic = chatToAcc?.chat?.encodedGroupPic;
-    if (chatToAcc != null && chatToAcc.chat != null && encodedPic != null) {
+    String? encodedPic = chatToAcc?.chat.encodedGroupPic;
+    if (chatToAcc != null && encodedPic != null) {
+      encodedGroupPicture = encodedPic;
       return encodedPic;
     }
     return null;
