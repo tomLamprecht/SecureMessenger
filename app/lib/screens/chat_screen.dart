@@ -34,8 +34,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   final TextEditingController _textController = TextEditingController();
   final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
+  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
   final List<ChatMessage> _messages = [];
   final FocusNode _textFieldFocus = FocusNode();
   final int chatId;
@@ -44,7 +43,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   bool fullyFetched = false;
 
   bool _isComposing = false;
-  bool _isImage = false;
 
   ChatScreenState({required this.chatId});
 

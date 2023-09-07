@@ -1,14 +1,10 @@
 package de.thws.securemessenger.features.accounts.logic;
 
+import de.thws.securemessenger.features.accounts.application.AccountsController;
 import de.thws.securemessenger.features.accounts.modules.PublicAccountInformation;
-import de.thws.securemessenger.features.authorization.application.CurrentAccount;
-import de.thws.securemessenger.features.messenging.model.AccountResponse;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
 import de.thws.securemessenger.model.ApiExceptions.NotFoundException;
-import de.thws.securemessenger.model.Friendship;
-import de.thws.securemessenger.model.Chat;
-import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.repositories.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
