@@ -11,4 +11,10 @@ class DownloadServiceStub implements DownloadService {
     log("Error because stub was activated");
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> downloadFile({required String encodedContent, required String filename}) {
+    log("Error because stub was activated");
+    throw UnimplementedError();
+  }
 }

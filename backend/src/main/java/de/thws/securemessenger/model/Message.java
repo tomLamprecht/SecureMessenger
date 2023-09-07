@@ -1,8 +1,11 @@
 package de.thws.securemessenger.model;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
 
 @Entity
 public class Message {
@@ -20,6 +23,11 @@ public class Message {
     private Chat chat;
 
     private String value;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "message_id")
+    private List<AttachedFile> attachedFiles = new LinkedList<>();
+
     private Instant timeStamp;
     private Instant lastTimeUpdated;
 
@@ -39,20 +47,22 @@ public class Message {
 
     }
 
-    public Message(long id, Account fromUser, Chat chat, String value, Instant timeStamp) {
+    public Message(long id, Account fromUser, Chat chat, String value, List<AttachedFile> attachedFiles, Instant timeStamp) {
         this.id = id;
         this.fromUser = fromUser;
         this.chat = chat;
         this.value = value;
+        this.attachedFiles = attachedFiles;
         this.timeStamp = timeStamp;
         this.lastTimeUpdated = null;
     }
 
-    public Message(long id, Account fromUser, Chat chat, String value, Instant timeStamp, Instant lastTimeUpdated) {
+    public Message(long id, Account fromUser, Chat chat, String value, List<AttachedFile> attachedFiles, Instant timeStamp, Instant lastTimeUpdated) {
         this.id = id;
         this.fromUser = fromUser;
         this.chat = chat;
         this.value = value;
+        this.attachedFiles = attachedFiles;
         this.timeStamp = timeStamp;
         this.lastTimeUpdated = lastTimeUpdated;
     }
@@ -107,5 +117,14 @@ public class Message {
 
     public Chat getChat() {
         return chat;
+    }
+
+    @Transactional
+    public List<AttachedFile> getAttachedFiles() {
+        return attachedFiles;
+    }
+
+    public void setAttachedFiles(List<AttachedFile> attachedFiles) {
+        this.attachedFiles = attachedFiles;
     }
 }

@@ -7,6 +7,7 @@ import de.thws.securemessenger.features.messenging.model.AccountResponse;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
 import de.thws.securemessenger.model.ApiExceptions.NotFoundException;
+import de.thws.securemessenger.model.Friendship;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
 import de.thws.securemessenger.repositories.AccountRepository;

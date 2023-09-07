@@ -4,10 +4,7 @@ import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.MessageRepository;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class MessageTestStub implements MessageRepository {
@@ -33,7 +30,7 @@ public abstract class MessageTestStub implements MessageRepository {
   //  @Override
     public long writeMessage( Message message ) {
         messageMap.put( counter.get(), message );
-        Message result = new Message( counter.getAndIncrement(), message.fromUser(), message.chat(), message.value(), message.timeStamp() );
+        Message result = new Message( counter.getAndIncrement(), message.fromUser(), message.chat(), message.value(), new LinkedList<>(), message.timeStamp() );
         return result.id();
     }
 }

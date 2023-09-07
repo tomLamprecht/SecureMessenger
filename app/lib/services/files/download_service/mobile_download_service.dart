@@ -11,8 +11,15 @@ class MobileDownloadService implements DownloadService{
   @override
   Future<void> download({required String text, required String filename}) async {
     final directory = await getApplicationSupportDirectory();
-    log("Write cert file to ${directory.path}/$filename");
     final file = File('${directory.path}/$filename');
     await file.writeAsString(text, encoding: utf8);
+  }
+
+  @override
+  Future<void> downloadFile({required String encodedContent, required String filename}) async {
+    final directory = await getApplicationSupportDirectory();
+    final file = File('${directory.path}/$filename');
+    final content = base64Decode(encodedContent);
+    await file.writeAsBytes(content);
   }
 }

@@ -1,13 +1,18 @@
 package de.thws.securemessenger.features.messenging.model;
 
+import de.thws.securemessenger.model.AttachedFile;
 import de.thws.securemessenger.model.Message;
 
 import java.time.Instant;
+import java.util.Base64;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MessageToFrontend implements Comparable<MessageToFrontend> {
     private long id;
     private String value;
     private AccountToFrontend fromAccount;
+    private List<FileToFrontend> attachedFiles = new LinkedList<>();
     private Instant timestamp;
 
     public MessageToFrontend() {
@@ -17,6 +22,7 @@ public class MessageToFrontend implements Comparable<MessageToFrontend> {
         this.id = message.id();
         this.value = message.value();
         this.fromAccount = new AccountToFrontend(message.getFromUser());
+        this.attachedFiles = message.getAttachedFiles().stream().map(file -> new FileToFrontend(file.getUuid(), file.getFileName(), file.getEncodedFileContent(), file.getCreatedAt())).toList();
         this.timestamp = message.timeStamp();
     }
 
@@ -50,6 +56,14 @@ public class MessageToFrontend implements Comparable<MessageToFrontend> {
 
     public void setTimestamp( Instant timestamp ) {
         this.timestamp = timestamp;
+    }
+
+    public List<FileToFrontend> getAttachedFiles() {
+        return attachedFiles;
+    }
+
+    public void setAttachedFiles(List<FileToFrontend> attachedFiles) {
+        this.attachedFiles = attachedFiles;
     }
 
     @Override

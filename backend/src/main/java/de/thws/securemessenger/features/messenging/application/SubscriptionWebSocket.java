@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.thws.securemessenger.features.authorization.model.MaxTimeDifference;
 import de.thws.securemessenger.features.messenging.logic.WebSocketSessionLogic;
-import de.thws.securemessenger.features.messenging.model.MessageToFrontend;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.features.messenging.model.WebSocketMessage;
 import de.thws.securemessenger.features.messenging.model.WebsocketMessageType;

@@ -1,14 +1,18 @@
 import 'dart:convert';
 
 import '../custom_http_client.dart';
+import '../models/AttachedFile.dart';
 import '../models/message.dart';
 import 'api/api_config.dart';
 
-Future<int?> sendMessage(int chatId, String message) async {
+Future<int?> sendMessage(int chatId, String message, List<AttachedFile> attachedFiles) async {
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages');
   final headers = {'Content-Type': 'application/json'};
 
-  final body = json.encode({'value': message});
+  final body = json.encode({
+    'value': message,
+    'attachedFiles': attachedFiles.map((file) => file.toJson()).toList()
+  });
 
   final response = await CustomHttpClient().post(url, headers: headers, body: body);
   if (response.statusCode == 201) {

@@ -9,6 +9,7 @@ import de.thws.securemessenger.features.messenging.model.UpdateMessageRequest;
 import de.thws.securemessenger.features.messenging.model.WebsocketSessionKey;
 import de.thws.securemessenger.model.ApiExceptions.UnauthorizedException;
 import de.thws.securemessenger.model.Chat;
+import de.thws.securemessenger.model.AttachedFile;
 import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.ChatRepository;
 import de.thws.securemessenger.util.FileResourceService;
@@ -19,10 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -79,7 +77,7 @@ public class MessageController {
     @PostMapping()
     public ResponseEntity<Void> postMessage( @PathVariable() long chatId, @RequestBody MessageFromFrontend messageFromFrontend ) {
         Optional<Chat> chat = chatRepository.findById( chatId );
-        Optional<Message> message = chat.map( c -> new Message(0, currentAccount.getAccount(), c, messageFromFrontend.getValue(), Instant.now() ) );
+        Optional<Message> message = chat.map( c -> new Message(0, currentAccount.getAccount(), c, messageFromFrontend.getValue(), messageFromFrontend.getAttachedFiles().stream().map(fileFromFe -> new AttachedFile(fileFromFe.fileName(), fileFromFe.encodedFileContent())).toList(), Instant.now() ) );
 
         boolean succeeded = message.map( m -> chatMessagesLogic.saveMessageToChatIfAllowed( currentAccount.getAccount(), chatId, m ) ).orElse( false );
 

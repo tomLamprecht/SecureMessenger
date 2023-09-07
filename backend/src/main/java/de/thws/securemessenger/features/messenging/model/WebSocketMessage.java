@@ -3,12 +3,16 @@ package de.thws.securemessenger.features.messenging.model;
 import de.thws.securemessenger.model.Message;
 
 import java.time.Instant;
+import java.util.Base64;
+import java.util.LinkedList;
+import java.util.List;
 
 public class WebSocketMessage {
     WebsocketMessageType messageType;
     private long id;
     private String value;
     private AccountToFrontend fromAccount;
+    private List<FileToFrontend> attachedFiles = new LinkedList<>();
     private Instant timestamp;
     private Instant lastTimeUpdated;
 
@@ -27,6 +31,7 @@ public class WebSocketMessage {
         this.value = message.value();
         this.fromAccount = new AccountToFrontend(message.getFromUser());
         this.timestamp = message.timeStamp();
+        this.attachedFiles = message.getAttachedFiles().stream().map(file -> new FileToFrontend(file.getUuid(), file.getFileName(), file.getEncodedFileContent(), file.getCreatedAt())).toList();
         this.messageType = WebsocketMessageType.CREATE;
         this.lastTimeUpdated = message.getLastTimeUpdated();
     }
@@ -84,4 +89,15 @@ public class WebSocketMessage {
         this.lastTimeUpdated = lastTimeUpdated;
     }
 
+    public void setMessageType(WebsocketMessageType messageType) {
+        this.messageType = messageType;
+    }
+
+    public List<FileToFrontend> getAttachedFiles() {
+        return attachedFiles;
+    }
+
+    public void setAttachedFiles(List<FileToFrontend> attachedFiles) {
+        this.attachedFiles = attachedFiles;
+    }
 }

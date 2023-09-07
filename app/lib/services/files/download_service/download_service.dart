@@ -11,4 +11,6 @@ abstract class DownloadService {
   }
 
   Future<void> download({required String text, required String filename});
+
+  Future<void> downloadFile({required String encodedContent, required String filename});
 }

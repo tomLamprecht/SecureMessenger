@@ -2,17 +2,20 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:my_flutter_test/models/AttachedFile.dart';
 import 'package:my_flutter_test/models/message.dart';
 import 'package:my_flutter_test/screens/chat_details_screen.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:image_picker/image_picker.dart';
 import '../models/webserver_message_type.dart';
 import '../services/chats_service.dart';
 import '../services/encryption_service.dart';
+import '../services/files/download_service/download_service.dart';
 import '../services/message_service.dart';
 import '../services/stores/who_am_i_store.dart';
 
@@ -37,7 +40,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final FocusNode _textFieldFocus = FocusNode();
   final int chatId;
   late final String chatKey;
-  PlatformFile? _chosenFile;
+  List<PlatformFile> _chosenFiles = [];
   bool fullyFetched = false;
 
   bool _isComposing = false;
@@ -75,30 +78,21 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(allowMultiple: true);
 
     if (result != null) {
-      PlatformFile file = result.files.first;
       setState(() {
-        _chosenFile = file;
+        _chosenFiles = result.files;
       });
     } else {
       // User canceled the picker
     }
+  }
 
-    if (result?.files.first.extension != null) {
-      _isImage = ['jpg', 'jpeg', 'png', 'gif'].contains(result?.files.first.extension!.toLowerCase());
-    } else {
-      _isImage = false;
-    }
-
-    if (result != null) {
-      setState(() {
-
-      });
-    } else {
-      // User canceled the picker
-    }
+  void _deleteSelectedFile(PlatformFile fileToDelete) {
+    setState(() {
+      _chosenFiles.remove(fileToDelete);
+    });
   }
 
   Future<void> _captureImage() async {
@@ -159,10 +153,12 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       fromUserName: oldMessage.fromUserName,
       timestamp: oldMessage.timestamp,
       text: aesDecrypt(parsedMessage.value, chatKey),
+      files: oldMessage.files,
       animationController: oldMessage.animationController,
       deleteMessage: _deleteMessage,
       updateMessage: _updateMessage,
       lastTimeUpdated: parsedMessage.lastTimeUpdated,
+      symKey: chatKey
     );
     setState(() {
       _messages[index] = newMessage;
@@ -176,10 +172,12 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       fromUserName: message.fromUserName,
       timestamp: message.timestamp,
       text: aesDecrypt(message.value, chatKey),
+      files: message.attachedFiles,
       animationController: animationController,
       deleteMessage: _deleteMessage,
       updateMessage: _updateMessage,
       lastTimeUpdated: null,
+      symKey: chatKey
     );
   }
 
@@ -198,10 +196,12 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         fromUserName: message.fromUserName,
         timestamp: message.timestamp,
         text: newContent,
+        files: message.files,
         animationController: message.animationController,
         deleteMessage: _deleteMessage,
         updateMessage: _updateMessage,
-        lastTimeUpdated: DateTime.now());
+        lastTimeUpdated: DateTime.now(),
+        symKey: chatKey);
     setState(() {
       _messages[index] = newMessage;
     });
@@ -237,82 +237,88 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   void _handleSubmitted(String text) {
-    sendMessage(chatId, aesEncrypt(text, chatKey));
+    _chosenFiles.removeWhere((element) => element.bytes == null);
+    var attachedFiles = _chosenFiles.map((e) => AttachedFile(fileName: e.name, encodedFileContent: aesEncrypt(base64Encode(e.bytes!), chatKey))).toList();
+    sendMessage(chatId, aesEncrypt(text, chatKey), attachedFiles);
 
     _textController.clear();
     setState(() {
       _isComposing = false;
-      _chosenFile = null;
+      _chosenFiles = [];
     });
 
     _textFieldFocus.requestFocus();
   }
 
   Widget _buildTextComposer() {
+    // Check if there's at least one non-image file in the chosen files
+    bool containsNonImageFile = _chosenFiles.any(
+          (file) => !['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase()),
+    );
+
     return Column(
-      // margin: const EdgeInsets.symmetric(horizontal: 8.0),
-      children:
-        <Widget>[
-        // Displaying the picked file or image
-        if (_chosenFile != null)
-    _isImage
-        ? Image.memory(_chosenFile!.bytes!)
-        : Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text('Selected File: ${_chosenFile!.name}'),
-    ),
-    Row(
-        children: <Widget>[
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.add),
-            onSelected: (value) {
-              switch (value.toLowerCase()) {
-                case 'files':
-                  _pickFile();
-                  break;
-                case 'camera':
-                  _captureImage();
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'files',
-                child: Text('Files'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'camera',
-                child: Text('Camera'),
-              ),
-            ],
+      children: <Widget>[
+        ..._chosenFiles.map(
+              (file) => FileView(
+            file: AttachedFile(fileName: file.name, encodedFileContent: base64Encode(file.bytes!), createdAt: DateTime.now()),
+            forceFileView: containsNonImageFile,
+            icon: const Icon(Icons.delete),
+            symKey: chatKey,
+            onClick: () => _deleteSelectedFile(file),
           ),
-          Flexible(
-            child: TextField(
-              controller: _textController,
-              focusNode: _textFieldFocus,
-              onChanged: (String text) {
-                setState(() {
-                  _isComposing = text.isNotEmpty;
-                });
+        ),
+        Row(
+          children: <Widget>[
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.add),
+              onSelected: (value) {
+                switch (value.toLowerCase()) {
+                  case 'files':
+                    _pickFile();
+                    break;
+                  case 'camera':
+                    _captureImage();
+                    break;
+                }
               },
-              onSubmitted: _handleSubmitted,
-              decoration:
-              const InputDecoration.collapsed(hintText: 'Send a message'),
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'files',
+                  child: Text('Files'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'camera',
+                  child: Text('Camera'),
+                ),
+              ],
             ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: IconButton(
-              icon: const Icon(Icons.send),
-              onPressed: _isComposing
-                  ? () => _handleSubmitted(_textController.text)
-                  : null,
-              color: Theme.of(context).primaryColor,
+            Flexible(
+              child: TextField(
+                controller: _textController,
+                focusNode: _textFieldFocus,
+                onChanged: (String text) {
+                  setState(() {
+                    _isComposing = text.isNotEmpty;
+                  });
+                },
+                onSubmitted: _handleSubmitted,
+                decoration:
+                const InputDecoration.collapsed(hintText: 'Send a message'),
+              ),
             ),
-          ),
-        ],
-      )
-    ]
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: _isComposing
+                    ? () => _handleSubmitted(_textController.text)
+                    : null,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -400,11 +406,13 @@ class ChatMessage extends StatefulWidget {
   final int id;
   final String fromUserName;
   final String text;
+  final List<AttachedFile>? files;
   final DateTime timestamp;
   final DateTime? lastTimeUpdated;
   final AnimationController animationController;
   final Function deleteMessage;
   final Function updateMessage;
+  final String symKey;
 
   const ChatMessage(
       {Key? key,
@@ -412,10 +420,12 @@ class ChatMessage extends StatefulWidget {
       required this.fromUserName,
       required this.timestamp,
       required this.text,
+      required this.files,
       required this.animationController,
       required this.deleteMessage,
       required this.updateMessage,
-      required this.lastTimeUpdated})
+      required this.lastTimeUpdated,
+      required this.symKey})
       : super(key: key);
 
   @override
@@ -447,112 +457,252 @@ class _ChatMessageState extends State<ChatMessage> {
       CurvedAnimation(
           parent: widget.animationController, curve: Curves.easeOut),
       axisAlignment: 0.0,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              margin: const EdgeInsets.only(left: 8.0, right: 16.0),
-              child: CircleAvatar(
-                backgroundColor: _getColorFromUserName(widget.fromUserName),
-                foregroundColor: Colors.white,
-                child: Text(widget.fromUserName[0].toUpperCase()),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _buildUserAvatar(),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _buildMessageHeader(),
+                    if (widget.files != null) ..._buildAttachedFiles(),
+                    _buildMessageContent(),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Text(widget.fromUserName,
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .titleMedium),
-                      const SizedBox(width: 10),
-                      Text(
-                        widget.lastTimeUpdated == null ? widget.timestamp.toString() : widget.lastTimeUpdated.toString() + " (edited)",
-                        style: Theme
-                            .of(context)
-                            .textTheme
-                            .bodySmall,
-                      ),
-                    ],
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 5.0),
-                    child: isEditing ?
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: editingController,
-                            autofocus: true,
-                            onSubmitted: (value) async {
-                              setState(() {
-                                isEditing = false;
-                              });
-                              await widget.updateMessage(widget, editingController.text);
-                            },
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isEditing = false;
-                              editingController.text = widget.text;
-                            });
-                          },
-                          icon: const Icon(Icons.close, color: Colors.red),
-                        ),
-                        IconButton(
-                          onPressed: () async {
-                            setState(() {
-                              isEditing = false;
-                            });
-                            await widget.updateMessage(widget, editingController.text);
-                          },
-                          icon: const Icon(Icons.check, color: Colors.green),
-                        ),
-                      ],
-                    )
-                        : Text(widget.text),
-                  ),
-                ],
-              ),
-            ),
-            if (isCurrentUser && !isEditing)
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, size: 20.0),
-                onSelected: (value) async {
-                  switch (value.toLowerCase()) {
-                    case 'delete':
-                      await widget.deleteMessage(widget);
-                      break;
-                    case 'edit':
-                      setState(() {
-                        isEditing = true;
-                      });
-                      break;
-                  }
-                },
-                itemBuilder: (BuildContext context) =>
-                [
-                  const PopupMenuItem<String>(
-                    value: 'edit',
-                    child: Text('Edit'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'delete',
-                    child: Text('Delete'),
-                  ),
-                ],
-              ),
-          ],
-        ),
+              if (isCurrentUser && !isEditing) _buildMessageActions(),
+            ],
+          ),
+        )
+    );
+  }
+
+  Widget _buildUserAvatar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: CircleAvatar(
+        backgroundColor: _getColorFromUserName(widget.fromUserName),
+        foregroundColor: Colors.white,
+        child: Text(widget.fromUserName[0].toUpperCase()),
       ),
     );
   }
+
+  Widget _buildMessageHeader() {
+    return Row(
+      children: <Widget>[
+        Text(
+          widget.fromUserName,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(width: 10),
+        Text(
+          widget.lastTimeUpdated == null
+              ? widget.timestamp.toString()
+              : '${widget.lastTimeUpdated} (edited)',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildAttachedFiles() {
+    return widget.files!
+        .map((file) => FileView(
+      file: file,
+      forceFileView: widget.files!.any((element) => !['jpg', 'jpeg', 'png', 'gif'].contains(element.fileName.split('.').last.toLowerCase())),
+      icon: const Icon(Icons.download),
+      symKey: widget.symKey,
+      onClick: () {
+        var encryptedFileContent = aesDecrypt(file.encodedFileContent, widget.symKey);
+        DownloadService.instance.downloadFile(encodedContent: encryptedFileContent, filename: file.fileName);
+      },
+    ))
+        .toList();
+  }
+
+  Widget _buildMessageContent() {
+    return Container(
+      margin: const EdgeInsets.only(top: 5.0),
+      child: isEditing
+          ? _buildEditingField()
+          : Text(widget.text),
+    );
+  }
+
+  Widget _buildEditingField() {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: editingController,
+            autofocus: true,
+            onSubmitted: (value) async {
+              setState(() {
+                isEditing = false;
+              });
+              await widget.updateMessage(widget, editingController.text);
+            },
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            setState(() {
+              isEditing = false;
+              editingController.text = widget.text;
+            });
+          },
+          icon: const Icon(Icons.close, color: Colors.red),
+        ),
+        IconButton(
+          onPressed: () async {
+            setState(() {
+              isEditing = false;
+            });
+            await widget.updateMessage(widget, editingController.text);
+          },
+          icon: const Icon(Icons.check, color: Colors.green),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMessageActions() {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, size: 20.0),
+      onSelected: (value) async {
+        switch (value.toLowerCase()) {
+          case 'delete':
+            await widget.deleteMessage(widget);
+            break;
+          case 'edit':
+            setState(() {
+              isEditing = true;
+            });
+            break;
+        }
+      },
+      itemBuilder: (BuildContext context) => [
+        const PopupMenuItem<String>(
+          value: 'edit',
+          child: Text('Edit'),
+        ),
+        const PopupMenuItem<String>(
+          value: 'delete',
+          child: Text('Delete'),
+        ),
+      ],
+    );
+  }
 }
+
+class FileView extends StatefulWidget {
+  final AttachedFile file;
+  final bool forceFileView;
+  final VoidCallback onClick;
+  final Icon icon;
+  final String symKey;
+
+  const FileView({
+    Key? key,
+    required this.file,
+    required this.forceFileView,
+    required this.onClick,
+    required this.icon,
+    required this.symKey,
+  }) : super(key: key);
+
+  @override
+  _FileViewState createState() => _FileViewState();
+}
+
+class _FileViewState extends State<FileView> {
+  bool _showImage = false;
+  late Uint8List _decryptedImage;
+  bool _loadImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String fileExtension = _getFileExtension(widget.file.fileName);
+    return Row(
+      children: <Widget>[
+        if (widget.forceFileView || !['jpg', 'jpeg', 'png', 'gif'].contains(fileExtension))
+          _showFileWidget()
+        else
+          _showImageWidget(),
+        IconButton(
+          icon: widget.icon,
+          onPressed: widget.onClick,
+        ),
+      ],
+    );
+  }
+
+  Uint8List decryptImage() {
+    return base64Decode(aesDecrypt(widget.file.encodedFileContent, widget.symKey));
+  }
+
+  Widget _showFileWidget() {
+    return Row(
+      children: <Widget>[
+        const Icon(Icons.insert_drive_file),
+        Text(widget.file.fileName),
+      ],
+    );
+  }
+
+  Widget _showImageWidget() {
+    if (_loadImage) {
+      return const Text("Decrypting image...");
+    }
+
+    if (_showImage) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: Container(
+          constraints: const BoxConstraints(
+            maxWidth: 200.0,
+            maxHeight: 200.0,
+          ),
+          child: Image.memory(
+            _decryptedImage,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+
+    return ElevatedButton(
+      onPressed: () async {
+        setState(() {
+          _loadImage = true;
+        });
+
+        setState(() {
+          _decryptedImage = decryptImage();
+          _showImage = true;
+          _loadImage = false;
+        });
+      },
+      child: const Text('Show Image'),
+    );
+
+  }
+
+  String _getFileExtension(String fileName) {
+    List<String> parts = fileName.split('.');
+    if (parts.length > 1) {
+      return parts.last.toLowerCase();
+    }
+    return '';
+  }
+}
+

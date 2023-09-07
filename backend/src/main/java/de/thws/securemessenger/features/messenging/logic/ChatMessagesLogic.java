@@ -8,6 +8,7 @@ import de.thws.securemessenger.model.Message;
 import de.thws.securemessenger.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,11 +20,13 @@ public class ChatMessagesLogic {
 
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
+    private final AttachedFileRepository attachedFileRepository;
 
     @Autowired
-    public ChatMessagesLogic( ChatRepository chatRepository, MessageRepository messageRepository ) {
+    public ChatMessagesLogic(ChatRepository chatRepository, MessageRepository messageRepository, AttachedFileRepository attachedFileRepository) {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
+        this.attachedFileRepository = attachedFileRepository;
     }
 
     /**
@@ -108,10 +111,12 @@ public class ChatMessagesLogic {
      * @return true if the message could be created, false if a problem occurred
      * (e.g. User has no right to send to this chat or chat doesn't exist)
      */
+    @Transactional
     public boolean saveMessageToChatIfAllowed( Account account, long chatId, Message message ) {
         if ( !accountIsActiveMember( account, chatId ) )
             return false;
 
+        attachedFileRepository.saveAll(message.getAttachedFiles());
         messageRepository.save( message );
         return true;
     }

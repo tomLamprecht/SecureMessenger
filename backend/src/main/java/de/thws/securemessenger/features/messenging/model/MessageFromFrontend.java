@@ -1,11 +1,12 @@
 package de.thws.securemessenger.features.messenging.model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class MessageFromFrontend {
 
     private String value;
-    private List<FileFromFrontend> attachedFiles;
+    private List<FileFromFrontend> attachedFiles = new LinkedList<>();
 
     public MessageFromFrontend() {
     }
