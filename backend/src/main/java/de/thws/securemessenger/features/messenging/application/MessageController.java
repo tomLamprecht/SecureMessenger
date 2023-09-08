@@ -77,7 +77,16 @@ public class MessageController {
     @PostMapping()
     public ResponseEntity<Void> postMessage( @PathVariable() long chatId, @RequestBody MessageFromFrontend messageFromFrontend ) {
         Optional<Chat> chat = chatRepository.findById( chatId );
-        Optional<Message> message = chat.map( c -> new Message(0, currentAccount.getAccount(), c, messageFromFrontend.getValue(), messageFromFrontend.getAttachedFiles().stream().map(fileFromFe -> new AttachedFile(fileFromFe.fileName(), fileFromFe.encodedFileContent())).toList(), Instant.now() ) );
+
+        Instant selfDestructionTime = messageFromFrontend.getSelfDestructionDurationSecs() != null ? Instant.now().plusSeconds(messageFromFrontend.getSelfDestructionDurationSecs()) : null;
+        Optional<Message> message = chat.map( c -> new Message(
+                0,
+                currentAccount.getAccount(),
+                c,
+                messageFromFrontend.getValue(),
+                messageFromFrontend.getAttachedFiles().stream().map(fileFromFe -> new AttachedFile(fileFromFe.fileName(), fileFromFe.encodedFileContent())).toList(),
+                Instant.now(),
+                selfDestructionTime ) );
 
         boolean succeeded = message.map( m -> chatMessagesLogic.saveMessageToChatIfAllowed( currentAccount.getAccount(), chatId, m ) ).orElse( false );
 

@@ -44,6 +44,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   String? encodedGroupPicture;
 
   bool _isComposing = false;
+  bool _isImage = false;
+  int? expirationTimerSecs;
 
   ChatScreenState({required this.chatId});
 
@@ -238,7 +240,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void _handleSubmitted(String text) {
     _chosenFiles.removeWhere((element) => element.bytes == null);
     var attachedFiles = _chosenFiles.map((e) => AttachedFile(fileName: e.name, encodedFileContent: aesEncrypt(base64Encode(e.bytes!), chatKey))).toList();
-    sendMessage(chatId, aesEncrypt(text, chatKey), attachedFiles);
+    sendMessage(chatId, aesEncrypt(text, chatKey), attachedFiles, expirationTimerSecs);
 
     _textController.clear();
     setState(() {
@@ -248,6 +250,70 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     _textFieldFocus.requestFocus();
   }
+
+
+  void timerButtonClicked(BuildContext context) async {
+    // if enabled -> disable
+    if (expirationTimerSecs != null) {
+      setState(() {
+        expirationTimerSecs = null;
+      });
+    }
+    else {
+      final selectedDuration = await showDialog<int>(
+        context: context,
+        builder: (BuildContext context) {
+          int? selectedValue;
+          return AlertDialog(
+            title: const Text(
+                'Self Destruction'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    selectedValue = int.tryParse(value) ?? 0;
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Seconds until Self Destruction of messages',
+                  ),
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop(null);
+                },
+              ),
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(selectedValue);
+                },
+              ),
+            ],
+          );
+        },
+      );
+      if (selectedDuration != null && selectedDuration > 0) {
+        setState(() {
+          expirationTimerSecs = selectedDuration;
+        });
+      }
+      else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid duration'),
+          ),
+        );
+      }
+    }
+
+  }
+
 
   Widget _buildTextComposer() {
     // Check if there's at least one non-image file in the chosen files
@@ -303,6 +369,14 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 onSubmitted: _handleSubmitted,
                 decoration:
                 const InputDecoration.collapsed(hintText: 'Send a message'),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: IconButton(
+                icon: expirationTimerSecs != null ? const Icon(Icons.timer) : const Icon(Icons.timer_off),
+                onPressed: () => timerButtonClicked(context),
+                color: expirationTimerSecs != null ? Colors.red : Theme.of(context).disabledColor,
               ),
             ),
             Container(

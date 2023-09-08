@@ -5,13 +5,14 @@ import '../models/AttachedFile.dart';
 import '../models/message.dart';
 import 'api/api_config.dart';
 
-Future<int?> sendMessage(int chatId, String message, List<AttachedFile> attachedFiles) async {
+Future<int?> sendMessage(int chatId, String message, List<AttachedFile> attachedFiles, int? selfDestructionDuration) async {
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages');
   final headers = {'Content-Type': 'application/json'};
 
   final body = json.encode({
     'value': message,
-    'attachedFiles': attachedFiles.map((file) => file.toJson()).toList()
+    'attachedFiles': attachedFiles.map((file) => file.toJson()).toList(),
+    "selfDestructionDurationSecs": selfDestructionDuration,
   });
 
   final response = await CustomHttpClient().post(url, headers: headers, body: body);

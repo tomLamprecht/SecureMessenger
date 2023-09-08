@@ -9,6 +9,7 @@ class Message {
   List<AttachedFile> attachedFiles;
   DateTime timestamp;
   DateTime? lastTimeUpdated;
+  DateTime? selfDestructionTime;
 
   Message({
     required this.id,
@@ -18,7 +19,8 @@ class Message {
     required this.value,
     required this.attachedFiles,
     required this.timestamp,
-    required this.lastTimeUpdated
+    required this.lastTimeUpdated,
+    required this.selfDestructionTime,
   });
 
   factory Message.fromJson(Map<String, dynamic> json, int providedChatId) {
@@ -32,7 +34,8 @@ class Message {
           .map((item) => AttachedFile.fromJson(item))
           .toList(),
       timestamp: DateTime.parse(json['timestamp']),
-      lastTimeUpdated: json['lastTimeUpdated'] != null ? DateTime.parse(json['lastTimeUpdated']) : null
+      lastTimeUpdated: json['lastTimeUpdated'] != null ? DateTime.parse(json['lastTimeUpdated']) : null,
+      selfDestructionTime: json['selfDestructionTime'] != null ? DateTime.parse(json['selfDestructionTime']) : null,
     );
   }
 }

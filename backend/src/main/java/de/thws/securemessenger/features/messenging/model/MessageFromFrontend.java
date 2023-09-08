@@ -7,12 +7,14 @@ public class MessageFromFrontend {
 
     private String value;
     private List<FileFromFrontend> attachedFiles = new LinkedList<>();
+    private Integer selfDestructionDurationSecs;
 
     public MessageFromFrontend() {
     }
 
-    public MessageFromFrontend(String value, List<FileFromFrontend> attachedFile) {
+    public MessageFromFrontend(String value, Integer selfDestructionDurationSecs, List<FileFromFrontend> attachedFile) {
         this.value = value;
+        this.selfDestructionDurationSecs = selfDestructionDurationSecs;
         this.attachedFiles = attachedFile;
     }
 
@@ -22,6 +24,14 @@ public class MessageFromFrontend {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public Integer getSelfDestructionDurationSecs() {
+        return selfDestructionDurationSecs;
+    }
+
+    public void setSelfDestructionDurationSecs(Integer selfDestructionDurationSecs) {
+        this.selfDestructionDurationSecs = selfDestructionDurationSecs;
     }
 
     public List<FileFromFrontend> getAttachedFile() {

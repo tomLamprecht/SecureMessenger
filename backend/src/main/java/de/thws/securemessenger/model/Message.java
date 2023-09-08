@@ -30,6 +30,7 @@ public class Message {
 
     private Instant timeStamp;
     private Instant lastTimeUpdated;
+    private Instant selfDestructionTime;
 
     public Instant getLastTimeUpdated() {
         return lastTimeUpdated;
@@ -57,14 +58,14 @@ public class Message {
         this.lastTimeUpdated = null;
     }
 
-    public Message(long id, Account fromUser, Chat chat, String value, List<AttachedFile> attachedFiles, Instant timeStamp, Instant lastTimeUpdated) {
+    public Message(long id, Account fromUser, Chat chat, String value, List<AttachedFile> attachedFiles, Instant timeStamp, Instant selfDestructionTime) {
         this.id = id;
         this.fromUser = fromUser;
         this.chat = chat;
         this.value = value;
         this.attachedFiles = attachedFiles;
         this.timeStamp = timeStamp;
-        this.lastTimeUpdated = lastTimeUpdated;
+        this.selfDestructionTime = selfDestructionTime;
     }
 
     public long id() {
@@ -126,5 +127,13 @@ public class Message {
 
     public void setAttachedFiles(List<AttachedFile> attachedFiles) {
         this.attachedFiles = attachedFiles;
+    }
+
+    public Instant selfDestructionTime() {
+        return selfDestructionTime;
+    }
+
+    public void setSelfDestructionTime(Instant selfDestructionTime) {
+        this.selfDestructionTime = selfDestructionTime;
     }
 }
