@@ -55,7 +55,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         logger.info("Intercepted " + request.getMethod() + " on " + request.getRequestURI());
 
-        if (isOptionsMethod(request)) {
+        if (isOptionsMethod(request) || isSwaggerEndpoint(request)) {
             return true;
         }
 
@@ -87,6 +87,12 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         authorizeAccount(publicKeyString);
 
         return true;
+    }
+
+    private boolean isSwaggerEndpoint(HttpServletRequest request) {
+        // todo: high risk
+        String uri = request.getRequestURI().toLowerCase();
+        return uri.contains("swagger") || uri.contains("api-docs");
     }
 
     private boolean isOptionsMethod(HttpServletRequest request) {
