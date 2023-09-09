@@ -11,7 +11,6 @@ import 'package:my_flutter_test/models/keypair.dart';
 import 'package:my_flutter_test/services/encryption_service.dart';
 import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
 import 'package:pointycastle/ecc/curves/secp256r1.dart';
-import 'dart:convert';
 
 class ECCHelper {
   String _encodeEcPublicKeyToPem(ECPublicKey publicKey) {
@@ -96,18 +95,6 @@ class ECCHelper {
 
 
 
-  String bytesToHex(Uint8List bytes) {
-    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('');
-  }
-
-  Uint8List hexToBytes(String hex) {
-    final result = Uint8List.fromList(List<int>.generate(
-        hex.length ~/ 2,
-        (index) =>
-            int.parse(hex.substring(index * 2, index * 2 + 2), radix: 16)));
-    return result;
-  }
-
   ECPublicKey publicKeyFromBase64String(String base64String) {
     final publicKeyBytes = base64Decode(base64String.replaceAll("\n", "").replaceAll("\r", ""));
 
@@ -126,17 +113,6 @@ class ECCHelper {
   }
 
 
-  String decryptWithOwnPrivateKey(String encryptedMessage) {
-    final params = ECDomainParameters("secp256r1");
-    final privateKey = ECPrivateKey(EccKeyStore().privateKey?.D, params);
-    final BigInt decryptedMessage =
-        BigInt.parse(encryptedMessage) ~/ privateKey.d!;
-    print(decryptedMessage);
-    final List<int> decodedBytes =
-        hexToBytes(decryptedMessage.toRadixString(16));
-
-    return utf8.decode(decodedBytes);
-  }
 
   ecc.PrivateKey parsePrivateKeyFromHexString(String hex) {
     return ecc.PrivateKey.fromHex(ecc.getP256(), hex);
