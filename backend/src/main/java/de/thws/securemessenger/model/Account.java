@@ -82,7 +82,7 @@ public class Account {
         return friendships()
                 .stream()
                 .filter(Friendship::accepted)
-                .filter(friendship -> friendship.toAccount().id() == other.id || friendship.fromAccount().id() == other.id)
+                .filter(friendship -> friendship.toAccount().id() == other.id && friendship.fromAccount.id() == id || friendship.fromAccount().id() == other.id && friendship.toAccount.id() == id)
                 .findAny();
     }
 

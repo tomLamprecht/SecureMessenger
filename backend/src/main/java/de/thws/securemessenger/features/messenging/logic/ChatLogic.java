@@ -64,7 +64,7 @@ public class ChatLogic {
 
         List<Account> withAccounts = accountRepository.findAllById(accountIds);
 
-        if (accountIds.isEmpty() || withAccounts.size() != accountIds.size() || !withAccounts.stream().allMatch(currentAccount::isFriendsWith)) {
+        if (accountIds.isEmpty() || withAccounts.size() != accountIds.size() || !withAccounts.stream().filter( acc -> acc.id() != currentAccount.id() ).allMatch(currentAccount::isFriendsWith)) {
             throw new BadRequestException("You don't have a friendship with all accounts or some of the accounts do not exists.");
         }
     }
