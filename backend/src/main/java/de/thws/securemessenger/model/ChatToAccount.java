@@ -24,6 +24,10 @@ public class ChatToAccount {
     @JoinColumn(name = "ChatId")
     private Chat chat;
 
+    @ManyToOne
+    @JoinColumn(name ="encrypted_by")
+    private Account encryptedBy;
+
     private String key;
     private boolean isAdmin;
     private Instant joinedAt;
@@ -32,11 +36,12 @@ public class ChatToAccount {
     public ChatToAccount() {
     }
 
-    public ChatToAccount(long id, Account account, Chat chat, String key, boolean isAdmin, Instant joinedAt, Instant leftAt) {
+    public ChatToAccount(long id, Account account, Account encryptedBy, Chat chat, String key, boolean isAdmin, Instant joinedAt, Instant leftAt) {
         this.id = id;
         this.account = account;
         this.chat = chat;
         this.key = key;
+        this.encryptedBy = encryptedBy;
         this.isAdmin = isAdmin;
         this.joinedAt = joinedAt;
         this.leftAt = leftAt;
@@ -52,6 +57,10 @@ public class ChatToAccount {
 
     public Account account() {
         return account;
+    }
+
+    public Account encryptedBy(){
+        return encryptedBy;
     }
 
     public void setAccount(Account account) {

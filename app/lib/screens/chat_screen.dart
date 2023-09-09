@@ -8,9 +8,11 @@ import 'package:my_flutter_test/models/AttachedFile.dart';
 import 'package:my_flutter_test/models/message.dart';
 import 'package:my_flutter_test/screens/chat_details_screen.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
+import 'package:my_flutter_test/services/files/ecc_helper.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
+import '../models/chatkey.dart';
 import '../models/webserver_message_type.dart';
 import '../services/account_service.dart';
 import '../services/chats_service.dart';
@@ -210,11 +212,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     await updateMessage(message.id, chatId, encryptedMessage);
   }
 
-  void _saveChatKeyAndGetAllMessages(String chatKey) async {
-    //TODO Key is still RSA encrypted at this point. So we first gotta decrypt the key! However i assume Tim and Valerie gonna do this in their branch. So i first wait...
-
-    //this.chatKey = chatKey;
-    this.chatKey = chatKey;
+  void _saveChatKeyAndGetAllMessages(Chatkey chatKey) async {
+    this.chatKey = ECCHelper().decryptByAESAndECDHUsingString(chatKey.encryptedByPublicKey, chatKey.value);
     await getAndDisplayMessagesFromBackend(-1);
   }
 
@@ -400,13 +399,16 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (encodedGroupPicture != null) {
       return encodedGroupPicture;
     }
+
     var chatToAcc = await ChatsService().getChatToUser(widget.chatId);
     String? encodedPic = chatToAcc?.chat.encodedGroupPic;
     if (chatToAcc != null && encodedPic != null) {
       encodedGroupPicture = encodedPic;
       return encodedPic;
     }
-    return null;
+
+    encodedGroupPicture = "dummy";
+    return encodedGroupPicture;
   }
 
   @override
@@ -428,7 +430,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   if (snapshot.hasError) {
                     // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
                     return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.hasData && snapshot.data != null) {
+                  } else if (snapshot.hasData && snapshot.data != null && snapshot.data != "dummy") {
                     // Zeige das Bild aus der Datenbank
                     final encodedPic = snapshot.data!;
                     // final decryptPic = aesDecrypt(encodedPic, "password");

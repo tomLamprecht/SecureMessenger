@@ -14,6 +14,7 @@ import '../models/account.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';
 
 import '../models/chat_to_account.dart';
+import '../models/chatkey.dart';
 import '../services/chats_service.dart';
 import '../services/encryption_service.dart';
 import '../services/files/ecc_helper.dart';
@@ -171,7 +172,11 @@ class _GroupHeaderState extends State<GroupHeader> {
       if (['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase())) {
         Uint8List imageBytes = file.bytes!;
         // Blob imageBlob = Blob(imageBytes);
-        String? key = await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
+
+        //Get Key from Backend and Decrypt it
+        Chatkey? chatkey = await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
+        String? key = ECCHelper().decryptByAESAndECDHUsingString(chatkey!.encryptedByPublicKey, chatkey.value);
+
         if(key != null){
           this.key = key;
           // if(await ChatsService().updateGroupPicFromChat(aesEncrypt(base64Encode(imageBytes), "password"), widget.group.chatId))
@@ -632,7 +637,7 @@ class AddMemberButton extends StatelessWidget {
             List<AccountIdToEncryptedSymKey> encryptedSymKeys = [];
             var eccHelper = ECCHelper();
             for (var account in selectedAccounts) {
-              var encodedSymKey = eccHelper.encodeWithPubKeyString(
+              var encodedSymKey = eccHelper.encryptWithPubKeyStringUsingECDH(
                   account.publicKey, currentAccountToChat!.key);
               encryptedSymKeys.add(AccountIdToEncryptedSymKey(
                   accountId: account.accountId,

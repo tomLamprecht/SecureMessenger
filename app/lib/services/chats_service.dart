@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:my_flutter_test/models/account.dart';
+import 'package:my_flutter_test/models/chatkey.dart';
+import 'package:my_flutter_test/services/files/ecc_helper.dart';
 
 import '../custom_http_client.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';
@@ -15,19 +17,7 @@ class ChatsService {
   // im Frontend wird keypair generiert
   // mit pubkey verschlüssel
   //
-  Future<int?> createChat(String targetUserName) async {
-    final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
-    final headers = {'Content-Type': 'application/json'};
-    final body = json.encode({'targetUserName': targetUserName});
 
-    final response = await CustomHttpClient().post(url, headers: headers, body: body);
-    if (response.statusCode == 201) {
-      final chatId = json.decode(response.body)['chatId'];
-      return chatId;
-    } else {
-      return null;
-    }
-  }
 
   Future<int?> createNewChat(String chatName, String description, List<AccountIdToEncryptedSymKey> accountIdToEncryptedSymKeys) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
@@ -69,12 +59,13 @@ class ChatsService {
   }
 
 
-  Future<String?> getOwnSymmetricKeyOfChat(int chatId) async {
+  Future<Chatkey?> getOwnSymmetricKeyOfChat(int chatId) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/symmetric-key');
+    final headers = {'Content-Type': 'application/json'};
+    final response = await CustomHttpClient().get(url, headers:  headers);
 
-    final response = await CustomHttpClient().get(url);
     if (response.statusCode == 200) {
-      return response.body;
+      return Chatkey.fromJson(json.decode(response.body));
     } else {
       return null;
     }

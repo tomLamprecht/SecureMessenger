@@ -71,7 +71,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
         encryptedSymmetricKey: ownEncryptedSymKey));
     for (var account in accountsInChat) {
       var encodedSymKey =
-          eccHelper.encodeWithPubKeyString(account.publicKey, symKey);
+          eccHelper.encryptWithPubKeyStringUsingECDH(account.publicKey, symKey);
       encryptedSymKeys.add(AccountIdToEncryptedSymKey(
           accountId: account.accountId, encryptedSymmetricKey: encodedSymKey));
     }

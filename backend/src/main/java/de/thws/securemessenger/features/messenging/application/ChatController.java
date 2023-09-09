@@ -81,8 +81,8 @@ public class ChatController {
         return ResponseEntity.ok(chatToAccount.map(ChatToAccountResponse::new).get());
     }
 
-    @GetMapping(value= "/{chatId}/symmetric-key", produces = "text/plain")
-    public ResponseEntity<String> getOwnSymmetricKeyOfChat(@PathVariable long chatId) {
+    @GetMapping(value= "/{chatId}/symmetric-key")
+    public ResponseEntity<ChatKey> getOwnSymmetricKeyOfChat(@PathVariable long chatId) {
         return ResponseEntity.of(chatLogic.getSymmetricKey(currentAccount.getAccount(), chatId));
     }
 

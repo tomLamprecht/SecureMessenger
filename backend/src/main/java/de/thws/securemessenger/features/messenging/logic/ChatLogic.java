@@ -1,6 +1,7 @@
 package de.thws.securemessenger.features.messenging.logic;
 
 import de.thws.securemessenger.features.messenging.model.AccountIdToEncryptedSymKey;
+import de.thws.securemessenger.features.messenging.model.ChatKey;
 import de.thws.securemessenger.features.messenging.model.CreateNewChatRequest;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
@@ -34,11 +35,11 @@ public class ChatLogic {
         this.messageRepository = messageRepository;
     }
 
-    public Optional<String> getSymmetricKey(Account account, long chatId) {
+    public Optional<ChatKey> getSymmetricKey(Account account, long chatId) {
         Optional<Chat> chat = chatRepository.findById( chatId );
         if(chat.isEmpty())
             return Optional.empty();
-        return chatToAccountRepository.findChatToAccountByChatAndAccount(chat.get(), account).map(ChatToAccount::key);
+        return chatToAccountRepository.findChatToAccountByChatAndAccount(chat.get(), account).map( ChatKey::byChatToAccount);
     }
 
     @Transactional
@@ -74,7 +75,7 @@ public class ChatLogic {
         if (withAccount.isEmpty()){
             throw new InternalServerErrorException("Account with ID " + withAccountId + " does not exist, but was previously validated.");
         }
-        return new ChatToAccount(0, withAccount.get(), chat, encryptedSymmetricKey, withAccountId == currentAccount.id(), instantNowRepository.get(), null);
+        return new ChatToAccount(0, withAccount.get(), currentAccount, chat, encryptedSymmetricKey, withAccountId == currentAccount.id(), instantNowRepository.get(), null);
     }
 
     public void deleteChat(long chatId, Account account) {

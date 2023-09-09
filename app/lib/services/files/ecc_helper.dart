@@ -1,12 +1,17 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:ecdsa/ecdsa.dart';
+import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart' as ecc;
 import 'package:my_flutter_test/models/keypair.dart';
+import 'package:my_flutter_test/services/encryption_service.dart';
+import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
 import 'package:pointycastle/ecc/curves/secp256r1.dart';
+import 'dart:convert';
 
 class ECCHelper {
   String _encodeEcPublicKeyToPem(ECPublicKey publicKey) {
@@ -16,7 +21,6 @@ class ECCHelper {
     algorithm.add(ASN1ObjectIdentifier.fromName('ecPublicKey'));
     algorithm.add(ASN1ObjectIdentifier.fromName('prime256v1'));
     var subjectPublicKey = ASN1BitString(publicKey.Q!.getEncoded(false));
-
     outer.add(algorithm);
     outer.add(subjectPublicKey);
     var dataBase64 = base64.encode(outer.encodedBytes);
@@ -33,10 +37,15 @@ class ECCHelper {
   }
 
   String encodePubKeyForBackend(ecc.PublicKey pub) {
+    ECPublicKey pointyCastlePK = eccPublicKeyToPointyCastlePublicKey(pub);
+    return _encodeEcPublicKeyToPem(pointyCastlePK);
+  }
+
+  ECPublicKey eccPublicKeyToPointyCastlePublicKey(ecc.PublicKey pub) {
     var point = ECCurve_secp256r1().curve.createPoint(pub.X, pub.Y);
     var par = ECDomainParameters("secp256r1");
     var pointyCastlePK = ECPublicKey(point, par);
-    return _encodeEcPublicKeyToPem(pointyCastlePK);
+    return pointyCastlePK;
   }
 
   String sign(ecc.PrivateKey privateKey, String content) {
@@ -45,42 +54,88 @@ class ECCHelper {
         (i) => int.parse(hashHex.substring(i * 2, i * 2 + 2), radix: 16));
 
     var sig = signature(privateKey, hash);
-    
+
     return base64Encode(sig.toASN1());
   }
 
   String encodeWithPubKey(ecc.PublicKey publicKey, String content) {
-    // // 1. Derive a symmetric key from the public key
-    // var sharedKey = sha256.convert(publicKey.Q!.getEncoded(false)).bytes;
-    //
-    // // 2. Use the derived key for AES encryption
-    // final iv = IV.fromLength(16); // Generating a random Initialization Vector
-    // final encrypter = Encrypter(AES(Key(sharedKey), mode: AESMode.cbc));
-    //
-    // final encrypted = encrypter.encrypt(content, iv: iv);
-    //
-    // // 3. Combine the IV and the ciphertext for decryption later
-    // var combined = base64Encode(iv.bytes + encrypted.bytes);
-    //
-    // return combined;
-    return content;
+   return encryptForPkByAESAndECDH(eccPublicKeyToPointyCastlePublicKey(publicKey), content);
   }
 
-  String encodeWithPubKeyString(String publicKey, String content) {
-    // // 1. Derive a symmetric key from the public key
-    // var sharedKey = sha256.convert(publicKey.Q!.getEncoded(false)).bytes;
-    //
-    // // 2. Use the derived key for AES encryption
-    // final iv = IV.fromLength(16); // Generating a random Initialization Vector
-    // final encrypter = Encrypter(AES(Key(sharedKey), mode: AESMode.cbc));
-    //
-    // final encrypted = encrypter.encrypt(content, iv: iv);
-    //
-    // // 3. Combine the IV and the ciphertext for decryption later
-    // var combined = base64Encode(iv.bytes + encrypted.bytes);
-    //
-    // return combined;
-    return content;
+  String encryptWithPubKeyStringUsingECDH(String publicKey, String content) {
+    var key = publicKeyFromBase64String(publicKey);
+
+    return encryptForPkByAESAndECDH(key, content);
+
+  }
+
+  String encryptForPkByAESAndECDH(ECPublicKey key, String content) {
+    var secret = computeSecretHex(EccKeyStore().privateKey!, fromPointyCastlePkToEllipticPk(key));
+    var sharedKey = sha256.convert(utf8.encode(secret));
+
+    return aesEncrypt(content, base64.encode(sharedKey.bytes) );
+  }
+
+  ecc.PublicKey fromPointyCastlePkToEllipticPk(ECPublicKey key) {
+     return ecc.PublicKey.fromPoint(ecc.getP256(), ecc.AffinePoint.fromXY(key.Q!.x!.toBigInteger()!, key.Q!.y!.toBigInteger()!));
+  }
+
+  String decryptByAESAndECDHUsingString(String key, String cypher){
+    var keyObj = publicKeyFromBase64String(key);
+
+    return decryptByAESAndECDH(keyObj, cypher);
+  }
+
+  String decryptByAESAndECDH(ECPublicKey key, String cypher){
+    ecc.PublicKey public = fromPointyCastlePkToEllipticPk(key);
+    var secret = computeSecretHex(EccKeyStore().privateKey!, public);
+    var sharedKey = sha256.convert(utf8.encode(secret));
+    
+    return aesDecrypt(cypher, base64.encode(sharedKey.bytes));
+  }
+
+
+
+  String bytesToHex(Uint8List bytes) {
+    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('');
+  }
+
+  Uint8List hexToBytes(String hex) {
+    final result = Uint8List.fromList(List<int>.generate(
+        hex.length ~/ 2,
+        (index) =>
+            int.parse(hex.substring(index * 2, index * 2 + 2), radix: 16)));
+    return result;
+  }
+
+  ECPublicKey publicKeyFromBase64String(String base64String) {
+    final publicKeyBytes = base64Decode(base64String.replaceAll("\n", "").replaceAll("\r", ""));
+
+    final asn1Parser = ASN1Parser(Uint8List.fromList(publicKeyBytes));
+    final outer = asn1Parser.nextObject() as ASN1Sequence;
+
+
+    final publicKeyBitString = outer.elements[1] as ASN1BitString;
+    final publicKeyAsBytes = publicKeyBitString.stringValue as Uint8List;
+
+    final params = ECDomainParameters("secp256r1");
+    final curve = params.curve;
+    final point = curve.decodePoint(publicKeyAsBytes);
+
+    return ECPublicKey(point, params);
+  }
+
+
+  String decryptWithOwnPrivateKey(String encryptedMessage) {
+    final params = ECDomainParameters("secp256r1");
+    final privateKey = ECPrivateKey(EccKeyStore().privateKey?.D, params);
+    final BigInt decryptedMessage =
+        BigInt.parse(encryptedMessage) ~/ privateKey.d!;
+    print(decryptedMessage);
+    final List<int> decodedBytes =
+        hexToBytes(decryptedMessage.toRadixString(16));
+
+    return utf8.decode(decodedBytes);
   }
 
   ecc.PrivateKey parsePrivateKeyFromHexString(String hex) {

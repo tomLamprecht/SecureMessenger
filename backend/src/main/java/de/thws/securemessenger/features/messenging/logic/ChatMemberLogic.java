@@ -70,7 +70,7 @@ public class ChatMemberLogic {
 
         List<ChatToAccount> newChatToAccounts = accountsToAdd
                 .stream()
-                .map(account -> new ChatToAccount(0, account, chat, accountToSymmetricKey.get(account.id()), false, instantNowRepository.get(), null))
+                .map(account -> new ChatToAccount(0, account, currentAccount, chat, accountToSymmetricKey.get(account.id()), false, instantNowRepository.get(), null))
                 .toList();
         chatToAccountRepository.saveAll(newChatToAccounts);
     }
