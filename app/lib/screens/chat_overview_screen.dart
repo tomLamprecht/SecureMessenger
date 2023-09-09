@@ -42,8 +42,8 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
 
   Future<String?> _getImageFromDatabase(int chatId) async {
     var chatToAcc = await ChatsService().getChatToUser(chatId);
-    String? encodedPic = chatToAcc?.chat?.encodedGroupPic;
-    if (chatToAcc != null && chatToAcc.chat != null && encodedPic != null) {
+    String? encodedPic = chatToAcc?.chat.encodedGroupPic;
+    if (chatToAcc != null && encodedPic != null) {
       return encodedPic;
     }
     return null;
@@ -112,6 +112,17 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
         ),
         body: Column(
           children: [
+            const SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: () async {
+                await initialize();
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+              ),
+              child: const Text("Refresh", style: TextStyle(fontSize: 18)),
+            ),
+            const SizedBox(height: 15),
             if (chats!.isEmpty)
               Column(
                   children: [
@@ -131,16 +142,6 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await initialize();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                      ),
-                      child: const Text("Refresh", style: TextStyle(fontSize: 18)),
                     ),
                   ],
               )

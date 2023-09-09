@@ -123,11 +123,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 
   void _redirectToChatOverview() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
             builder: (context) => ChatOverviewPage()
-        )
+        ),
+        (route) => false
     );
   }
 

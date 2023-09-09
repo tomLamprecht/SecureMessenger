@@ -82,7 +82,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
     if(chatId == null) {
       return;
     }
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => ChatScreen(chatId: chatId, chatTitle: chatName)),
     );

@@ -60,11 +60,12 @@ class LoginScreenState extends State<LoginScreen> {
       });
 
       if (success) {
-        Navigator.push(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (context) => ChatOverviewPage(),
           ),
+            (route) => false,
         );
       } else {
         _showAlertDialog('Error during the login process: Either the certificate is invalid or the account does not exist.');
