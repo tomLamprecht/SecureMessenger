@@ -1,9 +1,14 @@
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/account.dart';
 import 'package:my_flutter_test/services/account_service.dart';
 import '../services/friendship_service.dart';
 import '../widgets/hoverable_button.dart';
+import 'manage_profil_screen.dart';
+import 'other_profil_screen.dart';
 
 
 
@@ -14,21 +19,25 @@ class FriendRequestPage extends StatefulWidget {
 
 class _FriendRequestPageState extends State<FriendRequestPage> {
   List<Account> _accountList = [];
+  List<Account> _friendsList = [];
 
   final FriendshipService friendshipService = FriendshipService();
   final AccountService accountService = AccountService();
 
   List<bool> _isClearButtonHoveringList = [];
   List<bool> _isCheckButtonHoveringList = [];
+  List<bool> _isClearButtonFriendHoveringList = [];
 
   final TextEditingController _usernameController = TextEditingController();
   final FocusNode _usernameFocusNode = FocusNode();
 
   Future<void> _getFriendshipRequests() async {
     _accountList = await friendshipService.getFriendshipRequests();
+    _friendsList = await friendshipService.getFriendships();
 
     _isClearButtonHoveringList = List.generate(_accountList.length, (_) => false);
     _isCheckButtonHoveringList = List.generate(_accountList.length, (_) => false);
+    _isClearButtonFriendHoveringList = List.generate(_friendsList.length, (_) => false);
   }
 
   void _removeFriend(int index) {
@@ -37,6 +46,22 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
       _isClearButtonHoveringList.removeAt(index);
       _isCheckButtonHoveringList.removeAt(index);
     });
+  }
+
+  void _deleteFriendFromFriendlist(int index){
+    setState(() {
+      _accountList.removeAt(index);
+      _isClearButtonFriendHoveringList.removeAt(index);
+    });
+  }
+
+  Future<String?> _getImageFromDatabase(String username) async {
+    var account = await AccountService().getAccountByUsername(username);
+    String? encodedPic = account?.encodedProfilePic;
+    if (account != null &&  encodedPic != null) {
+      return encodedPic;
+    }
+    return null;
   }
 
   @override
@@ -166,6 +191,77 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                     }
                     ),
                   ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _friendsList.length,
+                  itemBuilder: (context, index) {
+                    Account account = _friendsList[index];
+                    return ListTile(
+                      leading: FutureBuilder<String?>(
+                        future: _getImageFromDatabase(account.userName),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
+                            return Text('Error: ${snapshot.error}');
+                          } else if (snapshot.hasData && snapshot.data != null) {
+                            // Zeige das Bild aus der Datenbank
+                            final encodedPic = snapshot.data!;
+                            final imageData = Uint8List.fromList(base64Decode(encodedPic));
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundImage: MemoryImage(imageData),
+                            );
+                          } else {
+
+                            return const Icon(Icons.person);
+
+                          }
+                        },
+                      ),
+                      title: Text(account.userName),
+                      // subtitle: Text(account.publicKey),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          HoverableIconButton( //Löschen des freundes
+                              icon: Icons.clear,
+                              hoverColor: Colors.redAccent,
+                              onPressed: () async {
+                                if (await friendshipService.deleteFriendFromFriendlist(account.accountId)){
+                                  _deleteFriendFromFriendlist(index);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('${account
+                                          .userName} erfolgreich gelöscht.'),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Anfrage fehlgeschlagen.'),
+                                    ),
+                                  );
+                                }
+                              }
+                          ),
+                          HoverableIconButton(icon: Icons.manage_accounts_sharp, hoverColor: Colors.greenAccent, onPressed: () async { //Profil aufrufen können
+                            final bool? shouldRefresh = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(builder: (context) => OtherProfilScreen(username: account.userName, publicKey: account.publicKey)),
+                            );
+                            if (shouldRefresh ?? false) {
+                              setState(() {
+
+                              });
+                            }
+                          },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

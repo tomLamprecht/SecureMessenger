@@ -55,14 +55,6 @@ public class FriendshipController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{toAccountId:[0-9+]}")
-    public ResponseEntity<Void> deleteFriendship(@PathVariable long toAccountId) {
-        if (friendshipRequestService.deleteFriendshipRequest(currentAccount.getAccount(), toAccountId)){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
-    }
-
     @GetMapping()
     public ResponseEntity<List<FriendshipResponse>> getAllFriendships() {
         return ResponseEntity.ok(friendshipRequestService.getAllAcceptedFriendships(currentAccount.getAccount()));
@@ -88,5 +80,13 @@ public class FriendshipController {
     @GetMapping("/outgoing")
     public ResponseEntity<List<Friendship>> getOutgoingFriendshipRequests(@RequestParam(defaultValue = "false") boolean showOnlyPending){
         return ResponseEntity.ok(friendshipRequestService.getAllOutgoingFriendshipRequests(currentAccount.getAccount(), showOnlyPending));
+    }
+
+    @DeleteMapping("/{toAccountId:[0-9+]}")
+    public ResponseEntity<Void> deleteFriendship(@PathVariable long toAccountId) {
+        if (friendshipRequestService.deleteFriendshipRequest(currentAccount.getAccount(), toAccountId)){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

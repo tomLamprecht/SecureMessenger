@@ -74,4 +74,17 @@ class FriendshipService {
       return false;
     }
   }
+
+  Future<bool> deleteFriendFromFriendlist(int accountId) async { //TODO: anpassen, auch im Backend
+    final url = Uri.parse('${ApiConfig.httpBaseUrl}/friendships/$accountId');
+    final headers = {'Content-Type': 'application/json'};
+
+    final response = await CustomHttpClient().delete(url, headers: headers);
+
+    if (response.statusCode == 204) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

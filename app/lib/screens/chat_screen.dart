@@ -12,6 +12,7 @@ import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/webserver_message_type.dart';
+import '../services/account_service.dart';
 import '../services/chats_service.dart';
 import '../services/encryption_service.dart';
 import '../services/files/download_service/download_service.dart';
@@ -430,6 +431,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   } else if (snapshot.hasData && snapshot.data != null) {
                     // Zeige das Bild aus der Datenbank
                     final encodedPic = snapshot.data!;
+                    // final decryptPic = aesDecrypt(encodedPic, "password");
                     final imageData = Uint8List.fromList(base64Decode(encodedPic));
                     return CircleAvatar(
                       radius: 20,
@@ -557,14 +559,44 @@ class _ChatMessageState extends State<ChatMessage> {
     );
   }
 
+  Future<String?> _getImageFromDatabase(String username) async {
+    var account = await AccountService().getAccountByUsername(username);
+
+    String? encodedPic = account?.encodedProfilePic;
+
+    if (account != null &&  encodedPic != null) {
+      return encodedPic;
+    }
+    return null;
+  }
+
+  //TODO: sieht irgendwie noch hässlch aus
   Widget _buildUserAvatar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: CircleAvatar(
-        backgroundColor: _getColorFromUserName(widget.fromUserName),
-        foregroundColor: Colors.white,
-        child: Text(widget.fromUserName[0].toUpperCase()),
-      ),
+        margin: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: FutureBuilder<String?>(
+          future: _getImageFromDatabase(widget.fromUserName),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
+              return Text('Error: ${snapshot.error}');
+            } else if (snapshot.hasData && snapshot.data != null) {
+              // Zeige das Bild aus der Datenbank
+              final encodedPic = snapshot.data!;
+              final imageData = Uint8List.fromList(base64Decode(encodedPic));
+              return CircleAvatar(
+                radius: 20,
+                backgroundImage: MemoryImage(imageData),
+              );
+            } else {
+              return CircleAvatar(
+                    backgroundColor: _getColorFromUserName(widget.fromUserName),
+                    foregroundColor: Colors.white,
+                    child: Text(widget.fromUserName[0].toUpperCase()),
+                  );
+            }
+          },
+        )
     );
   }
 

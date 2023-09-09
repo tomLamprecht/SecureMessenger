@@ -1,20 +1,21 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:html';
+
 import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/screens/chat_overview_screen.dart';
+
 import 'package:my_flutter_test/services/friendship_service.dart';
 import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 
 import '../models/account.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';
-import '../models/chat.dart';
+
 import '../models/chat_to_account.dart';
 import '../services/chats_service.dart';
+import '../services/encryption_service.dart';
 import '../services/files/ecc_helper.dart';
 
 ValueNotifier<List<Account>> membersNotifier = ValueNotifier<List<Account>>([]);
@@ -155,6 +156,7 @@ class GroupHeader extends StatefulWidget {
 class _GroupHeaderState extends State<GroupHeader> {
   Uint8List? _chosenFile;
   bool hasGroupPic = true;
+  late String key;
 
   // GroupHeader({required this.group});
 
@@ -169,9 +171,11 @@ class _GroupHeaderState extends State<GroupHeader> {
       if (['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase())) {
         Uint8List imageBytes = file.bytes!;
         // Blob imageBlob = Blob(imageBytes);
-
-        if(await ChatsService().updateGroupPicFromChat(base64Encode(imageBytes), widget.group.chatId))
-          {
+        String? key = await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
+        if(key != null){
+          this.key = key;
+          // if(await ChatsService().updateGroupPicFromChat(aesEncrypt(base64Encode(imageBytes), "password"), widget.group.chatId))
+          if(await ChatsService().updateGroupPicFromChat(base64Encode(imageBytes), widget.group.chatId)){
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Bild erfolgreich hochgeladen'),
@@ -181,13 +185,13 @@ class _GroupHeaderState extends State<GroupHeader> {
               _chosenFile = imageBytes;
             });
           } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Fehler beim speichern des Bildes.'),
-            ),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Fehler beim speichern des Bildes.'),
+              ),
+            );
+          }
         }
-
       } else {
         // Datei ist kein Bild mit erlaubter Erweiterung
         ScaffoldMessenger.of(context).showSnackBar(
@@ -254,6 +258,7 @@ class _GroupHeaderState extends State<GroupHeader> {
                 } else if (snapshot.hasData && snapshot.data != null) {
                   // Zeige das Bild aus der Datenbank
                   final encodedPic = snapshot.data!;
+                  // final decryptPic = aesDecrypt(encodedPic, "password");
                   final imageData = Uint8List.fromList(base64Decode(encodedPic));
                   return CircleAvatar(
                     radius: 100,
@@ -261,7 +266,7 @@ class _GroupHeaderState extends State<GroupHeader> {
                   );
                 } else {
                   // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
-                  return CircleAvatar(
+                  return const CircleAvatar(
                     radius: 80,
                     backgroundColor: Colors.blue,
                     child: Icon(
