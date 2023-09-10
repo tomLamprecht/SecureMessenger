@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import '../custom_http_client.dart';
 import '../models/AttachedFile.dart';
+import '../models/chatkey.dart';
 import '../models/message.dart';
 import 'api/api_config.dart';
 
@@ -53,23 +55,25 @@ Future<List<Message>> readAllMessages(int chatId, int amount, int latestMessageI
   }
 }
 
-Future<String?> getKeyOfChat(int chatId) async {
+Future<Chatkey?> getKeyOfChat(int chatId) async {
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/symmetric-key');
-  final headers = {'Content-Type': 'application/json'};
-
-  final response = await CustomHttpClient().get(url, headers: headers);
+  final headers = {'Content-Type': 'application/json',
+  'Accept' :'application/json' };
+  final response = await CustomHttpClient().get(url, headers:  headers);
+  print("${response.statusCode}");
   if (response.statusCode == 200) {
-    return response.body;
+    return Chatkey.fromJson(json.decode(response.body));
   } else {
     return null;
   }
+
 }
 
 Future<String> getSessionKey(int chatId) async{
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/messages/subscription');
   final headers = {'Content-Type': 'application/json'};
-
   final response = await CustomHttpClient().get(url, headers: headers);
+
   if (response.statusCode == 200) {
     return json.decode(response.body)['session'];
   } else {
