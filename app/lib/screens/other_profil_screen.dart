@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/services/account_service.dart';
+import 'package:my_flutter_test/services/stores/public_account_information_store.dart';
 import '../services/chats_service.dart';
 import '../services/stores/who_am_i_store.dart';
 
@@ -24,11 +25,11 @@ class _OtherProfilScreenState extends State<OtherProfilScreen> {
 
   Future<String?> _getImageFromDatabase(String username) async {
 
-    var account = await AccountService().getAccountByUsername(username);
+    var account = await AccountInformationStore().getPublicInformationByUsername(username);
 
-    String? encodedPic = account?.encodedProfilePic;
+    String? encodedPic = account.encodedProfilePic;
 
-    if (account != null &&  encodedPic != null) {
+    if (encodedPic != null) {
       return encodedPic;
     }
     return null;

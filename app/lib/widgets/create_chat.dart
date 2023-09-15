@@ -93,7 +93,6 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
     setState(() {
       accounts = result;
     });
-    print("got Friends in createChat");
   }
 
   @override

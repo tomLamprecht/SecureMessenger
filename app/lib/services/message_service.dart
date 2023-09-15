@@ -60,7 +60,6 @@ Future<Chatkey?> getKeyOfChat(int chatId) async {
   final headers = {'Content-Type': 'application/json',
   'Accept' :'application/json' };
   final response = await CustomHttpClient().get(url, headers:  headers);
-  print("${response.statusCode}");
   if (response.statusCode == 200) {
     return Chatkey.fromJson(json.decode(response.body));
   } else {

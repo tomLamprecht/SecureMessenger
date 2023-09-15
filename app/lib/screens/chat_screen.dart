@@ -9,6 +9,7 @@ import 'package:my_flutter_test/models/message.dart';
 import 'package:my_flutter_test/screens/chat_details_screen.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/ecc_helper.dart';
+import 'package:my_flutter_test/services/stores/public_account_information_store.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
@@ -47,7 +48,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   String? encodedGroupPicture;
 
   bool _isComposing = false;
-  bool _isImage = false;
   int? expirationTimerSecs;
 
   ChatScreenState({required this.chatId});
@@ -543,14 +543,12 @@ class _ChatMessageState extends State<ChatMessage> {
   }
 
   Future<String?> _getImageFromDatabase(String username) async {
-    var account = await AccountService().getAccountByUsername(username);
 
-    String? encodedPic = account?.encodedProfilePic;
+    var accountInformation = await AccountInformationStore().getPublicInformationByUsername(username);
 
-    if (account != null &&  encodedPic != null) {
-      return encodedPic;
-    }
-    return null;
+    String? encodedPic = accountInformation.encodedProfilePic;
+
+    return encodedPic;
   }
 
   //TODO: sieht irgendwie noch hässlch aus

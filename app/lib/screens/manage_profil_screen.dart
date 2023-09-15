@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/services/account_service.dart';
 import '../services/chats_service.dart';
+import '../services/stores/public_account_information_store.dart';
 import '../services/stores/who_am_i_store.dart';
 
 class ManageProfilPage extends StatefulWidget {
@@ -78,14 +79,18 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
     }
   }
 
-  //TODO: Abänderung auf ACCount
   Future<String?> _getImageFromDatabase() async {
+      var username = WhoAmIStore().username;
 
-      var account = await AccountService().getAccountProfilPic();
+      if (username == null) {
+        throw Exception("No user is signed in, but the regarding profile picture is requested.");
+      }
 
-      String? encodedPic = account?.encodedProfilePic;
+      var account = await AccountInformationStore().getPublicInformationByUsername(username);
 
-      if (account != null &&  encodedPic != null) {
+      String? encodedPic = account.encodedProfilePic;
+
+      if (encodedPic != null) {
         return encodedPic;
       }
     return null;

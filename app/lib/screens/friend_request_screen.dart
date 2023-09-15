@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/account.dart';
 import 'package:my_flutter_test/services/account_service.dart';
+import 'package:my_flutter_test/services/stores/public_account_information_store.dart';
 import '../services/friendship_service.dart';
 import '../widgets/hoverable_button.dart';
 import 'manage_profil_screen.dart';
@@ -56,9 +57,9 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
   }
 
   Future<String?> _getImageFromDatabase(String username) async {
-    var account = await AccountService().getAccountByUsername(username);
-    String? encodedPic = account?.encodedProfilePic;
-    if (account != null &&  encodedPic != null) {
+    var account = await AccountInformationStore().getPublicInformationByUsername(username);
+    String? encodedPic = account.encodedProfilePic;
+    if (encodedPic != null) {
       return encodedPic;
     }
     return null;
@@ -275,24 +276,15 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
     username = username.trim();
 
     if (username.isNotEmpty) {
-      Account? account = await accountService.getAccountByUsername(username);
+      var account = await AccountInformationStore().getPublicInformationByUsername(username);
 
-      if (account != null) {
-
-        if (await friendshipService.postFriendshipRequest(account.accountId)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Freundschaftsanfrage erfolgreich ${account.userName} gesendet.'),
-            ),
-          );
-          _usernameController.text = "";
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Anfrage fehlgeschlagen.'),
-            ),
-          );
-        }
+      if (await friendshipService.postFriendshipRequest(account.accountId)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Freundschaftsanfrage erfolgreich ${account.userName} gesendet.'),
+          ),
+        );
+        _usernameController.text = "";
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
