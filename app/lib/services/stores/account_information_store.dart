@@ -24,4 +24,12 @@ class AccountInformationStore {
       return accountInformation;
     }
   }
+
+  void updatePublicInformation(Account account) {
+    cachedAccounts[account.userName] = account;
+  }
+
+  void invalidateCache() {
+    cachedAccounts = {};
+  }
 }

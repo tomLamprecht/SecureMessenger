@@ -9,7 +9,7 @@ import 'package:my_flutter_test/models/message.dart';
 import 'package:my_flutter_test/screens/chat_details_screen.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/ecc_helper.dart';
-import 'package:my_flutter_test/services/stores/public_account_information_store.dart';
+import 'package:my_flutter_test/services/stores/account_information_store.dart';
 import 'package:my_flutter_test/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
@@ -422,7 +422,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     );
                   } else {
                     // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
-                    return CircleAvatar(
+                    return const CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.blue,
                       child: Icon(
@@ -548,34 +548,36 @@ class _ChatMessageState extends State<ChatMessage> {
 
     String? encodedPic = accountInformation.encodedProfilePic;
 
+    if (encodedPic == null) {
+      return null;
+    }
+
     return encodedPic;
   }
 
-  //TODO: sieht irgendwie noch hässlch aus
   Widget _buildUserAvatar() {
     return Container(
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
         child: FutureBuilder<String?>(
           future: _getImageFromDatabase(widget.fromUserName),
           builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
-              return Text('Error: ${snapshot.error}');
+            if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+              SnackBar(
+                backgroundColor: Colors.red,
+                content: Text('Error: ${snapshot.error}'),
+              );
             } else if (snapshot.hasData && snapshot.data != null) {
-              // Zeige das Bild aus der Datenbank
-              final encodedPic = snapshot.data!;
-              final imageData = Uint8List.fromList(base64Decode(encodedPic));
+              final imageData = Uint8List.fromList(base64Decode(snapshot.data!));
               return CircleAvatar(
                 radius: 20,
                 backgroundImage: MemoryImage(imageData),
               );
-            } else {
-              return CircleAvatar(
-                    backgroundColor: _getColorFromUserName(widget.fromUserName),
-                    foregroundColor: Colors.white,
-                    child: Text(widget.fromUserName[0].toUpperCase()),
-                  );
             }
+            return CircleAvatar(
+              backgroundColor: _getColorFromUserName(widget.fromUserName),
+              foregroundColor: Colors.white,
+              child: Text(widget.fromUserName[0].toUpperCase()),
+            );
           },
         )
     );

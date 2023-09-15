@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/models/account.dart';
 import 'package:my_flutter_test/services/account_service.dart';
-import 'package:my_flutter_test/services/stores/public_account_information_store.dart';
+import 'package:my_flutter_test/services/stores/account_information_store.dart';
 import '../services/friendship_service.dart';
 import '../widgets/hoverable_button.dart';
 import 'manage_profil_screen.dart';
