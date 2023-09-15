@@ -334,28 +334,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ),
         Row(
           children: <Widget>[
-            PopupMenuButton<String>(
+            IconButton(
               icon: const Icon(Icons.add),
-              onSelected: (value) {
-                switch (value.toLowerCase()) {
-                  case 'files':
-                    _pickFile();
-                    break;
-                  case 'camera':
-                    _captureImage();
-                    break;
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
-                  value: 'files',
-                  child: Text('Files'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'camera',
-                  child: Text('Camera'),
-                ),
-              ],
+              onPressed: _pickFile
             ),
             Flexible(
               child: TextField(
