@@ -1,5 +1,5 @@
 class ApiConfig {
   static String httpBaseUrl = 'http://$baseUrl';
   static String websocketBaseUrl = 'ws://$baseUrl' ;
-  static String baseUrl = "localhost:8080";
+  static String baseUrl = Uri.base.origin.replaceAll("http://", "").replaceAll("https://", "");
 }
