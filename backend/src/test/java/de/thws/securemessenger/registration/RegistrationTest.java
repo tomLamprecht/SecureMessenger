@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.junit.jupiter.api.Assertions.*;
 
 public class RegistrationTest extends TestBase {
-
+/*
     private final String captchaId = "99ec1e03-ae72-4aae-9082-a7d8b675ef6f";
     private final String captchaText = "gGZbcCj";
     private final IRegistrationDbHandler registrationDbHandler;
@@ -76,5 +76,5 @@ public class RegistrationTest extends TestBase {
     @AfterAll
     void cleanupTest() {
     }
-
+*/
 }

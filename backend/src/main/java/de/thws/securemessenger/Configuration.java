@@ -32,15 +32,10 @@ public class Configuration implements WebMvcConfigurer {
     @Override
     public void addInterceptors( InterceptorRegistry registry ) {
         registry.addInterceptor( authenticationInterceptor )
-                .excludePathPatterns(
-                        "/error",
-                        "/users/register",
-                        "/register",
-                        "/register/**",
-                        "/captcha",
-                        "/captcha/**",
-                        "/swagger",
-                        "/api-docs"
+                .addPathPatterns(
+                        "/accounts/**",
+                        "/chats/**",
+                        "/friendships/**"
                 );
     }
 

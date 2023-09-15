@@ -1,15 +1,30 @@
 version: '3.9'
 
+volumes:
+  data:
+
 services:
   db:
-    image: postgres:latest
+    build: ./database
+    container_name: messenger-db
     restart: always
-    environment:
-      POSTGRES_USER: messenger
-      POSTGRES_PASSWORD: WrP3w336gbR2DIUztKjSF4istgp4b2qHW7E43det
-      POSTGRES_DB: messenger
     volumes:
-      - ./data:/var/lib/postgresql/data
-      - ./database/migration:/docker-entrypoint-initdb.d/
+      - data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+
+  app:
+    depends_on:
+      - db
+    build: .
+    container_name: messenger-app
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SERVER=db
+    links:
+      - db
+
+
+

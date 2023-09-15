@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class MessageTestStub implements MessageRepository {
-
+/*
     private final Map<Long, Message> messageMap = new HashMap<>();
     private final AtomicLong counter = new AtomicLong(1);
 
@@ -32,5 +32,5 @@ public abstract class MessageTestStub implements MessageRepository {
         messageMap.put( counter.get(), message );
         Message result = new Message( counter.getAndIncrement(), message.fromUser(), message.chat(), message.value(), new LinkedList<>(), message.timeStamp() );
         return result.id();
-    }
+    }*/
 }

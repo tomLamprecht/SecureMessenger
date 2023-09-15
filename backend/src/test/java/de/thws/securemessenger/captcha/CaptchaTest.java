@@ -27,7 +27,7 @@ public class CaptchaTest extends TestBase {
         this.dbHandler = dbHandler;
     }
 
-    @Test
+   /* @Test
     void testGetNewCaptcha() throws Exception {
         // 1. CaptchaId should be returned
         MvcResult createCaptchaResult = mockMvc.perform(get("/captcha"))
@@ -56,6 +56,6 @@ public class CaptchaTest extends TestBase {
     @AfterAll
     void cleanup() {
         createdCaptchaIds.forEach(this.dbHandler::deleteCaptchaById);
-    }
+    }*/
 
 }

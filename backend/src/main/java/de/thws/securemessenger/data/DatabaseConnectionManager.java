@@ -15,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class DatabaseConnectionManager {
-    private static final String url = "jdbc:postgresql://localhost:5432/messenger";
+    private static final String url = "jdbc:postgresql://"+ System.getenv("DB_SERVER") +"/messenger";
     private static final String user = "messenger";
     private static final String password = "WrP3w336gbR2DIUztKjSF4istgp4b2qHW7E43det";
 
