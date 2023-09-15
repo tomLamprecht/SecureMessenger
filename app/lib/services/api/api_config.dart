@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String httpBaseUrl = 'http://$baseUrl';
-  static const String websocketBaseUrl = 'ws://$baseUrl' ;
-  static const String baseUrl = 'localhost:8080';
+  static String httpBaseUrl = 'http://$baseUrl';
+  static String websocketBaseUrl = 'ws://$baseUrl' ;
+  static String baseUrl = Uri.base.origin;
 }
