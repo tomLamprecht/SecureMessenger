@@ -12,44 +12,41 @@ import java.util.Optional;
 @Entity
 public class Account {
     @Id
-    @GeneratedValue(generator = "randomLong")
-    @GenericGenerator(name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier")
+    @GeneratedValue( generator = "randomLong" )
+    @GenericGenerator( name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier" )
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column( unique = true, nullable = false )
     private String username;
-    @Column(length = 1000, unique = true, nullable = false)
+    @Column( length = 1000, unique = true, nullable = false )
     private String publicKey;
 
     @CreationTimestamp
     private LocalDateTime joinedAt;
 
-    @OneToMany(mappedBy = "account", fetch = FetchType.EAGER)
+    @OneToMany( mappedBy = "account", fetch = FetchType.EAGER )
     private List<ChatToAccount> chatToAccounts;
 
-    @OneToMany(mappedBy = "fromAccount", fetch = FetchType.EAGER)
+    @OneToMany( mappedBy = "toAccount", fetch = FetchType.EAGER )
     private List<Friendship> incomingFriendships;
 
-    @OneToMany(mappedBy = "toAccount", fetch = FetchType.EAGER)
+    @OneToMany( mappedBy = "fromAccount", fetch = FetchType.EAGER )
     private List<Friendship> outgoingFriendships;
 
-//    @Lob
-//    private byte[] encodedProfilePic;
-
-    @Column(columnDefinition = "TEXT")
+    @Column( columnDefinition = "TEXT" )
     private String encodedProfilePic;
 
     public Account() {
     }
 
-    public Account(long id, String username, String publicKey, LocalDateTime joinedAt) {
+    public Account( long id, String username, String publicKey, LocalDateTime joinedAt ) {
         this.id = id;
         this.username = username;
         this.publicKey = publicKey;
         this.joinedAt = joinedAt;
     }
 
-    public Account(long id, String username, String publicKey, LocalDateTime joinedAt, String encodedProfilePic) {
+    public Account( long id, String username, String publicKey, LocalDateTime joinedAt, String encodedProfilePic ) {
         this.id = id;
         this.username = username;
         this.publicKey = publicKey;
@@ -57,7 +54,7 @@ public class Account {
         this.encodedProfilePic = encodedProfilePic;
     }
 
-    public Account(String username, String publicKey, LocalDateTime joinedAt) {
+    public Account( String username, String publicKey, LocalDateTime joinedAt ) {
         this.id = 0L;
         this.username = username;
         this.publicKey = publicKey;
@@ -65,24 +62,28 @@ public class Account {
     }
 
     public List<Chat> chats() {
-        return chatToAccounts.stream().map(ChatToAccount::chat).toList();
+        return chatToAccounts.stream().map( ChatToAccount::chat ).toList();
     }
 
     public List<Friendship> friendships() {
-        List<Friendship> friendships = new ArrayList<>(incomingFriendships);
-        friendships.addAll(outgoingFriendships);
+        List<Friendship> friendships = new ArrayList<>( incomingFriendships );
+        friendships.addAll( outgoingFriendships );
         return friendships;
     }
 
-    public boolean isFriendsWith(Account other) {
-        return friendshipWith(other).isPresent();
+    public Optional<Friendship> getIncomingFriendshipWith( Account other ) {
+        return incomingFriendships.stream().filter( f -> f.fromAccount.id.equals(other.id) ).findAny();
     }
 
-    public Optional<Friendship> friendshipWith(Account other) {
+    public boolean isFriendsWith( Account other ) {
+        return friendshipWith( other ).isPresent();
+    }
+
+    public Optional<Friendship> friendshipWith( Account other ) {
         return friendships()
                 .stream()
-                .filter(Friendship::accepted)
-                .filter(friendship -> friendship.toAccount().id() == other.id && friendship.fromAccount.id() == id || friendship.fromAccount().id() == other.id && friendship.toAccount.id() == id)
+                .filter( Friendship::accepted )
+                .filter( friendship -> friendship.toAccount().id() == other.id && friendship.fromAccount.id() == id || friendship.fromAccount().id() == other.id && friendship.toAccount.id() == id )
                 .findAny();
     }
 
@@ -90,7 +91,7 @@ public class Account {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId( long id ) {
         this.id = id;
     }
 
@@ -98,7 +99,7 @@ public class Account {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername( String username ) {
         this.username = username;
     }
 
@@ -106,7 +107,7 @@ public class Account {
         return publicKey;
     }
 
-    public void setPublicKey(String publicKey) {
+    public void setPublicKey( String publicKey ) {
         this.publicKey = publicKey;
     }
 
@@ -114,7 +115,7 @@ public class Account {
         return joinedAt;
     }
 
-    public void setJoinedAt(LocalDateTime joinedAt) {
+    public void setJoinedAt( LocalDateTime joinedAt ) {
         this.joinedAt = joinedAt;
     }
 
@@ -122,7 +123,7 @@ public class Account {
         return chatToAccounts;
     }
 
-    public void setChatToAccounts(List<ChatToAccount> chatToAccounts) {
+    public void setChatToAccounts( List<ChatToAccount> chatToAccounts ) {
         this.chatToAccounts = chatToAccounts;
     }
 
@@ -130,7 +131,7 @@ public class Account {
         return incomingFriendships;
     }
 
-    public void setIncomingFriendships(List<Friendship> incomingFriendships) {
+    public void setIncomingFriendships( List<Friendship> incomingFriendships ) {
         this.incomingFriendships = incomingFriendships;
     }
 
@@ -138,17 +139,17 @@ public class Account {
         return outgoingFriendships;
     }
 
-    public void setOutgoingFriendships(List<Friendship> outgoingFriendships) {
+    public void setOutgoingFriendships( List<Friendship> outgoingFriendships ) {
         this.outgoingFriendships = outgoingFriendships;
     }
 
-    public String encodedProfilePic( )
-    {
+    public String encodedProfilePic() {
         return encodedProfilePic;
     }
 
-    public void setEncodedProfilePic( String encodedProfilePic )
-    {
+    public void setEncodedProfilePic( String encodedProfilePic ) {
         this.encodedProfilePic = encodedProfilePic;
     }
+
+
 }

@@ -6,7 +6,8 @@ import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
 import de.thws.securemessenger.model.Friendship;
 import de.thws.securemessenger.repositories.AccountRepository;
 import de.thws.securemessenger.repositories.FriendshipRepository;
-import jakarta.persistence.EntityManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,15 +18,15 @@ import java.util.Optional;
 @Service
 public class FriendshipService {
 
+    private static final Logger logger = LoggerFactory.getLogger( FriendshipService.class );
+
     private final FriendshipRepository friendshipRepository;
     private final AccountRepository accountRepository;
-    private final EntityManager entityManager;
 
     @Autowired
-    public FriendshipService(FriendshipRepository friendshipRepository, AccountRepository accountRepository, EntityManager entityManager) {
+    public FriendshipService(FriendshipRepository friendshipRepository, AccountRepository accountRepository) {
         this.friendshipRepository = friendshipRepository;
         this.accountRepository = accountRepository;
-        this.entityManager = entityManager;
     }
 
     public Optional<Long> handleFriendshipRequest(Account currentAccount, long toAccountId) {
@@ -88,12 +89,16 @@ public class FriendshipService {
         return friendshipRepository.findAllByFromAccountId(currentAccount.id());
     }
 
-    public boolean deleteFriendshipRequest(Account currentAccount, long toAccountId) {
-        return accountRepository
-                .findById(toAccountId)
-                .flatMap(currentAccount::friendshipWith)
+    public boolean deleteFriendshipRequest(Account currentAccount, long fromAccountId) {
+        var toAccount = accountRepository.findById( fromAccountId );
+        if(toAccount.isEmpty()) {
+            logger.info( "Delete incoming friendship request failed because from Account was not found (fromAccountId=" + fromAccountId +")" );
+            return false;
+        }
+
+        return currentAccount.getIncomingFriendshipWith( toAccount.get() )
                 .map(friendship -> {
-                    entityManager.remove(friendship);
+                    friendshipRepository.delete( friendship );
                     return true;
                 })
                 .orElse(false);
