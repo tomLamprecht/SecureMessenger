@@ -41,7 +41,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
     _isClearButtonFriendHoveringList = List.generate(_friendsList.length, (_) => false);
   }
 
-  void _removeFriend(int index) {
+  void _removeFriendRequestItem(int index) {
     setState(() {
       _accountList.removeAt(index);
       _isClearButtonHoveringList.removeAt(index);
@@ -51,7 +51,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
 
   void _deleteFriendFromFriendlist(int index){
     setState(() {
-      _accountList.removeAt(index);
+      _friendsList.removeAt(index);
       _isClearButtonFriendHoveringList.removeAt(index);
     });
   }
@@ -116,7 +116,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                 if (await friendshipService
                                     .deleteFriendshipRequest(
                                     account.accountId)) {
-                                  _removeFriend(index);
+                                  _removeFriendRequestItem(index);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('${account
@@ -134,7 +134,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                             ),
                             HoverableIconButton(icon: Icons.check, hoverColor: Colors.greenAccent, onPressed: () async {
                               if(await friendshipService.postFriendshipRequest(account.accountId)){
-                                _removeFriend(index);
+                                _removeFriendRequestItem(index);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('${account.userName} erfolgreich hinzugefuegt.'),

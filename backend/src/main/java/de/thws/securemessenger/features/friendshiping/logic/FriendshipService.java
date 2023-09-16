@@ -67,9 +67,7 @@ public class FriendshipService {
     }
 
     public List<FriendshipResponse> getAllAcceptedFriendships(Account currentAccount) {
-        return currentAccount
-                .friendships()
-                .stream()
+        return friendshipRepository.findAllFriendshipBiDirectional(currentAccount.id()).stream()
                 .filter(Friendship::accepted)
                 .map(FriendshipResponse::new)
                 .toList();
@@ -89,19 +87,9 @@ public class FriendshipService {
         return friendshipRepository.findAllByFromAccountId(currentAccount.id());
     }
 
-    public boolean deleteFriendshipRequest(Account currentAccount, long fromAccountId) {
-        var toAccount = accountRepository.findById( fromAccountId );
-        if(toAccount.isEmpty()) {
-            logger.info( "Delete incoming friendship request failed because from Account was not found (fromAccountId=" + fromAccountId +")" );
-            return false;
-        }
-
-        return currentAccount.getIncomingFriendshipWith( toAccount.get() )
-                .map(friendship -> {
-                    friendshipRepository.delete( friendship );
-                    return true;
-                })
-                .orElse(false);
+    public boolean deleteFriendshipBetween(Account account, long friendAccountId) {
+        int deleteCount = friendshipRepository.deleteFriendshipBiDirectional(account.id(), friendAccountId);
+        return deleteCount > 0;
     }
 }
 

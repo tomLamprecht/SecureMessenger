@@ -75,7 +75,7 @@ class FriendshipService {
     }
   }
 
-  Future<bool> deleteFriendFromFriendlist(int accountId) async { //TODO: anpassen, auch im Backend
+  Future<bool> deleteFriendFromFriendlist(int accountId) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/friendships/$accountId');
     final headers = {'Content-Type': 'application/json'};
 
