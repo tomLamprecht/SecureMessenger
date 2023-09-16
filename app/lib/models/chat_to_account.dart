@@ -10,6 +10,7 @@ class ChatToAccount {
   final bool isAdmin;
   final DateTime joinedAt;
   final DateTime? leftAt;
+  final Account encryptedBy;
 
   const ChatToAccount(
       this.id,
@@ -18,7 +19,8 @@ class ChatToAccount {
       this.key,
       this.isAdmin,
       this.joinedAt,
-      this.leftAt
+      this.leftAt,
+      this.encryptedBy
       );
 
   factory ChatToAccount.fromJson(Map<String, dynamic> json) {
@@ -29,7 +31,8 @@ class ChatToAccount {
       json['key'],
       json['isAdmin'],
       DateTime.parse(json['joinedAt']),
-      json['leftAt'] != null ? DateTime.parse(json['leftAt']) : null
+      json['leftAt'] != null ? DateTime.parse(json['leftAt']) : null,
+      Account.fromJson(json['encryptedBy'])
     );
   }
 }

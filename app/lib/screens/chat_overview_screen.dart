@@ -7,9 +7,11 @@ import 'package:my_flutter_test/models/chat.dart';
 import 'package:my_flutter_test/screens/chat_screen.dart';
 import 'package:my_flutter_test/screens/friend_request_screen.dart';
 import 'package:my_flutter_test/services/chats_service.dart';
+import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 import 'package:my_flutter_test/widgets/create_chat.dart';
 
 import '../services/encryption_service.dart';
+import '../services/login_service.dart';
 import 'chat_overview_search.dart';
 import 'manage_profil_screen.dart';
 
@@ -24,6 +26,9 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
 
   @override
   void initState() {
+    if(WhoAmIStore().publicKey == null) {
+      requestAndSaveWhoAmI();
+    }
     initialize();
     super.initState();
   }

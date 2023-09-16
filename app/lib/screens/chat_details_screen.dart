@@ -638,7 +638,7 @@ class AddMemberButton extends StatelessWidget {
             var eccHelper = ECCHelper();
             for (var account in selectedAccounts) {
               var encodedSymKey = eccHelper.encryptWithPubKeyStringUsingECDH(
-                  account.publicKey, currentAccountToChat!.key);
+                  account.publicKey, eccHelper.decryptByAESAndECDHUsingString( currentAccountToChat!.encryptedBy.publicKey, currentAccountToChat.key) );
               encryptedSymKeys.add(AccountIdToEncryptedSymKey(
                   accountId: account.accountId,
                   encryptedSymmetricKey: encodedSymKey));
