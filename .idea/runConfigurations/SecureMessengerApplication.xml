@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SecureMessengerApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="DB_SERVER" value="localhost:5432" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="de.thws.securemessenger.SecureMessengerApplication" />
+    <module name="demo" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="de.thws.securemessenger.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
