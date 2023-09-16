@@ -27,10 +27,10 @@ public class Account {
     @OneToMany( mappedBy = "account", fetch = FetchType.EAGER )
     private List<ChatToAccount> chatToAccounts;
 
-    @OneToMany( mappedBy = "toAccount", fetch = FetchType.LAZY )
+    @OneToMany( mappedBy = "toAccount", fetch = FetchType.EAGER )
     private List<Friendship> incomingFriendships;
 
-    @OneToMany( mappedBy = "fromAccount", fetch = FetchType.LAZY )
+    @OneToMany( mappedBy = "fromAccount", fetch = FetchType.EAGER )
     private List<Friendship> outgoingFriendships;
 
     @Column( columnDefinition = "TEXT" )
