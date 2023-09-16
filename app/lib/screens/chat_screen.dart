@@ -50,6 +50,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   bool _isComposing = false;
   int? expirationTimerSecs;
 
+  WebSocketService? websocketSession;
+
   ChatScreenState({required this.chatId});
 
   @override
@@ -105,9 +107,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   void createWebsocketConnection(String sessionKey) async {
     String url = '${ApiConfig.websocketBaseUrl}/sub';
-    var session = WebSocketService();
-    await session.connect(url, sessionKey);
-    session.messages.listen((jsonMessage) {
+    websocketSession = WebSocketService();
+    await websocketSession!.connect(url, sessionKey);
+    websocketSession!.messages.listen((jsonMessage) {
       var jsonObject = json.decode(jsonMessage);
       WebsocketMessageType messageType =
           WebsocketMessageTypeExtension.fromString(jsonObject['messageType']);
@@ -394,7 +396,15 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+      WillPopScope(
+        onWillPop: () async {
+        if(websocketSession != null) {
+          websocketSession!.close();
+        }
+      return true;
+    },
+      child: Scaffold(
       appBar: AppBar(
         title: GestureDetector(
           onTap: () {
@@ -460,6 +470,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
+     ),
     );
   }
 }
@@ -514,7 +525,8 @@ class _ChatMessageState extends State<ChatMessage> {
   Widget build(BuildContext context) {
     bool isCurrentUser = widget.fromUserName == WhoAmIStore().username!;
 
-    return SizeTransition(
+
+      return SizeTransition(
       sizeFactor:
       CurvedAnimation(
           parent: widget.animationController, curve: Curves.easeOut),
@@ -539,7 +551,7 @@ class _ChatMessageState extends State<ChatMessage> {
             ],
           ),
         )
-    );
+      );
   }
 
   Future<String?> _getImageFromDatabase(String username) async {
