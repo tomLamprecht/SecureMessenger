@@ -39,8 +39,7 @@ public class Configuration implements WebMvcConfigurer {
                 );
     }
 
-
-    //Allows CORS - Turn off for production!
+    //Allow CORS because its a public API
     @Override
     public void addCorsMappings( CorsRegistry registry) {
         registry.addMapping("/**")
