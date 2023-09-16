@@ -17,6 +17,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers( WebSocketHandlerRegistry registry ) {
-        registry.addHandler( subscriptionWebSocket, "/sub" ).setAllowedOrigins( "*" ); //TODO CORS ALLOWED FOR WEBSOCKET, PRBLY DISABLE FOR PRODUCTION
+        registry.addHandler( subscriptionWebSocket, "/sub" ).setAllowedOrigins( "*" );
     }
 }

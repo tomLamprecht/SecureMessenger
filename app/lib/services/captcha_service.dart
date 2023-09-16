@@ -2,13 +2,14 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
+import 'package:my_flutter_test/services/api/api_config.dart';
 
 import '../custom_http_client.dart';
 
 class CaptchaService {
   final String _baseUrl;
 
-  CaptchaService({String baseUrl = 'http://localhost:8080'}) : _baseUrl = baseUrl;
+  CaptchaService() : _baseUrl = ApiConfig.httpBaseUrl;
 
   Future<String> getNewCaptcha() async {
     final response = await CustomHttpClient().get(Uri.parse('$_baseUrl/captcha'));

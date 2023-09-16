@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import 'package:my_flutter_test/services/api/api_config.dart';
+
 import '../custom_http_client.dart';
 
 class RegistrationService {
   final String _baseUrl;
 
-  RegistrationService({String baseUrl = 'http://localhost:8080'}) : _baseUrl = baseUrl;
+  RegistrationService() : _baseUrl = ApiConfig.httpBaseUrl;
 
   Future<void> registerUser({
     required String captchaId,
