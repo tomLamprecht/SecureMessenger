@@ -51,19 +51,13 @@ public class AccountsController {
     }
 
     public static String extractTextAfterColon(String inputText) {
-        // Entferne geschweifte Klammern und Anführungsstriche
         String cleanedText = inputText.replaceAll("[{}\"]", "");
 
-        // Teile den Text anhand des Doppelpunkts
         String[] parts = cleanedText.split(":");
 
-        // Überprüfe, ob es mindestens zwei Teile gibt (vor und nach dem Doppelpunkt)
         if (parts.length >= 2) {
-            // Extrahiere und trimme den Text nach dem Doppelpunkt
-            String extractedText = parts[1].trim();
-            return extractedText;
+            return parts[1].trim();
         } else {
-            // Falls nicht genügend Teile gefunden wurden, gib einen leeren String zurück
             return "";
         }
     }

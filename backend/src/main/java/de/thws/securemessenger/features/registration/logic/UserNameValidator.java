@@ -5,6 +5,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserNameValidator {
     public boolean isValidUserName(String userName) {
-        return userName.chars().allMatch(Character::isLetterOrDigit);
+        return !userName.isEmpty() && userName.chars().allMatch(Character::isLetterOrDigit);
     }
 }

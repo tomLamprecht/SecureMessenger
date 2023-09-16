@@ -42,7 +42,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _captchaId = '';
     _captchaService = CaptchaService();
     _registrationService = RegistrationService();
-    _userNameController.addListener(_validateUsernameOnChange);
   }
 
   @override
@@ -69,9 +68,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return image;
   }
 
-  void _validateUsernameOnChange() {
-    _usernameValidationError.value = _validateUsername(_userNameController.text);
-  }
 
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) {

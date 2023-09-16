@@ -43,6 +43,8 @@ class RegistrationService {
       }
     } else if (response.statusCode == 500) {
       throw Exception("Server error. Please try again later.");
+    } else if (response.statusCode == 409){
+      throw Exception(response.body);
     }
   }
 }
