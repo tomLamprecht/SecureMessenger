@@ -1,6 +1,6 @@
 package de.thws.securemessenger.features.registration.logic;
 
-import de.thws.securemessenger.repositories.ICaptchaDatabaseHandler;
+import de.thws.securemessenger.repositories.CaptchaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -13,15 +13,15 @@ import java.util.Optional;
 @Service
 public class CaptchaSelector {
 
-    private final ICaptchaDatabaseHandler captchaDatabaseHandler;
+    private final CaptchaRepository captchaRepository;
 
     @Autowired
-    public CaptchaSelector(ICaptchaDatabaseHandler captchaDatabaseHandler) {
-        this.captchaDatabaseHandler = captchaDatabaseHandler;
+    public CaptchaSelector(CaptchaRepository captchaRepository) {
+        this.captchaRepository = captchaRepository;
     }
 
     public Optional<StreamingResponseBody> loadCaptchaImageById(String id) {
-        Optional<BufferedImage> image = captchaDatabaseHandler.loadCaptchaImageById(id);
+        Optional<BufferedImage> image = captchaRepository.loadCaptchaImageById(id);
         return image.map(bufferedImage -> outputStream -> {
             try (outputStream) {
                 ImageIO.write(bufferedImage, "png", outputStream);

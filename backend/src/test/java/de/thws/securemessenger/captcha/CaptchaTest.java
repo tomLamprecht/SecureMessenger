@@ -2,28 +2,21 @@ package de.thws.securemessenger.captcha;
 
 
 import de.thws.securemessenger.TestBase;
-import de.thws.securemessenger.repositories.ICaptchaDatabaseHandler;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import de.thws.securemessenger.repositories.CaptchaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import java.awt.image.BufferedImage;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class CaptchaTest extends TestBase {
 
-    private final ICaptchaDatabaseHandler dbHandler;
+    private final CaptchaRepository dbHandler;
     private final List<String> createdCaptchaIds = new ArrayList<>(3);
 
     @Autowired
-    public CaptchaTest(ICaptchaDatabaseHandler dbHandler) {
+    public CaptchaTest(CaptchaRepository dbHandler) {
         this.dbHandler = dbHandler;
     }
 

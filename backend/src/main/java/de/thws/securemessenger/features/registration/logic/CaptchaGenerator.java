@@ -1,7 +1,7 @@
 package de.thws.securemessenger.features.registration.logic;
 
 import de.thws.securemessenger.features.registration.models.Line;
-import de.thws.securemessenger.repositories.ICaptchaDatabaseHandler;
+import de.thws.securemessenger.repositories.CaptchaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +18,18 @@ public class CaptchaGenerator {
     private static final int CAPTCHA_LENGTH = 7;
     private static final String CHARACTERS = "ABCDEFGHJKMNOPQRSTUVWYZabcdefghkmnopqrstwyz023456789";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private final ICaptchaDatabaseHandler captchaDatabaseHandler;
+    private final CaptchaRepository captchaRepository;
 
     @Autowired
-    public CaptchaGenerator(ICaptchaDatabaseHandler captchaDatabaseHandler) {
-        this.captchaDatabaseHandler = captchaDatabaseHandler;
+    public CaptchaGenerator(CaptchaRepository captchaRepository) {
+        this.captchaRepository = captchaRepository;
     }
 
     public String createNewCaptchaImage() {
         final String captchaText = getNewCaptchaText();
         final BufferedImage captchaImage = createCaptchaImageByText(captchaText);
         final String id = UUID.randomUUID().toString();
-        captchaDatabaseHandler.storeCaptcha(id, captchaImage, captchaText);
+        captchaRepository.storeCaptcha(id, captchaImage, captchaText);
 
         return id;
     }

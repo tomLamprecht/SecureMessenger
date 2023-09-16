@@ -1,11 +1,9 @@
 package de.thws.securemessenger.registration;
 
 import de.thws.securemessenger.TestBase;
-import de.thws.securemessenger.repositories.implementations.RegistrationInMemoryHandler;
 import de.thws.securemessenger.features.registration.models.CaptchaTry;
 import de.thws.securemessenger.features.registration.models.UserPayload;
 import de.thws.securemessenger.features.registration.models.User;
-import de.thws.securemessenger.repositories.IRegistrationDbHandler;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

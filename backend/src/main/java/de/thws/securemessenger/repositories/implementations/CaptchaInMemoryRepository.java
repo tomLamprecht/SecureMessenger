@@ -2,14 +2,14 @@ package de.thws.securemessenger.repositories.implementations;
 
 import de.thws.securemessenger.data.InMemoryStorage;
 import de.thws.securemessenger.model.Captcha;
-import de.thws.securemessenger.repositories.ICaptchaDatabaseHandler;
+import de.thws.securemessenger.repositories.CaptchaRepository;
 import org.springframework.stereotype.Component;
 
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 @Component
-public class CaptchaInMemoryHandler extends InMemoryStorage<String, Captcha> implements ICaptchaDatabaseHandler {
+public class CaptchaInMemoryRepository extends InMemoryStorage<String, Captcha> implements CaptchaRepository {
     @Override
     public void storeCaptcha(String id, BufferedImage image, String text) {
         createWithGivenId(id, new Captcha(id, image, text));
