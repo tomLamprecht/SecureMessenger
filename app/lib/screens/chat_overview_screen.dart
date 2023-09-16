@@ -7,6 +7,7 @@ import 'package:my_flutter_test/models/chat.dart';
 import 'package:my_flutter_test/screens/chat_screen.dart';
 import 'package:my_flutter_test/screens/friend_request_screen.dart';
 import 'package:my_flutter_test/services/chats_service.dart';
+import 'package:my_flutter_test/services/stores/group_picture_store.dart';
 import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 import 'package:my_flutter_test/widgets/create_chat.dart';
 
@@ -47,12 +48,8 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
   }
 
   Future<String?> _getImageFromDatabase(int chatId) async {
-    var chatToAcc = await ChatsService().getChatToUser(chatId);
-    String? encodedPic = chatToAcc?.chat.encodedGroupPic;
-    if (chatToAcc != null && encodedPic != null) {
-      return encodedPic;
-    }
-    return null;
+    var encodedPic = GroupPictureStore().getGroupChatPictureById(chatId);
+    return encodedPic;
   }
 
   @override

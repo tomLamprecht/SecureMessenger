@@ -18,14 +18,12 @@ public class Chat {
     private String name;
     private String description;
     private Instant createdAt;
-//    @Lob
-//    private byte[] encodedGroupPic;
 
     @Column(columnDefinition = "TEXT")
     private String encodedGroupPic;
 
     @JsonIgnore
-    @OneToMany( mappedBy = "chat", fetch = FetchType.EAGER )
+    @OneToMany( mappedBy = "chat", fetch = FetchType.LAZY )
     private List<Message> messages;
 
     @JsonIgnore

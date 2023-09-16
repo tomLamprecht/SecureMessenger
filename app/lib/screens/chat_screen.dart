@@ -382,7 +382,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (encodedGroupPicture != null) {
       return encodedGroupPicture;
     }
-
     var chatToAcc = await ChatsService().getChatToUser(widget.chatId);
     String? encodedPic = chatToAcc?.chat.encodedGroupPic;
     if (chatToAcc != null && encodedPic != null) {
@@ -390,7 +389,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       return encodedPic;
     }
 
-    encodedGroupPicture = "dummy";
+    encodedGroupPicture = "";
     return encodedGroupPicture;
   }
 
@@ -421,7 +420,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   if (snapshot.hasError) {
                     // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
                     return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.hasData && snapshot.data != null && snapshot.data != "dummy") {
+                  } else if (snapshot.hasData && snapshot.data != null && snapshot.data != "") {
                     // Zeige das Bild aus der Datenbank
                     final encodedPic = snapshot.data!;
                     // final decryptPic = aesDecrypt(encodedPic, "password");

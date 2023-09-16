@@ -4,11 +4,16 @@ import de.thws.securemessenger.features.authorization.application.CurrentAccount
 import de.thws.securemessenger.features.messenging.logic.ChatLogic;
 import de.thws.securemessenger.features.messenging.logic.ChatMemberLogic;
 import de.thws.securemessenger.features.messenging.model.*;
+import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.Chat;
 import de.thws.securemessenger.model.ChatToAccount;
+import de.thws.securemessenger.repositories.ChatToAccountRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,12 +27,14 @@ public class ChatController {
     private final CurrentAccount currentAccount;
     private final ChatLogic chatLogic;
     private final ChatMemberLogic chatMemberLogic;
+    private final ChatToAccountRepository chatToAccountRepository;
 
     @Autowired
-    public ChatController(CurrentAccount currentAccount, ChatLogic chatLogic, ChatMemberLogic chatMemberLogic) {
+    public ChatController(CurrentAccount currentAccount, ChatLogic chatLogic, ChatMemberLogic chatMemberLogic, ChatToAccountRepository chatToAccountRepository) {
         this.currentAccount = currentAccount;
         this.chatLogic = chatLogic;
         this.chatMemberLogic = chatMemberLogic;
+        this.chatToAccountRepository = chatToAccountRepository;
     }
 
     @PostMapping
@@ -49,32 +56,28 @@ public class ChatController {
     }
 
     public static String extractTextAfterColon(String inputText) {
-        // Entferne geschweifte Klammern und Anführungsstriche
         String cleanedText = inputText.replaceAll("[{}\"]", "");
 
-        // Teile den Text anhand des Doppelpunkts
         String[] parts = cleanedText.split(":");
 
-        // Überprüfe, ob es mindestens zwei Teile gibt (vor und nach dem Doppelpunkt)
         if (parts.length >= 2) {
-            // Extrahiere und trimme den Text nach dem Doppelpunkt
-            String extractedText = parts[1].trim();
-            return extractedText;
+            return parts[1].trim();
         } else {
-            // Falls nicht genügend Teile gefunden wurden, gib einen leeren String zurück
             return "";
         }
     }
 
+
     @GetMapping
     public ResponseEntity<List<Chat>> getChatsOfUser( ) {
-        List<Chat> resultChatOverview = currentAccount.getAccount().chatToAccounts().stream().map(ChatToAccount::chat).toList();
+        var listToAccounts = currentAccount.getAccount();
+        List<Chat> resultChatOverview = listToAccounts.chatToAccounts().stream().map(ChatToAccount::chat).toList();
         return ResponseEntity.ok().body( resultChatOverview );
     }
 
     @GetMapping("/{chatId}")
     public ResponseEntity<ChatToAccountResponse> getChatToUser(@PathVariable( "chatId" ) long chatId) {
-        var chatToAccount = currentAccount.getAccount().chatToAccounts().stream().filter(entry -> entry.chat().id() == chatId).findAny();
+        var chatToAccount = chatToAccountRepository.findChatToAccountByChatIdAndAccount( chatId, currentAccount.getAccount() );
         if (chatToAccount.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
