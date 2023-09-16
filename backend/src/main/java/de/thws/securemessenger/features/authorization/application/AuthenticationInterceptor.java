@@ -30,12 +30,13 @@ import java.util.Optional;
 
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
+    private static final int MAX_TIME_VALID_SEC = 60;
+    private static final int TIME_TOLERANCE_SEC = 10; // Tolerance because other OS may be a little ahead
 
     private static final String TIMESTAMP_HEADER = "x-auth-timestamp";
     private static final String PUBLIC_KEY_HEADER = "x-public-key";
     private static final String SIGNATURE_HEADER = "x-auth-signature";
     private static final String ERROR_MESSAGE = "Your given signature is invalid!";
-    private static final MaxTimeDifference MAX_TIME_DIFFERENCE = new MaxTimeDifference(500000000);
     private final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
     private final CurrentAccount currentAccount;
     private final AccountRepository accountRepository;
@@ -69,10 +70,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         }
 
         Instant timestamp = parseTimestamp(authTimestamp);
-        TimeSegment timeDelta = new TimeSegment(timestamp, Instant.now());
+        TimeSegment timeDelta = new TimeSegment(timestamp.minusSeconds( TIME_TOLERANCE_SEC ), Instant.now());
         String payload = buildPayload(request, timestamp);
 
-        if (MAX_TIME_DIFFERENCE.isMoreThanTimeBetween(timeDelta)){
+        if ( new MaxTimeDifference( MAX_TIME_VALID_SEC + TIME_TOLERANCE_SEC ).isMoreThanTimeBetween(timeDelta)){
             logger.info("User with pubKey " + publicKeyString + " was denied because the timestamp is outdated.");
             response.sendError(HttpStatus.UNAUTHORIZED.value(), ERROR_MESSAGE);
             return false;
