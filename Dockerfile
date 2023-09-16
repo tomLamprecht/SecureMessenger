@@ -9,8 +9,8 @@ RUN mkdir -p /workspace
 WORKDIR /workspace
 COPY backend/pom.xml /workspace
 COPY backend/src /workspace/src
-COPY --from=flutter_build /workspace/build/web/* /workspace/src/main/resources/static/
-RUN mvn -f pom.xml clean package
+COPY --from=flutter_build /workspace/build/web/ /workspace/src/main/resources/static/
+RUN mvn -f pom.xml clean package -DskipTests
 
 FROM openjdk:17
 COPY --from=backend_build /workspace/target/*.jar app.jar
