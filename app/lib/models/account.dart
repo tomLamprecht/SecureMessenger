@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 class Account {
   int accountId;
   String userName;

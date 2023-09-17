@@ -1,12 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/services/account_service.dart';
 import 'package:my_flutter_test/services/stores/account_information_store.dart';
-import '../services/chats_service.dart';
-import '../services/stores/who_am_i_store.dart';
 
 class OtherProfilScreen extends StatefulWidget {
   String username;
@@ -20,7 +16,6 @@ class OtherProfilScreen extends StatefulWidget {
 
 class _OtherProfilScreenState extends State<OtherProfilScreen> {
 
-  Uint8List? _chosenFile;
   bool hasProfilPic = true;
 
   Future<String?> _getImageFromDatabase(String username) async {
@@ -55,7 +50,7 @@ class _OtherProfilScreenState extends State<OtherProfilScreen> {
                   children: [
                     FutureBuilder<String?>(
                       future: _getImageFromDatabase(widget.username),
-                      // Funktion zum Abrufen des Bildes aus der Datenbank
+                      // Function to retrieve the image from the database
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
                           // Zeige eine Fehlermeldung, wenn ein Fehler auftritt

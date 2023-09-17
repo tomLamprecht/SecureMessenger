@@ -12,14 +12,6 @@ class Friendship {
     required this.toAccount
   });
 
-  // Friendship copyWith({int? fromUserId, int? toUserId, bool? accepted}) {
-  //   return Friendship(
-  //     fromUserId: fromUserId ?? this.fromUserId,
-  //     toUserId: toUserId ?? this.toUserId,
-  //     accepted: accepted ?? this.accepted,
-  //   );
-  // }
-
   factory Friendship.fromJson(Map<String, dynamic> json) {
     return Friendship(
       id: json["id"],

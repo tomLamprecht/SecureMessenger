@@ -24,7 +24,6 @@ class AccountInformationStore {
     } else {
       var accountInformation = await AccountService().getAccountByUsername(accountName);
       if (accountInformation == null) {
-        // throw Exception("Got empty account.");
         return null;
       }
       cachedAccounts.putIfAbsent(accountName, () => accountInformation);

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +15,6 @@ import '../models/account_id_to_encrypted_sym_key.dart';
 import '../models/chat_to_account.dart';
 import '../models/chatkey.dart';
 import '../services/chats_service.dart';
-import '../services/encryption_service.dart';
 import '../services/files/ecc_helper.dart';
 
 ValueNotifier<List<Account>> membersNotifier = ValueNotifier<List<Account>>([]);
@@ -159,8 +157,6 @@ class _GroupHeaderState extends State<GroupHeader> {
   bool hasGroupPic = true;
   late String key;
 
-  // GroupHeader({required this.group});
-
   Future<void> _pickFile(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -171,19 +167,16 @@ class _GroupHeaderState extends State<GroupHeader> {
       PlatformFile file = result.files.first;
       if (['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase())) {
         Uint8List imageBytes = file.bytes!;
-        // Blob imageBlob = Blob(imageBytes);
 
-        //Get Key from Backend and Decrypt it
         Chatkey? chatkey = await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
-        String? key = ECCHelper().decryptByAESAndECDHUsingString(chatkey!.encryptedByPublicKey, chatkey.value);
-
-        if(key != null){
-          this.key = key;
-          // if(await ChatsService().updateGroupPicFromChat(aesEncrypt(base64Encode(imageBytes), "password"), widget.group.chatId))
-          if(await ChatsService().updateGroupPicFromChat(base64Encode(imageBytes), widget.group.chatId)){
+        if(chatkey != null) {
+          key = ECCHelper().decryptByAESAndECDHUsingString(
+              chatkey.encryptedByPublicKey, chatkey.value);
+          if (await ChatsService().updateGroupPicFromChat(
+              base64Encode(imageBytes), widget.group.chatId)) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Bild erfolgreich hochgeladen'),
+                content: Text('Image uploaded successfully.'),
               ),
             );
             setState(() {
@@ -192,29 +185,33 @@ class _GroupHeaderState extends State<GroupHeader> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Fehler beim speichern des Bildes.'),
+                content: Text('Error when saving the image.'),
               ),
             );
           }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error loading the Chat.'),
+            ),
+          );
         }
       } else {
-        // Datei ist kein Bild mit erlaubter Erweiterung
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Ungültige Dateierweiterung. Wählen Sie ein Bild aus.'),
+            content: Text('Error saving the image. Invalid file extension. Select an image.'),
           ),
         );
       }
     } else {
-      // Der Benutzer hat die Auswahl abgebrochen
+      // The user has canceled the selection
     }
-
   }
 
   Future<String?> _getImageFromDatabase() async {
     var chatToAcc = await ChatsService().getChatToUser(widget.group.chatId);
-    String? encodedPic = chatToAcc?.chat?.encodedGroupPic;
-    if (chatToAcc != null && chatToAcc.chat != null && encodedPic != null) {
+    String? encodedPic = chatToAcc?.chat.encodedGroupPic;
+    if (chatToAcc != null && encodedPic != null) {
       return encodedPic;
     }
     return null;
@@ -224,14 +221,14 @@ class _GroupHeaderState extends State<GroupHeader> {
     if(await ChatsService().deleteGroupPicFromChat(widget.group.chatId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Bild erfolgreich gelöscht'),
+          content: Text('Image successfully deleted'),
         ),
       );
       hasGroupPic = false;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Fehler beim löschen des Bildes.'),
+          content: Text('Error deleting the image.'),
         ),
       );
     }
@@ -247,19 +244,17 @@ class _GroupHeaderState extends State<GroupHeader> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
-              onPressed: () { //bearbeiten von Bild
+              onPressed: () {
                 _pickFile(context);
               },
-              icon: Icon(Icons.edit),
+              icon: const Icon(Icons.edit),
               color: Colors.blue,
             ),
                 FutureBuilder<String?>(
               future: _getImageFromDatabase(),
-              // Funktion zum Abrufen des Bildes aus der Datenbank
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
-                  return Text('Error: ${snapshot.error}');
+                  return const Text('Failed to load image.');
                 } else if (snapshot.hasData && snapshot.data != null) {
                   // Zeige das Bild aus der Datenbank
                   final encodedPic = snapshot.data!;

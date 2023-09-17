@@ -124,13 +124,13 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('${account
-                                          .userName} erfolgreich abgelehnt.'),
+                                          .userName} successfully rejected.'),
                                     ),
                                   );
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Anfrage fehlgeschlagen.'),
+                                      content: Text('Request failed.'),
                                     ),
                                   );
                                 }
@@ -141,13 +141,13 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                 _removeFriendRequestItem(index);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('${account.userName} erfolgreich hinzugefuegt.'),
+                                    content: Text('${account.userName} successfully added.'),
                                   ),
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Anfrage fehlgeschlagen.'),
+                                    content: Text('Request failed.'),
                                   ),
                                 );
                               }
@@ -169,7 +169,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                         controller: _usernameController,
                         focusNode: _usernameFocusNode,
                         decoration: const InputDecoration(
-                          hintText: "Benutzername eingeben",
+                          hintText: "Enter username",
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
@@ -234,13 +234,13 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('${account
-                                          .userName} erfolgreich gelöscht.'),
+                                          .userName} successfully deleted.'),
                                     ),
                                   );
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Anfrage fehlgeschlagen.'),
+                                      content: Text('Request failed.'),
                                     ),
                                   );
                                 }
@@ -280,21 +280,21 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
       if (account != null && await friendshipService.postFriendshipRequest(account.accountId)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Freundschaftsanfrage erfolgreich an ${account.userName} gesendet.'),
+            content: Text('Friend request successfully sent to ${account.userName}.'),
           ),
         );
         _usernameController.text = "";
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Anfrage fehlgeschlagen.'),
+            content: Text('Request failed.'),
           ),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Benutzername ist Leer.'),
+          content: Text('Username is Empty.'),
         ),
       );
     }

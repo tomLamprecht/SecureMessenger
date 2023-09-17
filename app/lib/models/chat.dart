@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 class Chat {
   final int id;
   final String name;

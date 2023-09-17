@@ -34,7 +34,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
           {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Bild erfolgreich hochgeladen'),
+                content: Text('Image uploaded successfully.'),
               ),
             );
             setState(() {
@@ -43,7 +43,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Fehler beim speichern des Bildes.'),
+                content: Text('Error when saving the image.'),
               ),
             );
         }
@@ -52,7 +52,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
         // Datei ist kein Bild mit erlaubter Erweiterung
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Ungültige Dateierweiterung. Wählen Sie ein Bild aus.'),
+            content: Text('Invalid file extension. Select an image.'),
           ),
         );
       }
@@ -66,14 +66,14 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
       if(await AccountService().deleteProfilPic()) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Bild erfolgreich gelöscht'),
+            content: Text('Image successfully deleted'),
           ),
         );
         hasProfilPic = false;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Fehler beim löschen des Bildes.'),
+            content: Text('Error deleting the image.'),
           ),
         );
     }

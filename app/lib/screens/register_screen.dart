@@ -192,7 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 _captchaId = '';
                               });
                             },
-                            tooltip: 'Neu laden',
+                            tooltip: 'Reload',
                             child: const Icon(Icons.refresh),
                           ),
                         ),
@@ -213,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _registerUser,
-                  child: const Text('Nutzer erstellen'),
+                  child: const Text('Create user'),
                 ),
               ],
             ),
