@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +14,6 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/chatkey.dart';
 import '../models/webserver_message_type.dart';
-import '../services/account_service.dart';
 import '../services/chats_service.dart';
 import '../services/encryption_service.dart';
 import '../services/files/download_service/download_service.dart';
@@ -38,7 +36,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
   final ItemScrollController itemScrollController = ItemScrollController();
   final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
-  final List<ChatMessage> _messages = [];
+  List<ChatMessage> _messages = [];
   final FocusNode _textFieldFocus = FocusNode();
   final int chatId;
 
@@ -68,7 +66,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     for (ChatMessage message in _messages) {
-      // message.animationController.dispose();
+      message.animationController.dispose();
     }
     super.dispose();
   }
@@ -79,7 +77,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     var currentVisibleItems = itemPositionsListener.itemPositions.value;
     if (currentVisibleItems.isNotEmpty &&
         currentVisibleItems.last.index == _messages.length - 1) {
-      getAndDisplayMessagesFromBackend(_messages.last.id);
+      print("Lazy loading messages with lastLoadedMsgId: ${_messages.first.id}");
+      getAndDisplayMessagesFromBackend(_messages.first.id);
     }
   }
 
@@ -129,15 +128,22 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     AnimationController animationControllerForIncommingMessages =
         AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 0),
     );
 
     var chatMessage = _parseMessageToChatMessage(
         parsedMessage, animationControllerForIncommingMessages);
 
     setState(() {
-      _messages.insert(0, chatMessage);
+      _messages.add(chatMessage);
     });
+
+    itemScrollController.scrollTo(
+        index: _messages.length - 1,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOutCubic,
+        alignment: 1.0
+    );
 
     animationControllerForIncommingMessages.forward();
   }
@@ -232,8 +238,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
     Iterable<ChatMessage> chatMessages = [];
     setState(() {
-      chatMessages = temp.map((e) => _parseMessageToChatMessage(e, animation));
-      _messages.addAll(chatMessages);
+      chatMessages = temp.map((e) => _parseMessageToChatMessage(e, animation)).toList();
+      _messages.insertAll(0, chatMessages);
     });
 
     animation.forward();
@@ -395,6 +401,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    print(_messages.map((e) => e.text).toList());
     return
       WillPopScope(
         onWillPop: () async {
@@ -450,7 +457,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           Flexible(
             child: ScrollablePositionedList.builder(
               padding: const EdgeInsets.all(8.0),
-              reverse: true,
+              reverse: false,
               itemCount: _messages.length,
               itemBuilder: (_, int index) => _messages[index],
               itemScrollController: itemScrollController,
@@ -501,6 +508,7 @@ class ChatMessage extends StatefulWidget {
 
 class _ChatMessageState extends State<ChatMessage> {
   bool isEditing = false;
+  List<FileView> attachedFilesView = [];
   late TextEditingController editingController;
   MemoryImage? encodedPic;
 
@@ -596,7 +604,7 @@ class _ChatMessageState extends State<ChatMessage> {
   }
 
   List<Widget> _buildAttachedFiles() {
-    return widget.files!
+    return attachedFilesView = widget.files!
         .map((file) => FileView(
       file: file,
       forceFileView: widget.files!.any((element) => !['jpg', 'jpeg', 'png', 'gif'].contains(element.fileName.split('.').last.toLowerCase())),
@@ -606,8 +614,7 @@ class _ChatMessageState extends State<ChatMessage> {
         var encryptedFileContent = aesDecrypt(file.encodedFileContent, widget.symKey);
         DownloadService.instance.downloadFile(encodedContent: encryptedFileContent, filename: file.fileName);
       },
-    ))
-        .toList();
+    )).toList();
   }
 
   Widget _buildMessageContent() {
@@ -709,11 +716,6 @@ class _FileViewState extends State<FileView> {
   bool _showImage = false;
   late Uint8List _decryptedImage;
   bool _loadImage = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
