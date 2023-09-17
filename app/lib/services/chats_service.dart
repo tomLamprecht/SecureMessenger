@@ -13,10 +13,6 @@ import '../models/chat_to_account.dart';
 import 'api/api_config.dart';
 
 class ChatsService {
-  //einzelner Chat, Gruppenchat (Namen, chatnamen, description)
-  // im Frontend wird keypair generiert
-  // mit pubkey verschlüssel
-  //
 
 
   Future<int?> createNewChat(String chatName, String description, List<AccountIdToEncryptedSymKey> accountIdToEncryptedSymKeys) async {

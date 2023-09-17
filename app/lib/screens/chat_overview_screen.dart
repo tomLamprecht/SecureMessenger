@@ -11,7 +11,6 @@ import 'package:my_flutter_test/services/stores/group_picture_store.dart';
 import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
 import 'package:my_flutter_test/widgets/create_chat.dart';
 
-import '../services/encryption_service.dart';
 import '../services/login_service.dart';
 import 'chat_overview_search.dart';
 import 'manage_profil_screen.dart';
@@ -66,14 +65,10 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             IconButton(
               icon: const Icon(Icons.search),
               onPressed: () async {
-                String? result = await showSearch<String>(
+                await showSearch<String>(
                   context: context,
                   delegate: ChatSearch(chats: chats!),
                 );
-
-                if (result != null) {
-                  // Navigate to the chat when selected from search results //todo: macht es doch schon
-                }
               },
             ),
             IconButton(
@@ -94,10 +89,6 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             IconButton(
               icon: const Icon(Icons.manage_accounts_sharp),
               onPressed: () async {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => ManageProfilPage()),
-                // );
 
                 final bool? shouldRefresh = await Navigator.push<bool>(
                   context,
@@ -164,39 +155,19 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       onDismissed: (direction) {
-                        setState(() async {
-                          // ToDo: wollen wir hier chat löschen (also User aus Chat entfernen) oder chat archivieren machen? Oder des wegswipen als Funktion entfernen?
-                          if (await chatsService.deleteChatFromUser(chat.id,
-                              1)) { //TODO: accountId im backend über currentuser or what? Übergabe?
-                            chats!.removeAt(index);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Anfrage fehlgeschlagen.'),
-                              ),
-                            );
-                          }
-                        });
                       },
                       child: ListTile(
                         leading: FutureBuilder<String?>(
                           future: _getImageFromDatabase(chat.id),
-                          // Funktion zum Abrufen des Bildes aus der Datenbank
                           builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
-                              return Text('Error: ${snapshot.error}');
-                            } else if (snapshot.hasData && snapshot.data != null) {
-                              // Zeige das Bild aus der Datenbank
+                             if (snapshot.hasData && snapshot.data != null) {
                               final encodedPic = snapshot.data!;
-                              // final decryptPic = aesDecrypt(encodedPic, "password");
                               final imageData = Uint8List.fromList(base64Decode(encodedPic));
                               return CircleAvatar(
                                 radius: 20,
                                 backgroundImage: MemoryImage(imageData),
                               );
                             } else {
-                              // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
                               return CircleAvatar(
                                 radius: 20,
                                 backgroundColor: Colors.blue,
@@ -210,8 +181,6 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                           },
                         ),
                         title: Text(chat.name),
-                        // subtitle: Text('Last message...'), //ToDo: nicht im MVP
-                        // trailing: Text('Time'), //ToDo: nicht im MVP
                         subtitle: Text(chat.description),
                         onTap: () {
                           Navigator.push(
@@ -244,11 +213,6 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
       );
     }
   }
-// List<String> getChatNames() {
-//   List<String> chatNames = [];
-//   chats?.forEach((chat) {chatNames.add(chat.name); });
-//   return chatNames;
-// }
 }
 
 
