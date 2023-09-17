@@ -27,6 +27,9 @@ class _OtherProfilScreenState extends State<OtherProfilScreen> {
 
     var account = await AccountInformationStore().getPublicInformationByUsername(username);
 
+    if(account == null) {
+      return null;
+    }
     String? encodedPic = account.encodedProfilePic;
 
     if (encodedPic != null) {

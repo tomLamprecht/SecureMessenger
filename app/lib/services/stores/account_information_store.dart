@@ -18,13 +18,14 @@ class AccountInformationStore {
 
   AccountInformationStore._();
 
-  Future<Account> getPublicInformationByUsername(String accountName) async {
+  Future<Account?> getPublicInformationByUsername(String accountName) async {
     if (cachedAccounts.containsKey(accountName)) {
       return cachedAccounts[accountName]!;
     } else {
       var accountInformation = await AccountService().getAccountByUsername(accountName);
       if (accountInformation == null) {
-        throw Exception("Got empty account.");
+        // throw Exception("Got empty account.");
+        return null;
       }
       cachedAccounts.putIfAbsent(accountName, () => accountInformation);
       return accountInformation;

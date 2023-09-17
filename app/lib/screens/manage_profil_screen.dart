@@ -88,6 +88,9 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
 
       var account = await AccountInformationStore().getPublicInformationByUsername(username);
 
+      if(account == null) {
+        return null;
+      }
       String? encodedPic = account.encodedProfilePic;
 
       if (encodedPic != null) {

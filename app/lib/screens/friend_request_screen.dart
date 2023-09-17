@@ -58,7 +58,11 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
 
   Future<String?> _getImageFromDatabase(String username) async {
     var account = await AccountInformationStore().getPublicInformationByUsername(username);
-    String? encodedPic = account.encodedProfilePic;
+    String? encodedPic;
+    if(account == null) {
+      return null;
+    }
+    encodedPic = account.encodedProfilePic;
     if (encodedPic != null) {
       return encodedPic;
     }
@@ -273,10 +277,10 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
     if (username.isNotEmpty) {
       var account = await AccountInformationStore().getPublicInformationByUsername(username);
 
-      if (await friendshipService.postFriendshipRequest(account.accountId)) {
+      if (account != null && await friendshipService.postFriendshipRequest(account.accountId)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Freundschaftsanfrage erfolgreich ${account.userName} gesendet.'),
+            content: Text('Freundschaftsanfrage erfolgreich an ${account.userName} gesendet.'),
           ),
         );
         _usernameController.text = "";
