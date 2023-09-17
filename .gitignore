@@ -10,7 +10,6 @@ target/
 .settings/
 
 app/windows/flutter
-app/pubspec.lock
 
 # BlueJ files
 *.ctxt
