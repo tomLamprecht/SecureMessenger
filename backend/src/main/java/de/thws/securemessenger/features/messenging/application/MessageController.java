@@ -58,7 +58,6 @@ public class MessageController {
                 .map( l -> l.stream().map( MessageToFrontend::new ).collect( Collectors.toList() ) )
                 .orElse( new ArrayList<>() );
         Collections.sort( frontendMessages );
-        Collections.reverse( frontendMessages );
         return ResponseEntity.ok( frontendMessages );
     }
 
