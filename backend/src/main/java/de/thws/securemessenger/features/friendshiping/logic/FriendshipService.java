@@ -18,8 +18,6 @@ import java.util.Optional;
 @Service
 public class FriendshipService {
 
-    private static final Logger logger = LoggerFactory.getLogger( FriendshipService.class );
-
     private final FriendshipRepository friendshipRepository;
     private final AccountRepository accountRepository;
 

@@ -10,8 +10,6 @@ public class WebsocketSessionKey {
     public WebsocketSessionKey() {
     }
 
-
-
     public String getSession() {
         return session;
     }

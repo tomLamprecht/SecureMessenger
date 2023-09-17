@@ -4,9 +4,6 @@ import de.thws.securemessenger.features.messenging.model.TimeSegment;
 
 import java.time.Duration;
 
-/**
- * This class can be used to determine if two timestamps habe a longer
- */
 public record MaxTimeDifference(long maximalSeconds) {
 
     /**
