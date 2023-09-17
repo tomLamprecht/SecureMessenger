@@ -3,12 +3,10 @@ package de.thws.securemessenger.features.accounts.application;
 import de.thws.securemessenger.features.accounts.logic.PublicAccountInformationHelper;
 import de.thws.securemessenger.features.accounts.modules.PublicAccountInformation;
 import de.thws.securemessenger.features.authorization.application.CurrentAccount;
-import de.thws.securemessenger.model.ApiExceptions.InternalServerErrorException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/accounts")

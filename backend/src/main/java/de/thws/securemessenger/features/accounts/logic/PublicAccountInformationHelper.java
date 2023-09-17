@@ -1,6 +1,5 @@
 package de.thws.securemessenger.features.accounts.logic;
 
-import de.thws.securemessenger.features.accounts.application.AccountsController;
 import de.thws.securemessenger.features.accounts.modules.PublicAccountInformation;
 import de.thws.securemessenger.model.Account;
 import de.thws.securemessenger.model.ApiExceptions.BadRequestException;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 @Service
 public class PublicAccountInformationHelper {
@@ -38,19 +36,16 @@ public class PublicAccountInformationHelper {
         Optional<Account> account = accountRepository.findAccountByUsername(username);
         return account.map(value -> new PublicAccountInformation(value.id(), value.username(), value.publicKey(), value.encodedProfilePic()));
     }
-    private static final Logger LOGGER = Logger.getLogger( AccountsController.class.getName());
+
     public void updateProfilPic(final Account currentAccount, final String encodedProfilPic){
 
         Optional<Account> account = accountRepository.findAccountById( currentAccount.id() );
 
-        LOGGER.info("UPDATEPROFILPIC in Helper: acc:" + account);
 
         if(account.isEmpty())
             throw new BadRequestException( "The current Account Id doesn't exist." );
         account.get().setEncodedProfilePic( encodedProfilPic );
-        LOGGER.info("UPDATEPROFILPIC in Helper: acc:" + account.get().encodedProfilePic());
 
-//        account.map( value -> new PublicAccountInformation( value.id(), value.username(), value.publicKey( ), value.encodedProfilePic()) );
         accountRepository.save( account.get() );
     }
 
