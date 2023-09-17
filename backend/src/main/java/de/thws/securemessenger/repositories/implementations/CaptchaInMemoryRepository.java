@@ -22,7 +22,7 @@ public class CaptchaInMemoryRepository extends InMemoryStorage<String, Captcha> 
 
     @Override
     public Optional<String> loadCaptchaTextById(String id) {
-        return Optional.of(loadById(id).content());
+        return Optional.ofNullable(loadById(id)).map(Captcha::content);
     }
 
     @Override

@@ -108,12 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         content: Text(e.toString().substring(11)),
         backgroundColor: Colors.red,
       ));
-      if (e.toString() == "Exception: Invalid captcha text. Please try again.") {
-        setState(() {
-
-        });
-        // todo: refresh the FutureBuilder<ImageProvider>
-      }
+      _refreshCaptcha();
     }
   }
 
