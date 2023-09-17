@@ -174,11 +174,6 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                             ),
                           ),
                         ),
-                        // onChanged: (value) {
-                        //   setState(() {
-                        //     // Hier können weitere Aktionen ausgeführt werden, z.B. Validierung des Benutzernamens
-                        //   });
-                        // },
                         onSubmitted: (_) {
                           String username = _usernameController.text.trim();
                           sendFriendshipRequest(context, username);

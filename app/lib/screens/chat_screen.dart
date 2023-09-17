@@ -415,22 +415,17 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             children: [
               FutureBuilder<String?>(
                 future: _getImageFromDatabase(),
-                // Funktion zum Abrufen des Bildes aus der Datenbank
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
                     return Text('Error: ${snapshot.error}');
                   } else if (snapshot.hasData && snapshot.data != null && snapshot.data != "") {
-                    // Zeige das Bild aus der Datenbank
                     final encodedPic = snapshot.data!;
-                    // final decryptPic = aesDecrypt(encodedPic, "password");
                     final imageData = Uint8List.fromList(base64Decode(encodedPic));
                     return CircleAvatar(
                       radius: 20,
                       backgroundImage: MemoryImage(imageData),
                     );
                   } else {
-                    // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
                     return const CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.blue,
@@ -443,7 +438,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   }
                 },
               ),
-              SizedBox(width: 8), // Abstand zwischen Avatar und Chat-Titel
+              SizedBox(width: 8), // placeholder between avatar and chat title
               Text(widget.chatTitle),
             ],
           ),
@@ -507,6 +502,7 @@ class ChatMessage extends StatefulWidget {
 class _ChatMessageState extends State<ChatMessage> {
   bool isEditing = false;
   late TextEditingController editingController;
+  MemoryImage? encodedPic;
 
   @override
   void initState() {
@@ -523,7 +519,6 @@ class _ChatMessageState extends State<ChatMessage> {
   @override
   Widget build(BuildContext context) {
     bool isCurrentUser = widget.fromUserName == WhoAmIStore().username!;
-
 
       return SizeTransition(
       sizeFactor:
@@ -553,45 +548,33 @@ class _ChatMessageState extends State<ChatMessage> {
       );
   }
 
-  Future<String?> _getImageFromDatabase(String username) async {
-
-    var accountInformation = await AccountInformationStore().getPublicInformationByUsername(username);
-
-    String? encodedPic = accountInformation.encodedProfilePic;
-
-    if (encodedPic == null) {
-      return null;
-    }
-
-    return encodedPic;
+  _getImageFromDatabase(String username) async {
+    await AccountInformationStore().getPubDecode(username).then((value) =>
+    setState(() {
+      encodedPic = value;
+    }));
   }
 
   Widget _buildUserAvatar() {
-    return Container(
+    _getImageFromDatabase(widget.fromUserName);
+    if (encodedPic != null) {
+      return Container(
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: FutureBuilder<String?>(
-          future: _getImageFromDatabase(widget.fromUserName),
-          builder: (context, snapshot) {
-            if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-              SnackBar(
-                backgroundColor: Colors.red,
-                content: Text('Error: ${snapshot.error}'),
-              );
-            } else if (snapshot.hasData && snapshot.data != null) {
-              final imageData = Uint8List.fromList(base64Decode(snapshot.data!));
-              return CircleAvatar(
-                radius: 20,
-                backgroundImage: MemoryImage(imageData),
-              );
-            }
-            return CircleAvatar(
-              backgroundColor: _getColorFromUserName(widget.fromUserName),
-              foregroundColor: Colors.white,
-              child: Text(widget.fromUserName[0].toUpperCase()),
-            );
-          },
-        )
-    );
+        child: CircleAvatar(
+          radius: 20,
+          backgroundImage: encodedPic,
+        ),
+      );
+    } else {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: CircleAvatar(
+          backgroundColor: _getColorFromUserName(widget.fromUserName),
+          foregroundColor: Colors.white,
+          child: Text(widget.fromUserName[0].toUpperCase()),
+        ),
+      );
+    }
   }
 
   Widget _buildMessageHeader() {
