@@ -19,6 +19,7 @@ import '../services/encryption_service.dart';
 import '../services/files/download_service/download_service.dart';
 import '../services/message_service.dart';
 import '../services/stores/who_am_i_store.dart';
+import 'package:my_flutter_test/models/chat.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatTitle;
@@ -35,7 +36,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   final TextEditingController _textController = TextEditingController();
   final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
+  final ItemPositionsListener itemPositionsListener =
+      ItemPositionsListener.create();
   List<ChatMessage> _messages = [];
   final FocusNode _textFieldFocus = FocusNode();
   final int chatId;
@@ -52,15 +54,34 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   ChatScreenState({required this.chatId});
 
+  bool loadedAllImages = false;
+
   @override
   initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _textFieldFocus.requestFocus();
     });
+    itemPositionsListener.itemPositions.addListener(_scrollingListener);
     getKeyOfChat(chatId).then((value) => _saveChatKeyAndGetAllMessages(value!));
     getSessionKey(chatId).then((value) => createWebsocketConnection(value));
-    itemPositionsListener.itemPositions.addListener(_scrollingListener);
+    _requestAllPicturesInitially().then((value) => setState(() {
+          loadedAllImages = true;
+        }));
+
+  }
+
+  Future<void> _requestAllPicturesInitially() async {
+    Set<String> uniqueUsernames = {};
+    for (var message in _messages) {
+      uniqueUsernames.add(message.fromUserName);
+    }
+    List<Future> futures = [];
+    for (var username in uniqueUsernames) {
+      futures.add(AccountInformationStore().getProfilePicByUsername(username));
+    }
+
+    await Future.wait(futures);
   }
 
   @override
@@ -76,14 +97,16 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     var currentVisibleItems = itemPositionsListener.itemPositions.value;
     if (currentVisibleItems.isNotEmpty &&
-        currentVisibleItems.last.index == _messages.length - 1) {
-      print("Lazy loading messages with lastLoadedMsgId: ${_messages.first.id}");
+        currentVisibleItems.last.index == 0) {
+      print(
+          "Lazy loading messages with lastLoadedMsgId: ${_messages.first.id}");
       getAndDisplayMessagesFromBackend(_messages.first.id);
     }
   }
 
   Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(allowMultiple: true);
 
     if (result != null) {
       setState(() {
@@ -138,13 +161,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _messages.add(chatMessage);
     });
 
-    itemScrollController.scrollTo(
-        index: _messages.length - 1,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOutCubic,
-        alignment: 1.0
-    );
-
     animationControllerForIncommingMessages.forward();
   }
 
@@ -161,17 +177,16 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         _messages.indexWhere((element) => element.id == parsedMessage.id);
     var oldMessage = _messages[index];
     var newMessage = ChatMessage(
-      id: oldMessage.id,
-      fromUserName: oldMessage.fromUserName,
-      timestamp: oldMessage.timestamp,
-      text: aesDecrypt(parsedMessage.value, chatKey),
-      files: oldMessage.files,
-      animationController: oldMessage.animationController,
-      deleteMessage: _deleteMessage,
-      updateMessage: _updateMessage,
-      lastTimeUpdated: parsedMessage.lastTimeUpdated,
-      symKey: chatKey
-    );
+        id: oldMessage.id,
+        fromUserName: oldMessage.fromUserName,
+        timestamp: oldMessage.timestamp,
+        text: aesDecrypt(parsedMessage.value, chatKey),
+        files: oldMessage.files,
+        animationController: oldMessage.animationController,
+        deleteMessage: _deleteMessage,
+        updateMessage: _updateMessage,
+        lastTimeUpdated: parsedMessage.lastTimeUpdated,
+        symKey: chatKey);
     setState(() {
       _messages[index] = newMessage;
     });
@@ -180,17 +195,16 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   ChatMessage _parseMessageToChatMessage(
       Message message, AnimationController animationController) {
     return ChatMessage(
-      id: message.id,
-      fromUserName: message.fromUserName,
-      timestamp: message.timestamp,
-      text: aesDecrypt(message.value, chatKey),
-      files: message.attachedFiles,
-      animationController: animationController,
-      deleteMessage: _deleteMessage,
-      updateMessage: _updateMessage,
-      lastTimeUpdated: null,
-      symKey: chatKey
-    );
+        id: message.id,
+        fromUserName: message.fromUserName,
+        timestamp: message.timestamp,
+        text: aesDecrypt(message.value, chatKey),
+        files: message.attachedFiles,
+        animationController: animationController,
+        deleteMessage: _deleteMessage,
+        updateMessage: _updateMessage,
+        lastTimeUpdated: null,
+        symKey: chatKey);
   }
 
   Future<void> _deleteMessage(ChatMessage message) async {
@@ -221,7 +235,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   void _saveChatKeyAndGetAllMessages(Chatkey chatKey) async {
-    this.chatKey = ECCHelper().decryptByAESAndECDHUsingString(chatKey.encryptedByPublicKey, chatKey.value);
+    this.chatKey = ECCHelper().decryptByAESAndECDHUsingString(
+        chatKey.encryptedByPublicKey, chatKey.value);
     await getAndDisplayMessagesFromBackend(-1);
   }
 
@@ -238,7 +253,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
     Iterable<ChatMessage> chatMessages = [];
     setState(() {
-      chatMessages = temp.map((e) => _parseMessageToChatMessage(e, animation)).toList();
+      chatMessages =
+          temp.map((e) => _parseMessageToChatMessage(e, animation)).toList();
       _messages.insertAll(0, chatMessages);
     });
 
@@ -247,8 +263,13 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   void _handleSubmitted(String text) {
     _chosenFiles.removeWhere((element) => element.bytes == null);
-    var attachedFiles = _chosenFiles.map((e) => AttachedFile(fileName: e.name, encodedFileContent: aesEncrypt(base64Encode(e.bytes!), chatKey))).toList();
-    sendMessage(chatId, aesEncrypt(text, chatKey), attachedFiles, expirationTimerSecs);
+    var attachedFiles = _chosenFiles
+        .map((e) => AttachedFile(
+            fileName: e.name,
+            encodedFileContent: aesEncrypt(base64Encode(e.bytes!), chatKey)))
+        .toList();
+    sendMessage(
+        chatId, aesEncrypt(text, chatKey), attachedFiles, expirationTimerSecs);
 
     _textController.clear();
     setState(() {
@@ -259,22 +280,19 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textFieldFocus.requestFocus();
   }
 
-
   void timerButtonClicked(BuildContext context) async {
     // if enabled -> disable
     if (expirationTimerSecs != null) {
       setState(() {
         expirationTimerSecs = null;
       });
-    }
-    else {
+    } else {
       final selectedDuration = await showDialog<int>(
         context: context,
         builder: (BuildContext context) {
           int? selectedValue;
           return AlertDialog(
-            title: const Text(
-                'Self Destruction'),
+            title: const Text('Self Destruction'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -310,8 +328,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         setState(() {
           expirationTimerSecs = selectedDuration;
         });
-      }
-      else {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Invalid duration'),
@@ -319,21 +336,23 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         );
       }
     }
-
   }
-
 
   Widget _buildTextComposer() {
     // Check if there's at least one non-image file in the chosen files
     bool containsNonImageFile = _chosenFiles.any(
-          (file) => !['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase()),
+      (file) => !['jpg', 'jpeg', 'png', 'gif']
+          .contains(file.extension!.toLowerCase()),
     );
 
     return Column(
       children: <Widget>[
         ..._chosenFiles.map(
-              (file) => FileView(
-            file: AttachedFile(fileName: file.name, encodedFileContent: base64Encode(file.bytes!), createdAt: DateTime.now()),
+          (file) => FileView(
+            file: AttachedFile(
+                fileName: file.name,
+                encodedFileContent: base64Encode(file.bytes!),
+                createdAt: DateTime.now()),
             forceFileView: containsNonImageFile,
             icon: const Icon(Icons.delete),
             symKey: chatKey,
@@ -342,10 +361,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ),
         Row(
           children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: _pickFile
-            ),
+            IconButton(icon: const Icon(Icons.add), onPressed: _pickFile),
             Flexible(
               child: TextField(
                 controller: _textController,
@@ -357,15 +373,19 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 },
                 onSubmitted: _handleSubmitted,
                 decoration:
-                const InputDecoration.collapsed(hintText: 'Send a message'),
+                    const InputDecoration.collapsed(hintText: 'Send a message'),
               ),
             ),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 4.0),
               child: IconButton(
-                icon: expirationTimerSecs != null ? const Icon(Icons.timer) : const Icon(Icons.timer_off),
+                icon: expirationTimerSecs != null
+                    ? const Icon(Icons.timer)
+                    : const Icon(Icons.timer_off),
                 onPressed: () => timerButtonClicked(context),
-                color: expirationTimerSecs != null ? Colors.red : Theme.of(context).disabledColor,
+                color: expirationTimerSecs != null
+                    ? Colors.red
+                    : Theme.of(context).disabledColor,
               ),
             ),
             Container(
@@ -402,76 +422,88 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     print(_messages.map((e) => e.text).toList());
-    return
-      WillPopScope(
-        onWillPop: () async {
-        if(websocketSession != null) {
+    if (!loadedAllImages) {
+      return const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            strokeWidth: 2,
+          ));
+    }
+    return WillPopScope(
+      onWillPop: () async {
+        if (websocketSession != null) {
           websocketSession!.close();
         }
-      return true;
-    },
+        return true;
+      },
       child: Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => ChatDetailsScreen(chatId: chatId),
-            ));
-          },
-          child: Row(
-            children: [
-              FutureBuilder<String?>(
-                future: _getImageFromDatabase(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.hasData && snapshot.data != null && snapshot.data != "") {
-                    final encodedPic = snapshot.data!;
-                    final imageData = Uint8List.fromList(base64Decode(encodedPic));
-                    return CircleAvatar(
-                      radius: 20,
-                      backgroundImage: MemoryImage(imageData),
-                    );
-                  } else {
-                    return const CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.blue,
-                      child: Icon(
-                        Icons.supervised_user_circle,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                    );
-                  }
-                },
-              ),
-              SizedBox(width: 8), // placeholder between avatar and chat title
-              Text(widget.chatTitle),
-            ],
-          ),
-        ),
-        backgroundColor: Colors.blue,
-      ),
-      body: Column(
-        children: <Widget>[
-          Flexible(
-            child: ScrollablePositionedList.builder(
-              padding: const EdgeInsets.all(8.0),
-              reverse: false,
-              itemCount: _messages.length,
-              itemBuilder: (_, int index) => _messages[index],
-              itemScrollController: itemScrollController,
-              itemPositionsListener: itemPositionsListener,
+        appBar: AppBar(
+          title: GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => ChatDetailsScreen(chatId: chatId),
+              ));
+            },
+            child: Row(
+              children: [
+                FutureBuilder<String?>(
+                  future: _getImageFromDatabase(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.hasData &&
+                        snapshot.data != null &&
+                        snapshot.data != "") {
+                      final encodedPic = snapshot.data!;
+                      final imageData =
+                          Uint8List.fromList(base64Decode(encodedPic));
+                      return CircleAvatar(
+                        radius: 20,
+                        backgroundImage: MemoryImage(imageData),
+                      );
+                    } else {
+                      return const CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.blue,
+                        child: Icon(
+                          Icons.supervised_user_circle,
+                          size: 30,
+                          color: Colors.white,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                SizedBox(width: 8),
+                // placeholder between avatar and chat title
+                Text(widget.chatTitle),
+              ],
             ),
           ),
-          const Divider(height: 1.0),
-          Container(
-            decoration: BoxDecoration(color: Theme.of(context).cardColor),
-            child: _buildTextComposer(),
-          ),
-        ],
+          backgroundColor: Colors.blue,
+        ),
+        body: Column(
+          children: <Widget>[
+            Flexible(
+              child: ScrollablePositionedList.builder(
+                padding: const EdgeInsets.all(8.0),
+                reverse: true,
+                itemCount: _messages.length,
+                itemBuilder: (_, int index) => _messages.reversed.toList()[index],
+                itemScrollController: itemScrollController,
+                itemPositionsListener: itemPositionsListener,
+              ),
+            ),
+            const Divider(height: 1.0),
+            Container(
+              decoration: BoxDecoration(color: Theme.of(context).cardColor),
+              child: _buildTextComposer(),
+            ),
+          ],
+        ),
       ),
-     ),
     );
   }
 }
@@ -516,6 +548,8 @@ class _ChatMessageState extends State<ChatMessage> {
   void initState() {
     super.initState();
     editingController = TextEditingController(text: widget.text);
+
+    _getImageFromDatabase(widget.fromUserName);
   }
 
   Color _getColorFromUserName(String userName) {
@@ -528,11 +562,10 @@ class _ChatMessageState extends State<ChatMessage> {
   Widget build(BuildContext context) {
     bool isCurrentUser = widget.fromUserName == WhoAmIStore().username!;
 
-      return SizeTransition(
-      sizeFactor:
-      CurvedAnimation(
-          parent: widget.animationController, curve: Curves.easeOut),
-      axisAlignment: 0.0,
+    return SizeTransition(
+        sizeFactor: CurvedAnimation(
+            parent: widget.animationController, curve: Curves.easeOut),
+        axisAlignment: 0.0,
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 10.0),
           child: Row(
@@ -552,19 +585,18 @@ class _ChatMessageState extends State<ChatMessage> {
               if (isCurrentUser && !isEditing) _buildMessageActions(),
             ],
           ),
-        )
-      );
+        ));
   }
 
   _getImageFromDatabase(String username) async {
-    await AccountInformationStore().getPubDecode(username).then((value) =>
-    setState(() {
-      encodedPic = value;
-    }));
+    await AccountInformationStore()
+        .getProfilePicByUsername(username)
+        .then((value) => setState(() {
+              encodedPic = value;
+            }));
   }
 
   Widget _buildUserAvatar() {
-    _getImageFromDatabase(widget.fromUserName);
     if (encodedPic != null) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -606,23 +638,30 @@ class _ChatMessageState extends State<ChatMessage> {
   List<Widget> _buildAttachedFiles() {
     return attachedFilesView = widget.files!
         .map((file) => FileView(
-      file: file,
-      forceFileView: widget.files!.any((element) => !['jpg', 'jpeg', 'png', 'gif'].contains(element.fileName.split('.').last.toLowerCase())),
-      icon: const Icon(Icons.download),
-      symKey: widget.symKey,
-      onClick: () {
-        var encryptedFileContent = aesDecrypt(file.encodedFileContent, widget.symKey);
-        DownloadService.instance.downloadFile(encodedContent: encryptedFileContent, filename: file.fileName);
-      },
-    )).toList();
+              file: file,
+              forceFileView: widget.files!.any((element) => ![
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'gif'
+                  ].contains(element.fileName.split('.').last.toLowerCase())),
+              icon: const Icon(Icons.download),
+              symKey: widget.symKey,
+              onClick: () {
+                var encryptedFileContent =
+                    aesDecrypt(file.encodedFileContent, widget.symKey);
+                DownloadService.instance.downloadFile(
+                    encodedContent: encryptedFileContent,
+                    filename: file.fileName);
+              },
+            ))
+        .toList();
   }
 
   Widget _buildMessageContent() {
     return Container(
       margin: const EdgeInsets.only(top: 5.0),
-      child: isEditing
-          ? _buildEditingField()
-          : Text(widget.text),
+      child: isEditing ? _buildEditingField() : Text(widget.text),
     );
   }
 
@@ -722,7 +761,8 @@ class _FileViewState extends State<FileView> {
     String fileExtension = _getFileExtension(widget.file.fileName);
     return Row(
       children: <Widget>[
-        if (widget.forceFileView || !['jpg', 'jpeg', 'png', 'gif'].contains(fileExtension))
+        if (widget.forceFileView ||
+            !['jpg', 'jpeg', 'png', 'gif'].contains(fileExtension))
           _showFileWidget()
         else
           _showImageWidget(),
@@ -735,7 +775,8 @@ class _FileViewState extends State<FileView> {
   }
 
   Uint8List decryptImage() {
-    return base64Decode(aesDecrypt(widget.file.encodedFileContent, widget.symKey));
+    return base64Decode(
+        aesDecrypt(widget.file.encodedFileContent, widget.symKey));
   }
 
   Widget _showFileWidget() {
@@ -782,7 +823,6 @@ class _FileViewState extends State<FileView> {
       },
       child: const Text('Show Image'),
     );
-
   }
 
   String _getFileExtension(String fileName) {
@@ -793,4 +833,3 @@ class _FileViewState extends State<FileView> {
     return '';
   }
 }
-
