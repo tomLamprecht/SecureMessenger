@@ -36,7 +36,7 @@ public class SubscriptionWebSocket extends TextWebSocketHandler {
 
     private static final String PAYLOAD_INVALID_MESSAGE = "Payload was not a valid session";
 
-    private static final MaxTimeDifference MAX_TIME_DIFFERENCE = new MaxTimeDifference( 1000000000 );
+    private static final MaxTimeDifference MAX_TIME_DIFFERENCE = new MaxTimeDifference( 60 );
 
     private final WebSocketSessionLogic logic;
     private final AccountRepository accountRepository;
