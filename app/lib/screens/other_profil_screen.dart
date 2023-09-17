@@ -8,7 +8,7 @@ class OtherProfilScreen extends StatefulWidget {
   String username;
   String publicKey;
 
-  OtherProfilScreen({required this.username, required this.publicKey});
+  OtherProfilScreen({super.key, required this.username, required this.publicKey});
 
   @override
   _OtherProfilScreenState createState() => _OtherProfilScreenState();
@@ -44,19 +44,16 @@ class _OtherProfilScreenState extends State<OtherProfilScreen> {
           child: Center(
             child: Column(
               children: [
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     FutureBuilder<String?>(
                       future: _getImageFromDatabase(widget.username),
-                      // Function to retrieve the image from the database
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
-                          return Text('Error: ${snapshot.error}');
+                          return const Text('An error occurred while loading the image from the database.');
                         } else if (snapshot.hasData && snapshot.data != null) {
-                          // Zeige das Bild aus der Datenbank
                           final encodedPic = snapshot.data!;
                           final imageData = Uint8List.fromList(base64Decode(encodedPic));
                           return CircleAvatar(
@@ -64,8 +61,7 @@ class _OtherProfilScreenState extends State<OtherProfilScreen> {
                             backgroundImage: MemoryImage(imageData),
                           );
                         } else {
-                          // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
-                          return CircleAvatar(
+                          return const CircleAvatar(
                             radius: 80,
                             backgroundColor: Colors.blue,
                             child: Icon(
@@ -79,12 +75,12 @@ class _OtherProfilScreenState extends State<OtherProfilScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 ProfileInfoItem(
                   title: 'Username',
                   value: widget.username ?? 'N/A',
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 ProfileInfoItem(
                   title: 'Public Key',
                   value: widget.publicKey ?? 'N/A',
@@ -102,7 +98,7 @@ class ProfileInfoItem extends StatelessWidget {
   final String title;
   final String value;
 
-  ProfileInfoItem({required this.title, required this.value});
+  const ProfileInfoItem({super.key, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -110,16 +106,16 @@ class ProfileInfoItem extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.grey,
             fontSize: 18,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Center(
           child: Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 20,
             ),
@@ -128,8 +124,4 @@ class ProfileInfoItem extends StatelessWidget {
       ],
     );
   }
-}
-
-void main() {
-  runApp(OtherProfilScreen(username: 'Test', publicKey: '',));
 }

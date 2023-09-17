@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
 
 import 'package:my_flutter_test/services/api/api_config.dart';
 
@@ -16,7 +15,6 @@ class RegistrationService {
     required String publicKey,
     required String userName,
   }) async {
-    developer.log(captchaId);
     final response = await CustomHttpClient().post(
       Uri.parse('$_baseUrl/users/register'),
       headers: <String, String>{

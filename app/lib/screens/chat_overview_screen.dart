@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -78,27 +77,20 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                   context,
                   MaterialPageRoute(builder: (context) => FriendRequestPage()),
                 );
-                log(shouldRefresh.toString());
                 if (shouldRefresh ?? false) {
-                  setState(() {
-
-                  });
+                  setState(() {});
                 }
               },
             ),
             IconButton(
               icon: const Icon(Icons.manage_accounts_sharp),
               onPressed: () async {
-
                 final bool? shouldRefresh = await Navigator.push<bool>(
                   context,
                   MaterialPageRoute(builder: (context) => ManageProfilPage()),
                 );
-                log(shouldRefresh.toString());
                 if (shouldRefresh ?? false) {
-                  setState(() {
-
-                  });
+                  setState(() {});
                 }
               },
             ),
@@ -139,7 +131,6 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                     ),
                   ],
               )
-
             else
               Expanded(
                 child: ListView.builder(
@@ -168,7 +159,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                                 backgroundImage: MemoryImage(imageData),
                               );
                             } else {
-                              return CircleAvatar(
+                              return const CircleAvatar(
                                 radius: 20,
                                 backgroundColor: Colors.blue,
                                 child: Icon(
@@ -202,7 +193,6 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
         floatingActionButton: FloatingActionButton(
           backgroundColor: Colors.blue,
           onPressed: () {
-            // Implement new chat creation here
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const CreateChatWidget()),
@@ -214,5 +204,3 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
     }
   }
 }
-
-

@@ -1,10 +1,7 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:typed_data';
 
 import 'package:my_flutter_test/models/account.dart';
 import 'package:my_flutter_test/models/chatkey.dart';
-import 'package:my_flutter_test/services/files/ecc_helper.dart';
 
 import '../custom_http_client.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';
@@ -13,7 +10,6 @@ import '../models/chat_to_account.dart';
 import 'api/api_config.dart';
 
 class ChatsService {
-
 
   Future<int?> createNewChat(String chatName, String description, List<AccountIdToEncryptedSymKey> accountIdToEncryptedSymKeys) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats');
@@ -38,7 +34,6 @@ class ChatsService {
       final List<Chat> chatList = jsonList.map((json) => Chat.fromJson(json)).toList();
       return chatList;
     } else {
-      log("Keine Liste bei GET-Request erhalten!");
       return [];
     }
   }
@@ -53,7 +48,6 @@ class ChatsService {
       return null;
     }
   }
-
 
   Future<Chatkey?> getOwnSymmetricKeyOfChat(int chatId) async {
     final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/$chatId/symmetric-key');
@@ -121,7 +115,6 @@ class ChatsService {
     if (response.statusCode == 400) {
       return jsonDecode(response.body)['message'];
     }
-
     return "";
   }
 

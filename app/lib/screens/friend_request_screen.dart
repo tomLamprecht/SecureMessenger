@@ -8,7 +8,6 @@ import 'package:my_flutter_test/services/account_service.dart';
 import 'package:my_flutter_test/services/stores/account_information_store.dart';
 import '../services/friendship_service.dart';
 import '../widgets/hoverable_button.dart';
-import 'manage_profil_screen.dart';
 import 'other_profil_screen.dart';
 
 
@@ -83,7 +82,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
             children: [
               if (_accountList.isEmpty)
                 Container(
-                  color: Colors.yellow, // Hintergrundfarbe des Banners
+                  color: Colors.yellow,
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -203,10 +202,8 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                         future: _getImageFromDatabase(account.userName),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
-                            // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
-                            return Text('Error: ${snapshot.error}');
+                            return const Text('Error: Friends list could not be loaded. Please try again later.');
                           } else if (snapshot.hasData && snapshot.data != null) {
-                            // Zeige das Bild aus der Datenbank
                             final encodedPic = snapshot.data!;
                             final imageData = Uint8List.fromList(base64Decode(encodedPic));
                             return CircleAvatar(
@@ -214,18 +211,15 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                               backgroundImage: MemoryImage(imageData),
                             );
                           } else {
-
                             return const Icon(Icons.person);
-
                           }
                         },
                       ),
                       title: Text(account.userName),
-                      // subtitle: Text(account.publicKey),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          HoverableIconButton( //Löschen des freundes
+                          HoverableIconButton(
                               icon: Icons.clear,
                               hoverColor: Colors.redAccent,
                               onPressed: () async {
@@ -246,15 +240,13 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                 }
                               }
                           ),
-                          HoverableIconButton(icon: Icons.manage_accounts_sharp, hoverColor: Colors.greenAccent, onPressed: () async { //Profil aufrufen können
+                          HoverableIconButton(icon: Icons.manage_accounts_sharp, hoverColor: Colors.greenAccent, onPressed: () async {
                             final bool? shouldRefresh = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(builder: (context) => OtherProfilScreen(username: account.userName, publicKey: account.publicKey)),
                             );
                             if (shouldRefresh ?? false) {
-                              setState(() {
-
-                              });
+                              setState(() {});
                             }
                           },
                           ),

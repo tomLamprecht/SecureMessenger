@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:my_flutter_test/services/account_service.dart';
-import '../services/chats_service.dart';
 import '../services/stores/account_information_store.dart';
 import '../services/stores/who_am_i_store.dart';
 
@@ -18,7 +17,6 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
   Uint8List? _chosenFile;
   bool hasProfilPic = true;
 
-  //TODO: Abänderung auf ACCount
   Future<void> _pickFile(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -38,7 +36,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
               ),
             );
             setState(() {
-              _chosenFile = imageBytes;
+              _chosenFile = imageBytes; // todo: ich glaube das kann raus, nochmal prüfen
             });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -47,9 +45,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
               ),
             );
         }
-
       } else {
-        // Datei ist kein Bild mit erlaubter Erweiterung
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Invalid file extension. Select an image.'),
@@ -57,7 +53,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
         );
       }
     } else {
-      // Der Benutzer hat die Auswahl abgebrochen
+      // The user has canceled the selection.
     }
   }
 
@@ -103,33 +99,30 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Manage Profil'),
+          title: const Text('Manage Profil'),
         ),
         body: Material(
           child: SingleChildScrollView(
             child: Center(
               child: Column(
                 children: [
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed: () { //bearbeiten von Bild
+                        onPressed: () {
                           _pickFile(context);
                         },
-                        icon: Icon(Icons.edit),
+                        icon: const Icon(Icons.edit),
                         color: Colors.blue,
                       ),
                       FutureBuilder<String?>(
                         future: _getImageFromDatabase(),
-                        // Funktion zum Abrufen des Bildes aus der Datenbank
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
-                            // Zeige eine Fehlermeldung, wenn ein Fehler auftritt
-                            return Text('Error: ${snapshot.error}');
+                            return const Text('An error occurred while loading the image from the database.');
                           } else if (snapshot.hasData && snapshot.data != null) {
-                            // Zeige das Bild aus der Datenbank
                             final encodedPic = snapshot.data!;
                             final imageData = Uint8List.fromList(base64Decode(encodedPic));
                             return CircleAvatar(
@@ -137,8 +130,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
                               backgroundImage: MemoryImage(imageData),
                             );
                           } else {
-                            // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
-                            return CircleAvatar(
+                            return const CircleAvatar(
                               radius: 80,
                               backgroundColor: Colors.blue,
                               child: Icon(
@@ -150,27 +142,16 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
                           }
                         },
                       ),
-                      // hasProfilPic
-                      //     ? CircleAvatar(
-                      //   radius: 80,
-                      //   backgroundColor: Colors.blue,
-                      //   child: Icon(
-                      //     Icons.supervised_user_circle,
-                      //     size: 60,
-                      //     color: Colors.white,
-                      //   ),
-                      // )
-                      //     : Container(),
                       IconButton(
                         onPressed: () {
                           _deleteFile(context);
                         },
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         color: Colors.red,
                       ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   ProfileInfoItem(
                     title: 'Your Username',
                     value: WhoAmIStore().username ?? 'N/A',
@@ -193,7 +174,7 @@ class ProfileInfoItem extends StatelessWidget {
   final String title;
   final String value;
 
-  ProfileInfoItem({required this.title, required this.value});
+  const ProfileInfoItem({super.key, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -201,16 +182,16 @@ class ProfileInfoItem extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.grey,
             fontSize: 18,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Center(
           child: Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 20,
             ),
@@ -219,8 +200,4 @@ class ProfileInfoItem extends StatelessWidget {
       ],
     );
   }
-}
-
-void main() {
-  runApp(ManageProfilPage());
 }

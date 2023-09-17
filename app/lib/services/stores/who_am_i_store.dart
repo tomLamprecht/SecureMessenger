@@ -11,6 +11,3 @@ class WhoAmIStore {
 
   WhoAmIStore._();
 }
-
-
-// WhoAmIStore().accountId

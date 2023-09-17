@@ -20,16 +20,16 @@ class CertFileHandler {
 
   String encryptFileContentByPassword(String fileContent, String password) {
     final encrypter = _getEncrypter(password);
-    final encrypt.IV _iv = encrypt.IV.fromLength(16); // 128-bit IV
-    final encrypted = encrypter.encrypt(fileContent, iv: _iv);
+    final encrypt.IV iv = encrypt.IV.fromLength(16); // 128-bit IV
+    final encrypted = encrypter.encrypt(fileContent, iv: iv);
     return encrypted.base64;
   }
 
   String decryptFileContentByPassword(String fileContent, String password) {
     final encrypter = _getEncrypter(password);
-    final encrypt.IV _iv = encrypt.IV.fromLength(16); // 128-bit IV
+    final encrypt.IV iv = encrypt.IV.fromLength(16); // 128-bit IV
     final encrypted = encrypt.Encrypted.fromBase64(fileContent);
-    return encrypter.decrypt(encrypted, iv: _iv);
+    return encrypter.decrypt(encrypted, iv: iv);
   }
 
   encrypt.Encrypter _getEncrypter(String password) {
@@ -55,7 +55,6 @@ class CertFileHandler {
   Future<void> downloadCertificate(Keypair keyPair, String fileName, String password) async {
     var privateKey = keyPair.privateKey;
 
-    // Encrypt the value with AES using the password as the encryption key
     var encryptedValue = encryptFileContentByPassword(privateKey.toHex(), password);
 
     await downloadFile(encryptedValue, fileName);

@@ -1,9 +1,6 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:ui';
 
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/material.dart';
 import 'package:my_flutter_test/custom_http_client.dart';
 import 'package:my_flutter_test/services/api/api_config.dart';
 import 'package:my_flutter_test/services/files/cert_file_handler.dart';
@@ -29,7 +26,6 @@ Future<bool> requestAndSaveWhoAmI() async {
     return true;
   }
   return false;
-
 }
 
 Future<bool> signIn(Map<String, dynamic> data) async {
@@ -50,7 +46,6 @@ String? _extract(String content, String from, String to) {
   if (startIndex != -1 && endIndex != -1) {
     return content.substring(startIndex, endIndex);
   }
-
   return null;
 }
 

@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('CertFileHandler Demo'),
+        title: const Text('CertFileHandler Demo'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -67,43 +67,43 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             TextField(
               controller: _contentController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Content',
                 border: OutlineInputBorder(),
               ),
               maxLines: null,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
               obscureText: false,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Password',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _encrypt,
-              child: Text('Encrypt'),
+              child: const Text('Encrypt'),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _decrypt,
-              child: Text('Decrypt'),
+              child: const Text('Decrypt'),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Text(
               _result,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _copyToClipboard,
-              child: Text('Copy to Clipboard'),
+              child: const Text('Copy to Clipboard'),
             ),
           ],
         ),

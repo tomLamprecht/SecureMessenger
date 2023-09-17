@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:my_flutter_test/models/account.dart';
 import 'package:my_flutter_test/models/friendship.dart';
@@ -19,7 +18,6 @@ class FriendshipService {
       for (var incomingFriendship in friendshipList) { accounts.add(incomingFriendship.fromAccount); }
       return accounts;
     } else {
-      log("Keine Liste bei GET-Request Friendships erhalten!");
       return [];
     }
   }
@@ -32,7 +30,6 @@ class FriendshipService {
       final List<dynamic> jsonList = json.decode(response.body);
       return jsonList.map((json) => FriendshipWith.fromJson(json).withAccount).toList();
     } else {
-      log("Keine Liste bei GET-Request Friends erhalten!");
       return [];
     }
   }
@@ -45,7 +42,6 @@ class FriendshipService {
       final List<dynamic> jsonList = json.decode(response.body);
       return jsonList.map((json) => FriendshipWith.fromJson(json).withAccount).toList();
     } else {
-      log("Keine Liste bei GET-Request Friends erhalten!");
       return [];
     }
   }

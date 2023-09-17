@@ -168,10 +168,10 @@ class _GroupHeaderState extends State<GroupHeader> {
       if (['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase())) {
         Uint8List imageBytes = file.bytes!;
 
-        Chatkey? chatkey = await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
-        if(chatkey != null) {
+        Chatkey? chatKey = await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
+        if(chatKey != null) {
           key = ECCHelper().decryptByAESAndECDHUsingString(
-              chatkey.encryptedByPublicKey, chatkey.value);
+              chatKey.encryptedByPublicKey, chatKey.value);
           if (await ChatsService().updateGroupPicFromChat(
               base64Encode(imageBytes), widget.group.chatId)) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -180,7 +180,7 @@ class _GroupHeaderState extends State<GroupHeader> {
               ),
             );
             setState(() {
-              _chosenFile = imageBytes;
+              _chosenFile = imageBytes; // todo: glaube das kann raus, nochmal prüfen (brauch nur den setState für reload)
             });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -210,11 +210,20 @@ class _GroupHeaderState extends State<GroupHeader> {
 
   Future<String?> _getImageFromDatabase() async {
     var chatToAcc = await ChatsService().getChatToUser(widget.group.chatId);
-    String? encodedPic = chatToAcc?.chat.encodedGroupPic;
-    if (chatToAcc != null && encodedPic != null) {
-      return encodedPic;
+    if(chatToAcc != null) {
+      String? encodedPic = chatToAcc.chat.encodedGroupPic;
+      if (encodedPic != null) {
+        return encodedPic;
+      }
+      return null;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Chat could not be loaded.'),
+        ),
+      );
+      return null;
     }
-    return null;
   }
 
   Future<void> _deleteFile(BuildContext context) async {
@@ -250,22 +259,19 @@ class _GroupHeaderState extends State<GroupHeader> {
               icon: const Icon(Icons.edit),
               color: Colors.blue,
             ),
-                FutureBuilder<String?>(
+            FutureBuilder<String?>(
               future: _getImageFromDatabase(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Text('Failed to load image.');
                 } else if (snapshot.hasData && snapshot.data != null) {
-                  // Zeige das Bild aus der Datenbank
                   final encodedPic = snapshot.data!;
-                  // final decryptPic = aesDecrypt(encodedPic, "password");
                   final imageData = Uint8List.fromList(base64Decode(encodedPic));
                   return CircleAvatar(
                     radius: 100,
                     backgroundImage: MemoryImage(imageData),
                   );
                 } else {
-                  // Zeige das Icon, wenn kein Bild in der Datenbank vorhanden ist
                   return const CircleAvatar(
                     radius: 80,
                     backgroundColor: Colors.blue,
@@ -278,22 +284,11 @@ class _GroupHeaderState extends State<GroupHeader> {
                 }
               },
             ),
-            // hasGroupPic
-            //     ? CircleAvatar(
-            //   radius: 80,
-            //   backgroundColor: Colors.blue,
-            //   child: Icon(
-            //     Icons.supervised_user_circle,
-            //     size: 60,
-            //     color: Colors.white,
-            //   ),
-            // )
-            //     : Container(),
             IconButton(
               onPressed: () {
                 _deleteFile(context);
               },
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
               color: Colors.red,
             ),
           ],
@@ -404,7 +399,6 @@ class _AccountListState extends State<AccountList> {
                     }
                     return ListTile(
                       onTap: () => {},
-                      // add hover effect
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 10.0),
                       leading: CircleAvatar(
@@ -462,7 +456,7 @@ class _AccountListState extends State<AccountList> {
                                   ),
                                 ),
                                 const SizedBox(
-                                    width: 10), // Spacing between buttons
+                                    width: 10),
                                 if (accountsInChat.any((element) =>
                                     element.account.accountId ==
                                         account.accountId &&
@@ -500,7 +494,8 @@ class _AccountListState extends State<AccountList> {
                                             .updateAdminRoleSettingOfAccount(
                                                 chatId,
                                                 account.accountId,
-                                                true);
+                                                true
+                                        );
                                         if (wasSuccessful) {
                                           setState(() {});
                                         } else {
@@ -639,7 +634,6 @@ class AddMemberButton extends StatelessWidget {
                   encryptedSymmetricKey: encodedSymKey));
             }
             await ChatsService().addAccountsToGroup(chatId, encryptedSymKeys);
-
             refreshData();
           }
         },

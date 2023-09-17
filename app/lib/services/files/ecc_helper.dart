@@ -93,8 +93,6 @@ class ECCHelper {
     return aesDecrypt(cypher, base64.encode(sharedKey.bytes));
   }
 
-
-
   ECPublicKey publicKeyFromBase64String(String base64String) {
     final publicKeyBytes = base64Decode(base64String.replaceAll("\n", "").replaceAll("\r", ""));
 
@@ -111,8 +109,6 @@ class ECCHelper {
 
     return ECPublicKey(point, params);
   }
-
-
 
   ecc.PrivateKey parsePrivateKeyFromHexString(String hex) {
     return ecc.PrivateKey.fromHex(ecc.getP256(), hex);

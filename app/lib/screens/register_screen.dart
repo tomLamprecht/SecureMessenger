@@ -68,7 +68,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return image;
   }
 
-
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) {
       return null;
@@ -111,7 +110,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _refreshCaptcha();
     }
   }
-
 
   void _redirectToChatOverview() {
     Navigator.pushAndRemoveUntil(
@@ -168,7 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       );
                     }
                     if (snapshot.hasError) {
-                      return const Text('Failed to load captcha image');
+                      return const Text('Failed to load captcha image. Please try again later.');
                     }
                     return Stack(
                       children: [

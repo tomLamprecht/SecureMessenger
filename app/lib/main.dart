@@ -10,15 +10,7 @@ void main() => runApp(
 );
 
 class MyApp extends StatelessWidget {
-  const MyApp() : super();
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return EccKeyStore().publicKey == null
-  //       ? LoginScreen()
-  //       : ChatOverviewPage();
-  //   // return ChatOverviewPage();
-  // }
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

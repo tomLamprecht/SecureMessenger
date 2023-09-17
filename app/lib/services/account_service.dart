@@ -1,6 +1,5 @@
 
 import 'dart:convert';
-import 'dart:developer';
 import '../custom_http_client.dart';
 import '../models/account.dart';
 import 'api/api_config.dart';
@@ -16,7 +15,6 @@ class AccountService {
         return Account.fromJson(jsonAcc);
 
       } else {
-        log("Keinen Account gefunden bei GET-Request");
         return null;
       }
     }

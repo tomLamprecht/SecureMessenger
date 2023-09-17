@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import '../custom_http_client.dart';
 import '../models/AttachedFile.dart';
@@ -33,7 +32,6 @@ Future<void> deleteMessage(int chatId, int messageId) async {
   }
 }
 
-
 Future<void> updateMessage(int messageId, int chatId, String value) async {
   final url = Uri.parse('${ApiConfig.httpBaseUrl}/chats/${chatId}/messages/${messageId}');
   final headers = {'Content-Type': 'application/json'};
@@ -65,7 +63,6 @@ Future<Chatkey?> getKeyOfChat(int chatId) async {
   } else {
     return null;
   }
-
 }
 
 Future<String> getSessionKey(int chatId) async{
