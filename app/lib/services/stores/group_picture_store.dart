@@ -1,5 +1,5 @@
 
-import 'package:my_flutter_test/services/chats_service.dart';
+import 'package:securemessenger/services/chats_service.dart';
 
 class GroupPictureStore {
   static final GroupPictureStore _instance = GroupPictureStore._();

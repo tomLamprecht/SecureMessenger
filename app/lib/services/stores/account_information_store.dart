@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
-import 'package:my_flutter_test/services/account_service.dart';
+import 'package:securemessenger/services/account_service.dart';
 
 import '../../models/account.dart';
 

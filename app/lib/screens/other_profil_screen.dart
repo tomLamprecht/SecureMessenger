@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/services/stores/account_information_store.dart';
+import 'package:securemessenger/services/stores/account_information_store.dart';
 
 class OtherProfilScreen extends StatefulWidget {
   String username;

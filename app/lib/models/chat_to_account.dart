@@ -1,4 +1,4 @@
-import 'package:my_flutter_test/models/chat.dart';
+import 'package:securemessenger/models/chat.dart';
 
 import 'account.dart';
 

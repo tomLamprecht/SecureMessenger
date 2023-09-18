@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
-import 'package:my_flutter_test/services/api/api_config.dart';
+import 'package:securemessenger/services/api/api_config.dart';
 
 import '../custom_http_client.dart';
 

@@ -4,10 +4,10 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/screens/chat_overview_screen.dart';
+import 'package:securemessenger/screens/chat_overview_screen.dart';
 
-import 'package:my_flutter_test/services/friendship_service.dart';
-import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
+import 'package:securemessenger/services/friendship_service.dart';
+import 'package:securemessenger/services/stores/who_am_i_store.dart';
 
 import '../models/account.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';

@@ -1,4 +1,4 @@
-name: my_flutter_test
+name: securemessenger
 description: A new Flutter project.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -69,9 +69,6 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-
-  assets:
-    - images/lake.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

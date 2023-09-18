@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:my_flutter_test/services/api/api_config.dart';
+import 'package:securemessenger/services/api/api_config.dart';
 
 import '../custom_http_client.dart';
 

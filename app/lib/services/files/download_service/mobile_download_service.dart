@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:my_flutter_test/services/files/download_service/download_service.dart';
+import 'package:securemessenger/services/files/download_service/download_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 DownloadService getManager() =>

@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:universal_html/html.dart' as html;
 
-import 'package:my_flutter_test/services/files/download_service/download_service.dart';
+import 'package:securemessenger/services/files/download_service/download_service.dart';
 import 'package:mime/mime.dart';
 
 DownloadService getManager() =>

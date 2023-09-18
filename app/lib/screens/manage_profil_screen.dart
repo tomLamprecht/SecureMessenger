@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/services/account_service.dart';
+import 'package:securemessenger/services/account_service.dart';
 import '../services/stores/account_information_store.dart';
 import '../services/stores/who_am_i_store.dart';
 

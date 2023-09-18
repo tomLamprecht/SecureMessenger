@@ -1,5 +1,5 @@
 import 'package:http/http.dart' as http;
-import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
+import 'package:securemessenger/services/stores/ecc_key_store.dart';
 
 import 'services/files/ecc_helper.dart';
 

@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:my_flutter_test/models/keypair.dart';
-import 'package:my_flutter_test/services/files/ecc_helper.dart';
-import 'package:my_flutter_test/services/register_service.dart';
-import 'package:my_flutter_test/services/captcha_service.dart';
+import 'package:securemessenger/models/keypair.dart';
+import 'package:securemessenger/services/files/ecc_helper.dart';
+import 'package:securemessenger/services/register_service.dart';
+import 'package:securemessenger/services/captcha_service.dart';
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
+import 'package:securemessenger/services/stores/ecc_key_store.dart';
 
 import '../services/files/cert_file_handler.dart';
 import 'chat_overview_screen.dart';

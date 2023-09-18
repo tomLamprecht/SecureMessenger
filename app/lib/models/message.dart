@@ -1,4 +1,4 @@
-import 'package:my_flutter_test/models/AttachedFile.dart';
+import 'package:securemessenger/models/AttachedFile.dart';
 
 class Message {
   int id;

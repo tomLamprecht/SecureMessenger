@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:my_flutter_test/models/account.dart';
-import 'package:my_flutter_test/models/chatkey.dart';
+import 'package:securemessenger/models/account.dart';
+import 'package:securemessenger/models/chatkey.dart';
 
 import '../custom_http_client.dart';
 import '../models/account_id_to_encrypted_sym_key.dart';

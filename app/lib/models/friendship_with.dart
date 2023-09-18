@@ -1,4 +1,4 @@
-import 'package:my_flutter_test/models/account.dart';
+import 'package:securemessenger/models/account.dart';
 
 class FriendshipWith {
   final int id;

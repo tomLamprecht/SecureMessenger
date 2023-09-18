@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:encrypt/encrypt.dart';
-import 'package:my_flutter_test/custom_http_client.dart';
-import 'package:my_flutter_test/services/api/api_config.dart';
-import 'package:my_flutter_test/services/files/cert_file_handler.dart';
-import 'package:my_flutter_test/services/files/ecc_helper.dart';
-import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
-import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
+import 'package:securemessenger/custom_http_client.dart';
+import 'package:securemessenger/services/api/api_config.dart';
+import 'package:securemessenger/services/files/cert_file_handler.dart';
+import 'package:securemessenger/services/files/ecc_helper.dart';
+import 'package:securemessenger/services/stores/ecc_key_store.dart';
+import 'package:securemessenger/services/stores/who_am_i_store.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
 

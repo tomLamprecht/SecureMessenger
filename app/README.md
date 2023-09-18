@@ -1,4 +1,4 @@
-# my_flutter_test
+# securemessenger
 
 A new Flutter project.
 

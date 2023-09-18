@@ -1,6 +1,6 @@
 {
-    "name": "my_flutter_test",
-    "short_name": "my_flutter_test",
+    "name": "app",
+    "short_name": "app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

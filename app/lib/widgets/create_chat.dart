@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_test/models/account_id_to_encrypted_sym_key.dart';
-import 'package:my_flutter_test/screens/chat_screen.dart';
-import 'package:my_flutter_test/services/chats_service.dart';
-import 'package:my_flutter_test/services/files/aes_helper.dart';
-import 'package:my_flutter_test/services/files/ecc_helper.dart';
-import 'package:my_flutter_test/services/friendship_service.dart';
-import 'package:my_flutter_test/services/login_service.dart';
-import 'package:my_flutter_test/services/stores/who_am_i_store.dart';
+import 'package:securemessenger/models/account_id_to_encrypted_sym_key.dart';
+import 'package:securemessenger/screens/chat_screen.dart';
+import 'package:securemessenger/services/chats_service.dart';
+import 'package:securemessenger/services/files/aes_helper.dart';
+import 'package:securemessenger/services/files/ecc_helper.dart';
+import 'package:securemessenger/services/friendship_service.dart';
+import 'package:securemessenger/services/login_service.dart';
+import 'package:securemessenger/services/stores/who_am_i_store.dart';
 
 import '../models/account.dart';
 import '../screens/friend_request_screen.dart';

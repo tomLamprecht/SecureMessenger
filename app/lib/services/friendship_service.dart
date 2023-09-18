@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:my_flutter_test/models/account.dart';
-import 'package:my_flutter_test/models/friendship.dart';
-import 'package:my_flutter_test/models/friendship_with.dart';
+import 'package:securemessenger/models/account.dart';
+import 'package:securemessenger/models/friendship.dart';
+import 'package:securemessenger/models/friendship_with.dart';
 import '../custom_http_client.dart';
 import 'api/api_config.dart';
 

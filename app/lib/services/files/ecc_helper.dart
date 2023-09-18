@@ -7,9 +7,9 @@ import 'package:crypto/crypto.dart';
 import 'package:ecdsa/ecdsa.dart';
 import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart' as ecc;
-import 'package:my_flutter_test/models/keypair.dart';
-import 'package:my_flutter_test/services/encryption_service.dart';
-import 'package:my_flutter_test/services/stores/ecc_key_store.dart';
+import 'package:securemessenger/models/keypair.dart';
+import 'package:securemessenger/services/encryption_service.dart';
+import 'package:securemessenger/services/stores/ecc_key_store.dart';
 import 'package:pointycastle/ecc/curves/secp256r1.dart';
 
 class ECCHelper {
