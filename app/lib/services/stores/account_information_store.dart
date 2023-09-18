@@ -13,7 +13,7 @@ class AccountInformationStore {
 
   Map<String, Account> cachedAccounts = {};
 
-  Map<String, MemoryImage?> cachedPicAccounts = {};
+  Map<String, Uint8List?> cachedPicAccounts = {};
 
   AccountInformationStore._();
 
@@ -31,7 +31,7 @@ class AccountInformationStore {
     }
   }
 
-  Future<MemoryImage?> getProfilePicByUsername(String accountName) async {
+  Future<Uint8List?> getProfilePicByUsername(String accountName) async {
     if (cachedPicAccounts.containsKey(accountName)) {
       return cachedPicAccounts[accountName];
     }
@@ -41,9 +41,8 @@ class AccountInformationStore {
     }
     if (accountInformation.encodedProfilePic != null) {
       final imageDataBytes = Uint8List.fromList(base64Decode(accountInformation.encodedProfilePic!));
-      MemoryImage memoryImage = MemoryImage(imageDataBytes);
-      cachedPicAccounts.putIfAbsent(accountName, () => memoryImage);
-      return memoryImage;
+      cachedPicAccounts.putIfAbsent(accountName, () => imageDataBytes);
+      return imageDataBytes;
     } else {
       cachedPicAccounts.putIfAbsent(accountName, () => null);
       return null;
@@ -56,5 +55,10 @@ class AccountInformationStore {
 
   void invalidateCache() {
     cachedAccounts = {};
+  }
+
+  void invalidateForUsername(String s) {
+    cachedAccounts.remove(s);
+    cachedPicAccounts.remove(s);
   }
 }

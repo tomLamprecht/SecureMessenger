@@ -9,6 +9,7 @@ import 'package:securemessenger/screens/chat_details_screen.dart';
 import 'package:securemessenger/services/api/api_config.dart';
 import 'package:securemessenger/services/files/ecc_helper.dart';
 import 'package:securemessenger/services/stores/account_information_store.dart';
+import 'package:securemessenger/services/stores/group_picture_store.dart';
 import 'package:securemessenger/services/websocket/websocket_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:file_picker/file_picker.dart';
@@ -399,18 +400,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<String?> _getImageFromDatabase() async {
-    if (encodedGroupPicture != null) {
-      return encodedGroupPicture;
-    }
-    var chatToAcc = await ChatsService().getChatToUser(widget.chatId);
-    String? encodedPic = chatToAcc?.chat.encodedGroupPic;
-    if (chatToAcc != null && encodedPic != null) {
-      encodedGroupPicture = encodedPic;
-      return encodedPic;
-    }
-
-    encodedGroupPicture = "";
-    return encodedGroupPicture;
+    return GroupPictureStore().getGroupChatPictureById(widget.chatId);
   }
 
   @override
@@ -437,16 +427,18 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => ChatDetailsScreen(chatId: chatId),
-              ));
+              )).then((value) => {
+                setState(() => {
+
+                })
+              });
             },
             child: Row(
               children: [
                 FutureBuilder<String?>(
                   future: _getImageFromDatabase(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.hasData &&
+                    if (snapshot.hasData &&
                         snapshot.data != null &&
                         snapshot.data != "") {
                       final encodedPic = snapshot.data!;
@@ -513,7 +505,7 @@ class ChatMessage extends StatefulWidget {
   final Function deleteMessage;
   final Function updateMessage;
   final String symKey;
-  MemoryImage? encodedPic;
+  Uint8List? encodedPic;
   bool isEditing = false;
 
   ChatMessage(
@@ -600,7 +592,7 @@ class _ChatMessageState extends State<ChatMessage> {
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
         child: CircleAvatar(
           radius: 20,
-          backgroundImage: widget.encodedPic,
+          backgroundImage: MemoryImage(widget.encodedPic!),
         ),
       );
     } else {

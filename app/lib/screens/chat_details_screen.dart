@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:securemessenger/screens/chat_overview_screen.dart';
 
 import 'package:securemessenger/services/friendship_service.dart';
+import 'package:securemessenger/services/stores/group_picture_store.dart';
 import 'package:securemessenger/services/stores/who_am_i_store.dart';
 
 import '../models/account.dart';
@@ -153,7 +154,6 @@ class GroupHeader extends StatefulWidget {
 }
 
 class _GroupHeaderState extends State<GroupHeader> {
-  Uint8List? _chosenFile;
   bool hasGroupPic = true;
   late String key;
 
@@ -180,7 +180,7 @@ class _GroupHeaderState extends State<GroupHeader> {
               ),
             );
             setState(() {
-              _chosenFile = imageBytes; // todo: glaube das kann raus, nochmal prüfen (brauch nur den setState für reload)
+              GroupPictureStore().invalidatePictureForGroupChat(widget.group.chatId);
             });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -212,10 +212,7 @@ class _GroupHeaderState extends State<GroupHeader> {
     var chatToAcc = await ChatsService().getChatToUser(widget.group.chatId);
     if(chatToAcc != null) {
       String? encodedPic = chatToAcc.chat.encodedGroupPic;
-      if (encodedPic != null) {
-        return encodedPic;
-      }
-      return null;
+      return encodedPic;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -234,6 +231,9 @@ class _GroupHeaderState extends State<GroupHeader> {
         ),
       );
       hasGroupPic = false;
+      setState(() {
+        GroupPictureStore().invalidatePictureForGroupChat(widget.group.chatId);
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
