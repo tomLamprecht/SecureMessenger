@@ -19,7 +19,7 @@ import '../services/encryption_service.dart';
 import '../services/files/download_service/download_service.dart';
 import '../services/message_service.dart';
 import '../services/stores/who_am_i_store.dart';
-import 'package:my_flutter_test/models/chat.dart';
+import '../services/stores/chat_decrypted_image_store.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatTitle;
@@ -68,7 +68,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _requestAllPicturesInitially().then((value) => setState(() {
           loadedAllImages = true;
         }));
-
   }
 
   Future<void> _requestAllPicturesInitially() async {
@@ -97,7 +96,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     var currentVisibleItems = itemPositionsListener.itemPositions.value;
     if (currentVisibleItems.isNotEmpty &&
-        currentVisibleItems.last.index == 0) {
+        currentVisibleItems.last.index == _messages.length - 1) {
       print(
           "Lazy loading messages with lastLoadedMsgId: ${_messages.first.id}");
       getAndDisplayMessagesFromBackend(_messages.first.id);
@@ -121,10 +120,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     setState(() {
       _chosenFiles.remove(fileToDelete);
     });
-  }
-
-  Future<void> _captureImage() async {
-    // todo
   }
 
   void createWebsocketConnection(String sessionKey) async {
@@ -151,7 +146,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     AnimationController animationControllerForIncommingMessages =
         AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 0),
+      duration: const Duration(milliseconds: 300),
     );
 
     var chatMessage = _parseMessageToChatMessage(
@@ -352,7 +347,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             file: AttachedFile(
                 fileName: file.name,
                 encodedFileContent: base64Encode(file.bytes!),
-                createdAt: DateTime.now()),
+                createdAt: DateTime.now(),
+                bytes: file.bytes),
             forceFileView: containsNonImageFile,
             icon: const Icon(Icons.delete),
             symKey: chatKey,
@@ -491,7 +487,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 padding: const EdgeInsets.all(8.0),
                 reverse: true,
                 itemCount: _messages.length,
-                itemBuilder: (_, int index) => _messages.reversed.toList()[index],
+                itemBuilder: (_, int index) =>
+                    _messages.reversed.toList()[index],
                 itemScrollController: itemScrollController,
                 itemPositionsListener: itemPositionsListener,
               ),
@@ -654,6 +651,7 @@ class _ChatMessageState extends State<ChatMessage> {
                     encodedContent: encryptedFileContent,
                     filename: file.fileName);
               },
+              messageId: widget.id,
             ))
         .toList();
   }
@@ -661,11 +659,12 @@ class _ChatMessageState extends State<ChatMessage> {
   Widget _buildMessageContent() {
     return Container(
       margin: const EdgeInsets.only(top: 5.0),
-      child: isEditing ? _buildEditingField() : Text(widget.text),
+      child: isEditing ? _buildEditingField(widget.text) : Text(widget.text),
     );
   }
 
-  Widget _buildEditingField() {
+  Widget _buildEditingField(String text) {
+    editingController.text = text;
     return Row(
       children: [
         Expanded(
@@ -737,25 +736,23 @@ class FileView extends StatefulWidget {
   final VoidCallback onClick;
   final Icon icon;
   final String symKey;
+  final int? messageId;
 
-  const FileView({
-    Key? key,
-    required this.file,
-    required this.forceFileView,
-    required this.onClick,
-    required this.icon,
-    required this.symKey,
-  }) : super(key: key);
+  const FileView(
+      {Key? key,
+      required this.file,
+      required this.forceFileView,
+      required this.onClick,
+      required this.icon,
+      required this.symKey,
+      this.messageId})
+      : super(key: key);
 
   @override
   _FileViewState createState() => _FileViewState();
 }
 
 class _FileViewState extends State<FileView> {
-  bool _showImage = false;
-  late Uint8List _decryptedImage;
-  bool _loadImage = false;
-
   @override
   Widget build(BuildContext context) {
     String fileExtension = _getFileExtension(widget.file.fileName);
@@ -789,11 +786,12 @@ class _FileViewState extends State<FileView> {
   }
 
   Widget _showImageWidget() {
-    if (_loadImage) {
-      return const Text("Decrypting image...");
-    }
+    Uint8List? decryptedChatImage = widget.messageId == null
+        ? widget.file.bytes
+        : ChatDecryptedImageStore()
+            .getDecryptedChatImageById(widget.messageId!);
 
-    if (_showImage) {
+    if (decryptedChatImage != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8.0),
         child: Container(
@@ -802,7 +800,7 @@ class _FileViewState extends State<FileView> {
             maxHeight: 200.0,
           ),
           child: Image.memory(
-            _decryptedImage,
+            decryptedChatImage,
             fit: BoxFit.cover,
           ),
         ),
@@ -810,15 +808,10 @@ class _FileViewState extends State<FileView> {
     }
 
     return ElevatedButton(
-      onPressed: () async {
+      onPressed: () {
         setState(() {
-          _loadImage = true;
-        });
-
-        setState(() {
-          _decryptedImage = decryptImage();
-          _showImage = true;
-          _loadImage = false;
+          ChatDecryptedImageStore()
+              .loadDecryptedChatImageForId(widget.messageId!, decryptImage());
         });
       },
       child: const Text('Show Image'),

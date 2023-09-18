@@ -1,14 +1,18 @@
+import 'dart:typed_data';
+
 class AttachedFile {
   String? uuid;
   String fileName;
   String encodedFileContent;
   DateTime? createdAt;
+  Uint8List? bytes;
 
   AttachedFile({
     this.uuid,
     required this.fileName,
     required this.encodedFileContent,
-    this.createdAt
+    this.createdAt,
+    this.bytes
   });
 
   Map<String, dynamic> toJson() {
