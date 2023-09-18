@@ -25,8 +25,9 @@ import '../services/stores/chat_decrypted_image_store.dart';
 class ChatScreen extends StatefulWidget {
   final String chatTitle;
   final int chatId;
+  bool loadedAllImages = false;
 
-  const ChatScreen({super.key, required this.chatTitle, required this.chatId});
+  ChatScreen({super.key, required this.chatTitle, required this.chatId});
 
   @override
   ChatScreenState createState() => ChatScreenState(chatId: chatId);
@@ -55,8 +56,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   ChatScreenState({required this.chatId});
 
-  bool loadedAllImages = false;
-
   @override
   initState() {
     super.initState();
@@ -64,11 +63,14 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _textFieldFocus.requestFocus();
     });
     itemPositionsListener.itemPositions.addListener(_scrollingListener);
-    getKeyOfChat(chatId).then((value) => _saveChatKeyAndGetAllMessages(value!));
+    getKeyOfChat(chatId).then((value) => {
+          _saveChatKeyAndGetAllMessages(value!).then((value) => {
+                _requestAllPicturesInitially().then((value) => setState(() {
+                      widget.loadedAllImages = true;
+                    }))
+              })
+        });
     getSessionKey(chatId).then((value) => createWebsocketConnection(value));
-    _requestAllPicturesInitially().then((value) => setState(() {
-          loadedAllImages = true;
-        }));
   }
 
   Future<void> _requestAllPicturesInitially() async {
@@ -80,7 +82,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     for (var username in uniqueUsernames) {
       futures.add(AccountInformationStore().getProfilePicByUsername(username));
     }
-
     await Future.wait(futures);
   }
 
@@ -228,7 +229,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     await updateMessage(message.id, chatId, encryptedMessage);
   }
 
-  void _saveChatKeyAndGetAllMessages(Chatkey chatKey) async {
+  Future<void> _saveChatKeyAndGetAllMessages(Chatkey chatKey) async {
     this.chatKey = ECCHelper().decryptByAESAndECDHUsingString(
         chatKey.encryptedByPublicKey, chatKey.value);
     await getAndDisplayMessagesFromBackend(-1);
@@ -405,7 +406,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    if (!loadedAllImages) {
+    if (!widget.loadedAllImages) {
       return const SizedBox(
           height: 20,
           width: 20,
@@ -425,13 +426,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         appBar: AppBar(
           title: GestureDetector(
             onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => ChatDetailsScreen(chatId: chatId),
-              )).then((value) => {
-                setState(() => {
-
-                })
-              });
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                    builder: (context) => ChatDetailsScreen(chatId: chatId),
+                  ))
+                  .then((value) => {setState(() => {})});
             },
             child: Row(
               children: [
@@ -520,18 +519,13 @@ class ChatMessage extends StatefulWidget {
       required this.updateMessage,
       required this.lastTimeUpdated,
       required this.symKey})
-      : super(key: key) {
-    AccountInformationStore()
-        .getProfilePicByUsername(fromUserName)
-        .then((value) => encodedPic = value);
-  }
+      : super(key: key);
 
   @override
   _ChatMessageState createState() => _ChatMessageState();
 }
 
 class _ChatMessageState extends State<ChatMessage> {
-
   List<FileView> attachedFilesView = [];
   late TextEditingController editingController;
 
@@ -550,6 +544,7 @@ class _ChatMessageState extends State<ChatMessage> {
 
   @override
   Widget build(BuildContext context) {
+
     bool isCurrentUser = widget.fromUserName == WhoAmIStore().username!;
 
     return SizeTransition(
@@ -652,7 +647,9 @@ class _ChatMessageState extends State<ChatMessage> {
   Widget _buildMessageContent() {
     return Container(
       margin: const EdgeInsets.only(top: 5.0),
-      child: widget.isEditing ? _buildEditingField(widget.text) : Text(widget.text),
+      child: widget.isEditing
+          ? _buildEditingField(widget.text)
+          : Text(widget.text),
     );
   }
 
