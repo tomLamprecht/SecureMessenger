@@ -53,7 +53,13 @@ class LoginScreenState extends State<LoginScreen> {
       }
 
       String content = utf8.decode(_selectedFile!.bytes!);
-      final success = await compute(signIn, {"keyPairPemEncrypted": content, "password": _passwordController.text});
+      bool success;
+      try {
+        success = await compute(signIn, {"keyPairPemEncrypted": content, "password": _passwordController.text});
+      } catch (e) {
+        success = false;
+      }
+
 
       setState(() {
         isLoading = false;
@@ -68,7 +74,7 @@ class LoginScreenState extends State<LoginScreen> {
             (route) => false,
         );
       } else {
-        _showAlertDialog('Error during the login process: Either the certificate is invalid or the account does not exist.');
+        _showAlertDialog('Error during the login process: Either the certificate or password is invalid or the account does not exist.');
       }
     }
   }
