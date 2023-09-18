@@ -39,7 +39,7 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
     var chatName = _chatNameController.text.trim();
     var chatDescription = _chatDescriptionController.text.trim();
 
-    if(WhoAmIStore().accountId == null) {
+    if (WhoAmIStore().accountId == null) {
       await requestAndSaveWhoAmI();
     }
 
@@ -49,10 +49,11 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
     var eccHelper = ECCHelper();
     var symKey = AesHelper.createRandomBase64Key();
 
-    if(accounts == null) {
+    if (accounts == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Data has not been loaded yet. Please be patient for a moment.'),
+          content: Text(
+              'Data has not been loaded yet. Please be patient for a moment.'),
         ),
       );
       return;
@@ -74,12 +75,14 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
 
     var chatId = await ChatsService()
         .createNewChat(chatName, chatDescription, encryptedSymKeys);
-    if(chatId == null) {
+    if (chatId == null) {
       return;
     }
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => ChatScreen(chatId: chatId, chatTitle: chatName)),
+      MaterialPageRoute(
+          builder: (context) =>
+              ChatScreen(chatId: chatId, chatTitle: chatName)),
     );
   }
 
@@ -107,7 +110,9 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => FriendRequestPage()),
-                );
+                ).then((value) {
+                  fetchFriends();
+                });
               },
             ),
           ],
@@ -125,7 +130,8 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
                         focusNode: _chatNameFocusNode,
                         decoration: InputDecoration(
                           labelText: 'Chat Name',
-                          errorText: isChatNameValid ? null : "Chat name is required.",
+                          errorText:
+                              isChatNameValid ? null : "Chat name is required.",
                           border: const OutlineInputBorder(),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(
@@ -198,7 +204,8 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
                           value: accounts![index].isSelected,
                           onChanged: (bool? value) {
                             setState(() {
-                              accounts![index].isSelected = !accounts![index].isSelected;
+                              accounts![index].isSelected =
+                                  !accounts![index].isSelected;
                             });
                           },
                         ),
@@ -212,10 +219,13 @@ class _CreateChatWidgetState extends State<CreateChatWidget> {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: isChatNameValid ? () async {
-            await createChat();
-          } : null,
-          backgroundColor: isChatNameValid ? Theme.of(context).primaryColor : Colors.grey,
+          onPressed: isChatNameValid
+              ? () async {
+                  await createChat();
+                }
+              : null,
+          backgroundColor:
+              isChatNameValid ? Theme.of(context).primaryColor : Colors.grey,
           child: const Icon(Icons.arrow_circle_right_outlined),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
