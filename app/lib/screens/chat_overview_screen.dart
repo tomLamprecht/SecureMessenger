@@ -181,7 +181,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
                                   ChatScreen(
                                       chatTitle: chat.name, chatId: chat.id),
                             ),
-                          );
+                          ).then((value) => initialize());
                         },
                       ),
                     );
@@ -196,7 +196,7 @@ class _ChatOverviewPageState extends State<ChatOverviewPage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const CreateChatWidget()),
-            );
+            ).then((value) => initialize());
           },
           child: const Icon(Icons.chat),
         ),
