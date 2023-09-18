@@ -15,7 +15,9 @@ public class Chat {
     @GenericGenerator(name = "randomLong", strategy = "de.thws.securemessenger.util.RandomLongIdentifier")
     private long id;
 
+    @Column(length = 4095)
     private String name;
+    @Column(length = 8191)
     private String description;
     private Instant createdAt;
 

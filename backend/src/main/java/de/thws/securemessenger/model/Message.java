@@ -22,6 +22,7 @@ public class Message {
     @JoinColumn(name = "ChatId")
     private Chat chat;
 
+    @Column(length = 16383)
     private String value;
 
     @OneToMany(cascade = CascadeType.ALL)
