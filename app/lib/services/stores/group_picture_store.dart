@@ -25,6 +25,10 @@ class GroupPictureStore {
     cachedPictures[groupChatId] = picture;
   }
 
+  void invalidatePictureForGroupChat(int groupChatId) {
+    cachedPictures.remove(groupChatId);
+  }
+
   void invalidateCache() {
     cachedPictures = {};
   }

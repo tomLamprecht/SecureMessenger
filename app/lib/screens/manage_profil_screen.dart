@@ -14,7 +14,6 @@ class ManageProfilPage extends StatefulWidget {
 
 class _ManageProfilPageState extends State<ManageProfilPage> {
 
-  Uint8List? _chosenFile;
   bool hasProfilPic = true;
 
   Future<void> _pickFile(BuildContext context) async {
@@ -36,7 +35,7 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
               ),
             );
             setState(() {
-              _chosenFile = imageBytes; // todo: ich glaube das kann raus, nochmal prüfen
+              AccountInformationStore().invalidateForUsername(WhoAmIStore().username!);
             });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +65,9 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
           ),
         );
         hasProfilPic = false;
+        setState(() {
+          AccountInformationStore().invalidateForUsername(WhoAmIStore().username!);
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -75,19 +77,14 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
     }
   }
 
-  Future<String?> _getImageFromDatabase() async {
+  Future<Uint8List?> _getImageFromDatabase() async {
       var username = WhoAmIStore().username;
 
       if (username == null) {
         throw Exception("No user is signed in, but the regarding profile picture is requested.");
       }
 
-      var account = await AccountInformationStore().getPublicInformationByUsername(username);
-
-      if(account == null) {
-        return null;
-      }
-      String? encodedPic = account.encodedProfilePic;
+      var encodedPic = await AccountInformationStore().getProfilePicByUsername(username);
 
       if (encodedPic != null) {
         return encodedPic;
@@ -117,14 +114,14 @@ class _ManageProfilPageState extends State<ManageProfilPage> {
                         icon: const Icon(Icons.edit),
                         color: Colors.blue,
                       ),
-                      FutureBuilder<String?>(
+                      FutureBuilder<Uint8List?>(
                         future: _getImageFromDatabase(),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
                             return const Text('An error occurred while loading the image from the database.');
                           } else if (snapshot.hasData && snapshot.data != null) {
                             final encodedPic = snapshot.data!;
-                            final imageData = Uint8List.fromList(base64Decode(encodedPic));
+                            final imageData = encodedPic;
                             return CircleAvatar(
                               radius: 100,
                               backgroundImage: MemoryImage(imageData),
