@@ -32,6 +32,7 @@ class _ValidatedTextFieldState extends State<ValidatedTextField> {
   Widget build(BuildContext context) {
     return TextField(
       controller: widget.controller,
+      obscureText: widget.isPassword,
       decoration: InputDecoration(
         labelText: widget.labelText,
         errorText: _errorMessage,
