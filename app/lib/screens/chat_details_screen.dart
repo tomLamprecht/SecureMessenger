@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:securemessenger/screens/chat_overview_screen.dart';
 
 import 'package:securemessenger/services/friendship_service.dart';
+import 'package:securemessenger/services/stores/account_information_store.dart';
 import 'package:securemessenger/services/stores/group_picture_store.dart';
 import 'package:securemessenger/services/stores/who_am_i_store.dart';
 
@@ -62,7 +63,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   bool? isAdmin;
   String title = "Group Overview";
 
-
   @override
   void initState() {
     super.initState();
@@ -93,7 +93,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       // Adjust based on your model
       members: members,
       currentUser: members.firstWhere(
-          (element) => element.accountId == WhoAmIStore().accountId),
+              (element) => element.accountId == WhoAmIStore().accountId),
     );
   }
 
@@ -113,9 +113,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           if (snapshot.hasError || snapshot.data == null) {
             return Center(
               child: ElevatedButton(
-                onPressed: () => setState(() {
-                  _groupFuture = _fetchData();
-                }),
+                onPressed: () =>
+                    setState(() {
+                      _groupFuture = _fetchData();
+                    }),
                 child: const Text('Retry'),
               ),
             );
@@ -165,11 +166,13 @@ class _GroupHeaderState extends State<GroupHeader> {
 
     if (result != null) {
       PlatformFile file = result.files.first;
-      if (['jpg', 'jpeg', 'png', 'gif'].contains(file.extension!.toLowerCase())) {
+      if (['jpg', 'jpeg', 'png', 'gif']
+          .contains(file.extension!.toLowerCase())) {
         Uint8List imageBytes = file.bytes!;
 
-        Chatkey? chatKey = await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
-        if(chatKey != null) {
+        Chatkey? chatKey =
+        await ChatsService().getOwnSymmetricKeyOfChat(widget.group.chatId);
+        if (chatKey != null) {
           key = ECCHelper().decryptByAESAndECDHUsingString(
               chatKey.encryptedByPublicKey, chatKey.value);
           if (await ChatsService().updateGroupPicFromChat(
@@ -180,7 +183,8 @@ class _GroupHeaderState extends State<GroupHeader> {
               ),
             );
             setState(() {
-              GroupPictureStore().invalidatePictureForGroupChat(widget.group.chatId);
+              GroupPictureStore()
+                  .invalidatePictureForGroupChat(widget.group.chatId);
             });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -199,7 +203,8 @@ class _GroupHeaderState extends State<GroupHeader> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error saving the image. Invalid file extension. Select an image.'),
+            content: Text(
+                'Error saving the image. Invalid file extension. Select an image.'),
           ),
         );
       }
@@ -210,7 +215,7 @@ class _GroupHeaderState extends State<GroupHeader> {
 
   Future<String?> _getImageFromDatabase() async {
     var chatToAcc = await ChatsService().getChatToUser(widget.group.chatId);
-    if(chatToAcc != null) {
+    if (chatToAcc != null) {
       String? encodedPic = chatToAcc.chat.encodedGroupPic;
       return encodedPic;
     } else {
@@ -224,7 +229,7 @@ class _GroupHeaderState extends State<GroupHeader> {
   }
 
   Future<void> _deleteFile(BuildContext context) async {
-    if(await ChatsService().deleteGroupPicFromChat(widget.group.chatId)) {
+    if (await ChatsService().deleteGroupPicFromChat(widget.group.chatId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Image successfully deleted'),
@@ -247,64 +252,65 @@ class _GroupHeaderState extends State<GroupHeader> {
   Widget build(BuildContext context) {
     return Center(
         child: Column(
-      children: [
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(
-              onPressed: () {
-                _pickFile(context);
-              },
-              icon: const Icon(Icons.edit),
-              color: Colors.blue,
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    _pickFile(context);
+                  },
+                  icon: const Icon(Icons.edit),
+                  color: Colors.blue,
+                ),
+                FutureBuilder<String?>(
+                  future: _getImageFromDatabase(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Text('Failed to load image.');
+                    } else if (snapshot.hasData && snapshot.data != null) {
+                      final encodedPic = snapshot.data!;
+                      final imageData =
+                      Uint8List.fromList(base64Decode(encodedPic));
+                      return CircleAvatar(
+                        radius: 100,
+                        backgroundImage: MemoryImage(imageData),
+                      );
+                    } else {
+                      return const CircleAvatar(
+                        radius: 80,
+                        backgroundColor: Colors.blue,
+                        child: Icon(
+                          Icons.supervised_user_circle,
+                          size: 60,
+                          color: Colors.white,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                IconButton(
+                  onPressed: () {
+                    _deleteFile(context);
+                  },
+                  icon: const Icon(Icons.delete),
+                  color: Colors.red,
+                ),
+              ],
             ),
-            FutureBuilder<String?>(
-              future: _getImageFromDatabase(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Text('Failed to load image.');
-                } else if (snapshot.hasData && snapshot.data != null) {
-                  final encodedPic = snapshot.data!;
-                  final imageData = Uint8List.fromList(base64Decode(encodedPic));
-                  return CircleAvatar(
-                    radius: 100,
-                    backgroundImage: MemoryImage(imageData),
-                  );
-                } else {
-                  return const CircleAvatar(
-                    radius: 80,
-                    backgroundColor: Colors.blue,
-                    child: Icon(
-                      Icons.supervised_user_circle,
-                      size: 60,
-                      color: Colors.white,
-                    ),
-                  );
-                }
-              },
+            const SizedBox(height: 16),
+            Text(
+              widget.group.description ?? "",
+              style: const TextStyle(color: Colors.grey),
             ),
-            IconButton(
-              onPressed: () {
-                _deleteFile(context);
-              },
-              icon: const Icon(Icons.delete),
-              color: Colors.red,
+            const SizedBox(height: 8),
+            Text(
+              'Created: ${widget.group.creationDate.toLocal()}',
+              style: const TextStyle(color: Colors.grey),
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          widget.group.description ?? "",
-          style: const TextStyle(color: Colors.grey),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Created: ${widget.group.creationDate.toLocal()}',
-          style: const TextStyle(color: Colors.grey),
-        ),
-      ],
-    ));
+        ));
   }
 }
 
@@ -313,11 +319,10 @@ class AccountList extends StatefulWidget {
   final bool isAdmin;
   final int chatId;
 
-  const AccountList(
-      {super.key,
-      required this.accounts,
-      required this.isAdmin,
-      required this.chatId});
+  const AccountList({super.key,
+    required this.accounts,
+    required this.isAdmin,
+    required this.chatId});
 
   @override
   _AccountListState createState() => _AccountListState();
@@ -346,7 +351,7 @@ class _AccountListState extends State<AccountList> {
       accounts = membersInGroup;
       accountsToShow = membersInGroup
           .where((element) =>
-              element.userName.toLowerCase().contains(query.toLowerCase()))
+          element.userName.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
     membersNotifier.value = membersInGroup;
@@ -388,7 +393,7 @@ class _AccountListState extends State<AccountList> {
                 child: ListView.separated(
                   itemCount: accountsToShow.length,
                   separatorBuilder: (context, index) =>
-                      const Divider(color: Colors.grey),
+                  const Divider(color: Colors.grey),
                   itemBuilder: (context, index) {
                     final account = accountsToShow[index];
                     int startIndex = account.userName.length;
@@ -401,9 +406,12 @@ class _AccountListState extends State<AccountList> {
                       onTap: () => {},
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 10.0),
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blueGrey,
-                        child: Text(account.userName[0].toUpperCase()),
+                      leading: FutureBuilder(
+                        future: buildUserImageOrDefaultAvatar(account),
+                        builder: (BuildContext context, AsyncSnapshot<
+                            CircleAvatar> snapshot) {
+                          return snapshot.data!;
+                        },
                       ),
                       title: RichText(
                         text: TextSpan(
@@ -427,88 +435,86 @@ class _AccountListState extends State<AccountList> {
                         ),
                       ),
                       trailing: isAdmin &&
-                              account.accountId != WhoAmIStore().accountId
+                          account.accountId != WhoAmIStore().accountId
                           ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Tooltip(
-                                  message: "Kick out of chat",
-                                  child: IconButton(
-                                    icon: const Icon(
-                                        Icons.remove_circle_outline,
-                                        color: Colors.redAccent),
-                                    onPressed: () async {
-                                      var wasSuccessful = await ChatsService()
-                                          .removeAccountFromChat(
-                                              chatId, account.accountId);
-                                      if (wasSuccessful) {
-                                        setState(() {
-                                          accountsToShow.remove(account);
-                                          membersNotifier.value.remove(account);
-                                        });
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(
-                                                content: Text(
-                                                    "Something went wrong! Please try again later.")));
-                                      }
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(
-                                    width: 10),
-                                if (accountsInChat.any((element) =>
-                                    element.account.accountId ==
-                                        account.accountId &&
-                                    element.isAdmin))
-                                  Tooltip(
-                                    message: "Remove admin permissions",
-                                    child: IconButton(
-                                      icon: const Icon(Icons.shield,
-                                          color: Colors.redAccent),
-                                      onPressed: () async {
-                                        var wasSuccessful = await ChatsService()
-                                            .updateAdminRoleSettingOfAccount(
-                                                chatId,
-                                                account.accountId,
-                                                false);
-                                        if (wasSuccessful) {
-                                          setState(() {});
-                                        } else {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(const SnackBar(
-                                                  content: Text(
-                                                      "Something went wrong! Please try again later.")));
-                                        }
-                                      },
-                                    ),
-                                  )
-                                else
-                                  Tooltip(
-                                    message: "Grant admin permissions",
-                                    child: IconButton(
-                                      icon: const Icon(Icons.shield,
-                                          color: Colors.blueAccent),
-                                      onPressed: () async {
-                                        var wasSuccessful = await ChatsService()
-                                            .updateAdminRoleSettingOfAccount(
-                                                chatId,
-                                                account.accountId,
-                                                true
-                                        );
-                                        if (wasSuccessful) {
-                                          setState(() {});
-                                        } else {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(const SnackBar(
-                                                  content: Text(
-                                                      "Something went wrong! Please try again later.")));
-                                        }
-                                      },
-                                    ),
-                                  )
-                              ],
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Tooltip(
+                            message: "Kick out of chat",
+                            child: IconButton(
+                              icon: const Icon(
+                                  Icons.remove_circle_outline,
+                                  color: Colors.redAccent),
+                              onPressed: () async {
+                                var wasSuccessful = await ChatsService()
+                                    .removeAccountFromChat(
+                                    chatId, account.accountId);
+                                if (wasSuccessful) {
+                                  setState(() {
+                                    accountsToShow.remove(account);
+                                    membersNotifier.value.remove(account);
+                                  });
+                                } else {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                      content: Text(
+                                          "Something went wrong! Please try again later.")));
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          if (accountsInChat.any((element) =>
+                          element.account.accountId ==
+                              account.accountId &&
+                              element.isAdmin))
+                            Tooltip(
+                              message: "Remove admin permissions",
+                              child: IconButton(
+                                icon: const Icon(Icons.shield,
+                                    color: Colors.redAccent),
+                                onPressed: () async {
+                                  var wasSuccessful = await ChatsService()
+                                      .updateAdminRoleSettingOfAccount(
+                                      chatId,
+                                      account.accountId,
+                                      false);
+                                  if (wasSuccessful) {
+                                    setState(() {});
+                                  } else {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                        content: Text(
+                                            "Something went wrong! Please try again later.")));
+                                  }
+                                },
+                              ),
                             )
+                          else
+                            Tooltip(
+                              message: "Grant admin permissions",
+                              child: IconButton(
+                                icon: const Icon(Icons.shield,
+                                    color: Colors.blueAccent),
+                                onPressed: () async {
+                                  var wasSuccessful = await ChatsService()
+                                      .updateAdminRoleSettingOfAccount(
+                                      chatId,
+                                      account.accountId,
+                                      true);
+                                  if (wasSuccessful) {
+                                    setState(() {});
+                                  } else {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                        content: Text(
+                                            "Something went wrong! Please try again later.")));
+                                  }
+                                },
+                              ),
+                            )
+                        ],
+                      )
                           : null,
                     );
                   },
@@ -525,12 +531,27 @@ class _AccountListState extends State<AccountList> {
         });
   }
 
+  Future<CircleAvatar> buildUserImageOrDefaultAvatar(Account account) async {
+     var imageData = await AccountInformationStore().getProfilePicByUsername(
+        account.userName);
+    if (imageData != null) {
+      return CircleAvatar(
+        backgroundImage: MemoryImage(imageData),
+        radius: 20,
+      );
+    }
+    return CircleAvatar(
+      backgroundColor: Colors.blueGrey,
+      child: Text(account.userName[0].toUpperCase()),
+    );
+  }
+
   void _handleSearch(String text) {
     setState(() {
       query = text;
       accountsToShow = widget.accounts
           .where((element) =>
-              element.userName.toLowerCase().contains(text.toLowerCase()))
+          element.userName.toLowerCase().contains(text.toLowerCase()))
           .toList();
     });
   }
@@ -545,21 +566,21 @@ class GroupActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return group.members.length == 1
         ? ElevatedButton.icon(
-            icon: const Icon(Icons.delete),
-            label: const Text('Delete Group'),
-            onPressed: () async {
-              await deleteGroup(context);
-            },
-            style: ElevatedButton.styleFrom(primary: Colors.red),
-          )
+      icon: const Icon(Icons.delete),
+      label: const Text('Delete Group'),
+      onPressed: () async {
+        await deleteGroup(context);
+      },
+      style: ElevatedButton.styleFrom(primary: Colors.red),
+    )
         : ElevatedButton.icon(
-            icon: const Icon(Icons.exit_to_app),
-            label: const Text('Leave Chat'),
-            onPressed: () async {
-              await leaveChat(context);
-            },
-            style: ElevatedButton.styleFrom(primary: Colors.blueGrey),
-          );
+      icon: const Icon(Icons.exit_to_app),
+      label: const Text('Leave Chat'),
+      onPressed: () async {
+        await leaveChat(context);
+      },
+      style: ElevatedButton.styleFrom(primary: Colors.blueGrey),
+    );
   }
 
   Future<void> leaveChat(BuildContext context) async {
@@ -570,7 +591,8 @@ class GroupActions extends StatelessWidget {
         MaterialPageRoute(builder: (context) => ChatOverviewPage()),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errorMessage)));
     }
   }
 
@@ -603,7 +625,7 @@ class AddMemberButton extends StatelessWidget {
     var friends = await FriendshipService().getFriendships();
     var availableFriends = friends
         .where((element) =>
-            !accounts.any((account) => account.accountId == element.accountId))
+    !accounts.any((account) => account.accountId == element.accountId))
         .toList();
     return await showModalBottomSheet<List<Account>>(
       context: context,
@@ -620,15 +642,18 @@ class AddMemberButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () async {
           List<Account>? selectedAccounts =
-              await showAccountSelectionModal(context);
+          await showAccountSelectionModal(context);
           if (selectedAccounts != null && selectedAccounts.isNotEmpty) {
             var currentAccountToChat =
-                await ChatsService().getChatToUser(chatId);
+            await ChatsService().getChatToUser(chatId);
             List<AccountIdToEncryptedSymKey> encryptedSymKeys = [];
             var eccHelper = ECCHelper();
             for (var account in selectedAccounts) {
               var encodedSymKey = eccHelper.encryptWithPubKeyStringUsingECDH(
-                  account.publicKey, eccHelper.decryptByAESAndECDHUsingString( currentAccountToChat!.encryptedBy.publicKey, currentAccountToChat.key) );
+                  account.publicKey,
+                  eccHelper.decryptByAESAndECDHUsingString(
+                      currentAccountToChat!.encryptedBy.publicKey,
+                      currentAccountToChat.key));
               encryptedSymKeys.add(AccountIdToEncryptedSymKey(
                   accountId: account.accountId,
                   encryptedSymmetricKey: encodedSymKey));
@@ -648,10 +673,9 @@ class CustomSearchBar extends StatelessWidget {
   final Function(String) onChanged;
   final List<Account> accounts;
 
-  const CustomSearchBar(
-      {required this.controller,
-      required this.onChanged,
-      required this.accounts});
+  const CustomSearchBar({required this.controller,
+    required this.onChanged,
+    required this.accounts});
 
   @override
   Widget build(BuildContext context) {
@@ -663,17 +687,17 @@ class CustomSearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: 'Search Members',
           contentPadding:
-              const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+          const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
           prefixIcon: const Icon(Icons.search),
           suffixIcon: controller.text.isEmpty
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    controller.clear();
-                    onChanged('');
-                  },
-                ),
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              controller.clear();
+              onChanged('');
+            },
+          ),
         ),
       ),
     );
@@ -708,7 +732,8 @@ class _AccountSelectionModalState extends State<AccountSelectionModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ...widget.accounts.map((account) => CheckboxListTile(
+          ...widget.accounts.map((account) =>
+              CheckboxListTile(
                 title: Text(account.userName),
                 value: _selectedAccounts[account.accountId],
                 onChanged: (bool? value) {
