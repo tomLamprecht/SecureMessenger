@@ -582,24 +582,30 @@ class _ChatMessageState extends State<ChatMessage> {
   }
 
   Widget _buildUserAvatar() {
-    if (widget.encodedPic != null) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: CircleAvatar(
-          radius: 20,
-          backgroundImage: MemoryImage(widget.encodedPic!),
-        ),
-      );
-    } else {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: CircleAvatar(
-          backgroundColor: _getColorFromUserName(widget.fromUserName),
-          foregroundColor: Colors.white,
-          child: Text(widget.fromUserName[0].toUpperCase()),
-        ),
-      );
-    }
+    return FutureBuilder(
+      future: AccountInformationStore()
+          .getProfilePicByUsername(widget.fromUserName),
+      builder: (context, snapshot) {
+        if (snapshot.data != null) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: CircleAvatar(
+              radius: 20,
+              backgroundImage: MemoryImage(snapshot.data!),
+            ),
+          );
+        } else {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: CircleAvatar(
+              backgroundColor: _getColorFromUserName(widget.fromUserName),
+              foregroundColor: Colors.white,
+              child: Text(widget.fromUserName[0].toUpperCase()),
+            ),
+          );
+        }
+      },
+    );
   }
 
   Widget _buildMessageHeader() {
