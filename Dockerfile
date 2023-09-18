@@ -8,6 +8,7 @@ FROM maven:3.9.4-amazoncorretto-17 AS backend_build
 RUN mkdir -p /workspace
 WORKDIR /workspace
 COPY backend/pom.xml /workspace
+RUN mvn -f pom.xml verify --fail-never
 COPY backend/src /workspace/src
 COPY --from=flutter_build /workspace/build/web/ /workspace/src/main/resources/static/
 RUN mvn -f pom.xml clean package -DskipTests
