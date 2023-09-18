@@ -97,8 +97,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     var currentVisibleItems = itemPositionsListener.itemPositions.value;
     if (currentVisibleItems.isNotEmpty &&
         currentVisibleItems.last.index == _messages.length - 1) {
-      print(
-          "Lazy loading messages with lastLoadedMsgId: ${_messages.first.id}");
       getAndDisplayMessagesFromBackend(_messages.first.id);
     }
   }
@@ -417,7 +415,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    print(_messages.map((e) => e.text).toList());
     if (!loadedAllImages) {
       return const SizedBox(
           height: 20,
@@ -516,8 +513,10 @@ class ChatMessage extends StatefulWidget {
   final Function deleteMessage;
   final Function updateMessage;
   final String symKey;
+  MemoryImage? encodedPic;
+  bool isEditing = false;
 
-  const ChatMessage(
+  ChatMessage(
       {Key? key,
       required this.id,
       required this.fromUserName,
@@ -529,23 +528,25 @@ class ChatMessage extends StatefulWidget {
       required this.updateMessage,
       required this.lastTimeUpdated,
       required this.symKey})
-      : super(key: key);
+      : super(key: key) {
+    AccountInformationStore()
+        .getProfilePicByUsername(fromUserName)
+        .then((value) => encodedPic = value);
+  }
 
   @override
   _ChatMessageState createState() => _ChatMessageState();
 }
 
 class _ChatMessageState extends State<ChatMessage> {
-  bool isEditing = false;
+
   List<FileView> attachedFilesView = [];
   late TextEditingController editingController;
-  MemoryImage? encodedPic;
 
   @override
   void initState() {
     super.initState();
     editingController = TextEditingController(text: widget.text);
-
     _getImageFromDatabase(widget.fromUserName);
   }
 
@@ -579,7 +580,7 @@ class _ChatMessageState extends State<ChatMessage> {
                   ],
                 ),
               ),
-              if (isCurrentUser && !isEditing) _buildMessageActions(),
+              if (isCurrentUser && !widget.isEditing) _buildMessageActions(),
             ],
           ),
         ));
@@ -589,17 +590,17 @@ class _ChatMessageState extends State<ChatMessage> {
     await AccountInformationStore()
         .getProfilePicByUsername(username)
         .then((value) => setState(() {
-              encodedPic = value;
+              widget.encodedPic = value;
             }));
   }
 
   Widget _buildUserAvatar() {
-    if (encodedPic != null) {
+    if (widget.encodedPic != null) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
         child: CircleAvatar(
           radius: 20,
-          backgroundImage: encodedPic,
+          backgroundImage: widget.encodedPic,
         ),
       );
     } else {
@@ -659,7 +660,7 @@ class _ChatMessageState extends State<ChatMessage> {
   Widget _buildMessageContent() {
     return Container(
       margin: const EdgeInsets.only(top: 5.0),
-      child: isEditing ? _buildEditingField(widget.text) : Text(widget.text),
+      child: widget.isEditing ? _buildEditingField(widget.text) : Text(widget.text),
     );
   }
 
@@ -673,7 +674,7 @@ class _ChatMessageState extends State<ChatMessage> {
             autofocus: true,
             onSubmitted: (value) async {
               setState(() {
-                isEditing = false;
+                widget.isEditing = false;
               });
               await widget.updateMessage(widget, editingController.text);
             },
@@ -682,7 +683,7 @@ class _ChatMessageState extends State<ChatMessage> {
         IconButton(
           onPressed: () {
             setState(() {
-              isEditing = false;
+              widget.isEditing = false;
               editingController.text = widget.text;
             });
           },
@@ -691,7 +692,7 @@ class _ChatMessageState extends State<ChatMessage> {
         IconButton(
           onPressed: () async {
             setState(() {
-              isEditing = false;
+              widget.isEditing = false;
             });
             await widget.updateMessage(widget, editingController.text);
           },
@@ -711,7 +712,7 @@ class _ChatMessageState extends State<ChatMessage> {
             break;
           case 'edit':
             setState(() {
-              isEditing = true;
+              widget.isEditing = true;
             });
             break;
         }
