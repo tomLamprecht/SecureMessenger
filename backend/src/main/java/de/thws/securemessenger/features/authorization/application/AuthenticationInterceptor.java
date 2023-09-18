@@ -1,5 +1,6 @@
 package de.thws.securemessenger.features.authorization.application;
 
+import de.thws.securemessenger.features.authorization.logic.RateLimitLogic;
 import de.thws.securemessenger.features.authorization.model.MaxTimeDifference;
 import de.thws.securemessenger.features.messenging.model.TimeSegment;
 import de.thws.securemessenger.model.Account;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -40,6 +42,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private final Logger logger = LoggerFactory.getLogger(AuthenticationInterceptor.class);
     private final CurrentAccount currentAccount;
     private final AccountRepository accountRepository;
+    private final RateLimitLogic rateLimitLogic;
 
     static {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
@@ -47,9 +50,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         }
     }
 
-    public AuthenticationInterceptor(CurrentAccount currentAccount, AccountRepository accountRepository) {
+    @Autowired
+    public AuthenticationInterceptor(CurrentAccount currentAccount, AccountRepository accountRepository, RateLimitLogic rateLimitLogic) {
         this.currentAccount = currentAccount;
         this.accountRepository = accountRepository;
+        this.rateLimitLogic = rateLimitLogic;
     }
 
     @Override
@@ -66,6 +71,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         if (isMissingRequiredHeaders(publicKeyString, authTimestamp, authSignature)) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Missing required headers");
+            return false;
+        }
+
+        if (!rateLimitLogic.registerRequestAndCheckUnderLimit(publicKeyString)) {
+            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value());
             return false;
         }
 
